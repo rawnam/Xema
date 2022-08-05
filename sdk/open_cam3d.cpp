@@ -20,8 +20,8 @@ using namespace std::chrono;
 //socket
 INITIALIZE_EASYLOGGINGPP
 
-const int image_width = 1920;
-const int image_height = 1200;
+const int image_width = 2448;
+const int image_height = 2048;
 const int image_size = image_width * image_height;
 bool connected = false;
 long long token = 0;
@@ -42,8 +42,8 @@ int (*p_OnDropped)(void*) = 0;
 struct CameraCalibParam calibration_param_;
 bool connected_flag_ = false;
 
-int camera_width_ = 1920;
-int camera_height_ = 1200;
+int camera_width_ = 2448;
+int camera_height_ = 2048;
 
 const char* camera_ip_ = "";
 

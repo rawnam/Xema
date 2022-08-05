@@ -127,6 +127,9 @@ open_cam3d.exe --get-repetition-phase-02 --count 3 --ip 192.168.x.x --path  ./ph
 34.Enable Focusing: \n\
 open_cam3d.exe --enable-focusing --ip 192.168.x.x \n\
 \n\
+35.Enable Focusing: \n\
+open_cam3d.exe --rgb-split --path .\original_img.bmp  \n\
+\n\
 ";
 
 void help_with_version(const char* help);
@@ -139,7 +142,7 @@ int get_repetition_frame_03(const char* ip, int count, const char* frame_path);
 int get_repetition_frame_04(const char* ip, int count, const char* frame_path);
 int get_frame_hdr(const char* ip, const char* frame_path);
 void save_frame(float* depth_buffer, unsigned char* bright_buffer, const char* frame_path);
-void save_images(const char* raw_image_dir, unsigned char* buffer, int image_size, int image_num);
+void save_images(const char* raw_image_dir, unsigned char* buffer, int imgae_width,int imgae_height, int image_size, int image_num);
 void save_point_cloud(float* point_cloud_buffer, const char* pointcloud_path);
 void save_color_point_cloud(float* point_cloud_buffer, unsigned char* brightness_buffer, const char* pointcloud_path);
 void write_fbin(std::ofstream& out, float val);
@@ -175,6 +178,7 @@ int self_test(const char* ip);
 int get_projector_temperature(const char* ip);
 int get_repetition_phase_02(const char* ip, int count, const char* phase_image_dir);
 int configure_focusing(const char* ip);
+int split_rgb(const char* original_img_path);
 
 extern int optind, opterr, optopt;
 extern char* optarg;
@@ -224,7 +228,8 @@ enum opt_set
 	SELF_TEST,
 	GET_PROJECTOR_TEMPERATURE,
 	GET_REPETITION_PHASE_02,
-	ENABLE_FOCUSING
+	ENABLE_FOCUSING,
+	RGB_SPLIT
 };
 
 static struct option long_options[] =
@@ -273,6 +278,7 @@ static struct option long_options[] =
 	{"self-test",no_argument,NULL,SELF_TEST},
 	{"get-projector-temperature",no_argument,NULL,GET_PROJECTOR_TEMPERATURE},
 	{"enable-focusing",no_argument,NULL,ENABLE_FOCUSING},
+	{"rgb-split",no_argument,NULL,RGB_SPLIT},
 };
 
 
@@ -473,6 +479,9 @@ int main(int argc, char* argv[])
 	case ENABLE_FOCUSING:
 		configure_focusing(camera_id);
 		break;
+	case RGB_SPLIT:
+		split_rgb(path);
+		break;
 	default:
 		break;
 	}
@@ -601,7 +610,7 @@ void save_frame(float* depth_buffer, unsigned char* bright_buffer, const char* f
 
 }
 
-void save_images(const char* raw_image_dir, unsigned char* buffer, int image_size, int image_num)
+void save_images(const char* raw_image_dir, unsigned char* buffer, int imgae_width, int imgae_height, int image_size, int image_num)
 {
 	std::string folderPath = raw_image_dir;
 	std::string mkdir_cmd = std::string("mkdir ") + folderPath;
@@ -610,7 +619,7 @@ void save_images(const char* raw_image_dir, unsigned char* buffer, int image_siz
 	for (int i = 0; i < image_num; i++)
 	{
 		std::stringstream ss;
-		cv::Mat image(1200, 1920, CV_8UC1, buffer + (long)(image_size * i));
+		cv::Mat image(imgae_height, imgae_width, CV_8UC1, buffer + (long)(image_size * i));
 		ss << std::setw(2) << std::setfill('0') << i;
 		std::string filename = folderPath + "/phase" + ss.str() + ".bmp";
 		cv::imwrite(filename, image);
@@ -1302,7 +1311,7 @@ int get_raw_01(const char* ip, const char* raw_image_dir)
 
 	ret = DfGetCameraRawData01(raw_buf, image_size * capture_num);
 
-	save_images(raw_image_dir, raw_buf, image_size, capture_num);
+	save_images(raw_image_dir, raw_buf, width, height, image_size, capture_num);
 
 	delete[] raw_buf;
 
@@ -1331,7 +1340,7 @@ int get_raw_03(const char* ip, const char* raw_image_dir)
 
 	ret = DfGetCameraRawData03(raw_buf, image_size * 31);
 
-	save_images(raw_image_dir, raw_buf, image_size, 31);
+	save_images(raw_image_dir, raw_buf, width, height, image_size, 31);
 
 	delete[] raw_buf;
 
@@ -1360,7 +1369,7 @@ int get_raw_02(const char* ip, const char* raw_image_dir)
 
 	ret = DfGetCameraRawDataTest(raw_buf, image_size * capture_num);
 
-	save_images(raw_image_dir, raw_buf, image_size, capture_num);
+	save_images(raw_image_dir, raw_buf, width, height, image_size, capture_num);
 
 	delete[] raw_buf;
 
@@ -1779,10 +1788,7 @@ int get_temperature(const char* ip)
 int configure_focusing(const char* ip)
 {
 
-	cv::namedWindow("focusing", cv::WINDOW_NORMAL);
-	cv::resizeWindow("focusing", 960, 600);
-	cv::imshow("focusing", cv::Mat(1200, 1920, CV_8UC1, cv::Scalar(0)));
-	cv::waitKey(5);
+
 
 	enable_checkerboard(camera_id);
 	clock_t startTime, endTime;
@@ -1802,6 +1808,11 @@ int configure_focusing(const char* ip)
 
 	int width, height;
 	DfGetCameraResolution(&width, &height);
+
+	cv::namedWindow("focusing", cv::WINDOW_NORMAL);
+	cv::resizeWindow("focusing", 960, 600);
+	cv::imshow("focusing", cv::Mat(height, width, CV_8UC1, cv::Scalar(0)));
+	cv::waitKey(5);
 
 	ret = DfSetParamLedCurrent(255);
 	//cv::waitKey(10);
@@ -2174,4 +2185,44 @@ int get_projector_temperature(const char* ip)
 
 	DfDisconnectNet();
 	return 1;
+}
+
+
+int split_rgb(const char* original_img_path)
+{
+	std::string path(original_img_path);
+
+	cv::Mat origin_mat = cv::imread(path,0);
+
+	int nr = origin_mat.rows;
+	int nc = origin_mat.cols;
+
+	cv::Mat r_mat(nr / 2, nc / 2, CV_8U, cv::Scalar(0));
+	cv::Mat g0_mat(nr / 2, nc / 2, CV_8U, cv::Scalar(0));
+	cv::Mat g1_mat(nr / 2, nc / 2, CV_8U, cv::Scalar(0));
+	cv::Mat b_mat(nr / 2, nc / 2, CV_8U, cv::Scalar(0));
+
+	for (int r = 0; r < nr; r += 2)
+	{
+		uchar* ptr_o0 = origin_mat.ptr<uchar>(r);
+		uchar* ptr_o1 = origin_mat.ptr<uchar>(r+1);
+
+		uchar* ptr_r = r_mat.ptr<uchar>(r / 2);
+		uchar* ptr_g0 = g0_mat.ptr<uchar>(r / 2);
+		uchar* ptr_g1 = g1_mat.ptr<uchar>(r / 2);
+		uchar* ptr_b = b_mat.ptr<uchar>(r / 2);
+
+		for (int c = 0; c < nc; c += 2)
+		{
+			ptr_r[c / 2] = ptr_o0[c];
+			ptr_g0[c / 2] = ptr_o0[c+1];
+			ptr_g1[c / 2] = ptr_o1[c];
+			ptr_b[c / 2] = ptr_o1[c+1];  
+		} 
+	}
+
+	cv::imwrite("./r.bmp", r_mat);
+	cv::imwrite("./g0.bmp", g0_mat);
+	cv::imwrite("./g1.bmp", g1_mat);
+	cv::imwrite("./b.bmp", b_mat);
 }
