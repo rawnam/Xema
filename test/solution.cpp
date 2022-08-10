@@ -24,6 +24,7 @@
 #include "LookupTableFunction.h"
 //#include "../cmd/getopt.h" 
 #include "FilterModule.h" 
+#include <opencv2/photo/photo.hpp>
 /**************************************************************************/
 
 DfSolution::DfSolution()
@@ -418,6 +419,73 @@ bool DfSolution::readFolderImages(std::string dir, std::vector<std::vector<cv::M
 
 		patterns_list.push_back(patterns);
 	}
+}
+
+
+bool DfSolution::readColorImages(std::string dir, std::vector<cv::Mat>& patterns)
+{
+	//if (dir.empty())
+	//{
+	//	return false;
+	//}
+
+	std::vector<std::string> files;
+
+	getFiles(dir, files);
+
+	//for (int i = 0; i < files.size(); i++)
+	//{
+	//	std::cout<< files[i].c_str() << std::endl;
+	//}
+
+	patterns.clear();
+
+	for (int i = 0; i < files.size(); i++)
+	{
+		//std::string path = dir + "/phase";
+		std::string path = files[i];
+		//if (i < 10)
+		//{
+		//	path += "0";
+		//}
+
+		//path +=  std::to_string(i) + "_p.bmp";
+
+
+
+		cv::Mat img = cv::imread(path, 0);
+		if (img.empty())
+		{
+			return false;
+		}
+		std::cout << path << std::endl;
+
+
+		cv::Mat color_mat;
+		cv::cvtColor(img, color_mat, cv::COLOR_BayerBG2BGR);
+
+		std::vector < cv::Mat> channels;
+		cv::split(color_mat, channels);
+		cv::Mat b = channels[0].clone();
+
+		//cv::GaussianBlur(img, img, cv::Size(5, 5), 0, 1);
+
+		if (files.size() - 1 == i)
+		{
+			patterns.push_back(color_mat.clone());
+		}
+		else
+		{
+			patterns.push_back(b.clone());
+		}
+
+
+		//patterns[i] = img.clone();
+	}
+
+
+
+	return true;
 }
 
 bool DfSolution::readImages(std::string dir, std::vector<cv::Mat>& patterns)
@@ -1525,6 +1593,18 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseMiniTable(std::v
 
 bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path)
 {
+	if (19 != patterns.size())
+	{
+		return false;
+	}
+
+	bool ret = true;
+
+	int ver_pstterns_num = 18;
+
+	int nr = patterns[0].rows;
+	int nc = patterns[0].cols;
+
 	/***********************************************************************************/
 
 	clock_t startTime, endTime;
@@ -1535,6 +1615,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 	//LookupTableFunction lookup_table_machine;
 	lookup_table_machine_.setCalibData(calib_param);
 	lookup_table_machine_.setCameraVersion(camera_version_);
+	lookup_table_machine_.setImageResolution(nc, nr);
 
 	cv::Mat xL_rotate_x;
 	cv::Mat xL_rotate_y;
@@ -1552,17 +1633,8 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 
 
 
-	if (19 != patterns.size())
-	{
-		return false;
-	}
 
-	bool ret = true;
 
-	int ver_pstterns_num = 18;
-
-	int nr = patterns[0].rows;
-	int nc = patterns[0].cols;
 
 	std::vector<cv::Mat> ver_patterns_img(patterns.begin(), patterns.begin() + ver_pstterns_num);
 
@@ -1621,7 +1693,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 	cv::Mat wrap_2 = ver_wrap_img_4[2].clone();
 	cv::Mat wrap_3 = ver_wrap_img_6[0].clone();
 
-	float confidence_val = 2;
+	float confidence_val = 5;
 
 	float ver_period = ver_period_num;
 	unwrap_ver /= ver_period;
@@ -1638,6 +1710,37 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 	cv::Mat undistort_img;
 	lookup_table_machine_.undistortedImage(texture_map, undistort_img);
 	texture_map = undistort_img.clone();
+
+	//cv::Mat balance_white_dst;
+	//cv::SimpleWB simpleWB = cv::SimpleWB.Create();
+	//simpleWB.BalanceWhite(texture_map, balance_white_dst);
+
+	//if (3 == texture_map.channels())
+	//{
+	//	std::vector<Mat> imageRGB;
+
+	//	//RGB三通道分离
+	//	split(texture_map, imageRGB);
+
+	//	//求原始图像的RGB分量的均值
+	//	double R, G, B;
+	//	B = mean(imageRGB[0])[0];
+	//	G = mean(imageRGB[1])[0];
+	//	R = mean(imageRGB[2])[0];
+
+	//	//需要调整的RGB分量的增益
+	//	double KR, KG, KB;
+	//	KB = (R + G + B) / (3 * B);
+	//	KG = (R + G + B) / (3 * G);
+	//	KR = (R + G + B) / (3 * R);
+
+	//	//调整RGB三个通道各自的值
+	//	imageRGB[0] = imageRGB[0] * KB;
+	//	imageRGB[1] = imageRGB[1] * KG;
+	//	imageRGB[2] = imageRGB[2] * KR;
+	//	//RGB三通道图像合并
+	//	merge(imageRGB, texture_map);
+	//}
 
 	cv::Mat z_map_table;
 	//����ؽ���deep_map ��ͨ��Ϊx y z��ͨ����double ����

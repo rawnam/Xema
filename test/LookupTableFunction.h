@@ -66,6 +66,8 @@ public:
 	virtual bool readTableFloat(std::string dir_path, cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_mapping);
 
 	bool setCameraVersion(int version);
+
+	void setImageResolution(int width, int height);
 protected:
 	void normalizePoint(
 		double x, double y,

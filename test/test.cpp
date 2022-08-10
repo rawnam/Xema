@@ -35,6 +35,9 @@ test.exe --read --model phase-02 --patterns ./patterns_data  --calib ./param.txt
 7.Read:\n\
 test.exe --reconstruct --use minilook-table --patterns ./patterns_data  --calib ./param.txt --version DFX800 --pointcloud ./pointcloud_data\n\
 \n\
+8.Read:\n\
+test.exe --read --model patterns-04-c --patterns ./patterns_data  --calib ./param.txt --version DFX800  --pointcloud ./pointcloud_data\n\
+\n\
 ";
 
 extern int optind, opterr, optopt;
@@ -87,6 +90,7 @@ void capture_03();
 void capture_04();
 void read_03();
 void read_04();
+void read_04_color();
 void read_06();
 void capture_04_repetition_02(int repetition);
 void read_04_repetition_02();
@@ -194,6 +198,10 @@ int main(int argc, char* argv[])
 		else if ("patterns-04" == model)
 		{
 			read_04();
+		}
+		else if ("patterns-04-c" == model)
+		{
+			read_04_color();
 		}
 		else if ("patterns-06" == model)
 		{
@@ -676,6 +684,38 @@ void read_06()
 
 
 	solution_machine_.reconstructPatterns06BaseTable(patterns_, calibration_param_, pointcloud_path);
+}
+
+
+void read_04_color()
+{
+	struct CameraCalibParam calibration_param_;
+	DfSolution solution_machine_;
+	std::vector<cv::Mat> patterns_;
+
+	bool ret = solution_machine_.readColorImages(patterns_path, patterns_);
+
+	if (!ret)
+	{
+		std::cout << "Read Image Error!";
+	}
+
+	ret = solution_machine_.readCameraCalibData(calib_path, calibration_param_);
+
+	if (!ret)
+	{
+		std::cout << "Read Calib Param Error!" << std::endl;
+	}
+
+	ret = solution_machine_.setCameraVersion(version_number);
+	if (!ret)
+	{
+		std::cout << "Set Camera Version Error!" << std::endl;
+		return;
+	}
+
+
+	solution_machine_.reconstructMixedVariableWavelengthXPatternsBaseTable(patterns_, calibration_param_, pointcloud_path);
 }
 
 void read_04()

@@ -21,6 +21,13 @@ LookupTableFunction::~LookupTableFunction()
 {
 }
 
+
+void LookupTableFunction::setImageResolution(int width, int height)
+{
+	image_size_.width = width;
+	image_size_.height = height;
+}
+
 bool LookupTableFunction::setCameraVersion(int version)
 {
 
@@ -1236,10 +1243,10 @@ bool MiniLookupTableFunction::generateLookTable(cv::Mat& xL_rotate_x, cv::Mat& x
 	generateRotateTable(project_intrinsic_, projector_distortion_, R2, cv::Size(1920, 1200), xR_undistort_map_x, xR_undistort_map_y);
 
 	// 取四个点作为裁剪map的依据
-	projector_left_up_y = (xR_undistort_map_y.at<double>(5, 0) + 1 ) * 2000;
-	projector_right_up_y = (xR_undistort_map_y.at<double>(5, 1279) + 1 ) * 2000;
-	projector_left_down_y = (xR_undistort_map_y.at<double>(714, 0) + 1 ) * 2000;
-	projector_right_down_y = (xR_undistort_map_y.at<double>(714, 1279) + 1 ) * 2000;
+	projector_left_up_y = (xR_undistort_map_y.at<double>(5, 0) + 1) * 2000;
+	projector_right_up_y = (xR_undistort_map_y.at<double>(5, 1279) + 1) * 2000;
+	projector_left_down_y = (xR_undistort_map_y.at<double>(714, 0) + 1) * 2000;
+	projector_right_down_y = (xR_undistort_map_y.at<double>(714, 1279) + 1) * 2000;
 
 	cv::Mat mapping, mini_mapping;
 	generateMiniGridMapping(mapping, mini_mapping);
@@ -1732,7 +1739,7 @@ bool MiniLookupTableFunction::generateColOfDistorted(cv::InputArray _cameraMatri
 	cv::Mat col_of_distorted_data(1, 2000, CV_32F, cv::Scalar(-2));
 	float* dis_col = col_of_distorted_data.ptr<float>(0);
 	//std::cout << "_col_distorted" << _col_distorted << std::endl;
-	
+
 	for (int col = 0; col < 2000; col += 1)
 	{
 		col_undistorted = col / 1000. - 1.;
@@ -1830,7 +1837,7 @@ bool MiniLookupTableFunction::generateMiniGridMapping(cv::Mat& _LookupTable, cv:
 	// 斜率
 	double k_up = (projector_right_up_y - projector_left_up_y) / 1279;
 	double k_down = (projector_right_down_y - projector_left_down_y) / 1279;
-	
+
 	for (int row = 0; row < 4000; row += 1)
 	{
 		float* ptr_before = theLookUpTable.ptr<float>(row);
@@ -1849,7 +1856,7 @@ bool MiniLookupTableFunction::generateMiniGridMapping(cv::Mat& _LookupTable, cv:
 			{
 				ptr_after[col] = ptr_before[col];
 			}
-			
+
 		}
 
 	}
