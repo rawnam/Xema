@@ -65,6 +65,7 @@ add_executable(camera_server
                     camera_galaxy.cpp
                     camera_basler.cpp
                     camera.cpp
+                    filter_module.cu
                     )
 target_sources(camera_server PUBLIC "../test/LookupTableFunction.cpp") 
 target_link_libraries(camera_server PRIVATE Threads::Threads)

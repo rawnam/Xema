@@ -1,3 +1,4 @@
+#pragma once
 #ifndef DF8_ENCODE_CUDA_CUH
 #define DF8_ENCODE_CUDA_CUH
 

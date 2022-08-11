@@ -1,3 +1,4 @@
+#pragma once
 #include "encode_cuda.cuh"
 #include <opencv2/core.hpp> 
 #include <opencv2/imgcodecs.hpp>
@@ -13,6 +14,7 @@
 #include <vector>  
 #include "easylogging++.h"
 #include "protocol.h"
+#include "filter_module.cuh"
 
 
 int patterns_count_ = 36;
@@ -2783,12 +2785,20 @@ __global__ void cuda_filter_radius_outlier_removal(uint32_t img_height, uint32_t
 
 bool generate_pointcloud_base_table()
 {
+	LOG(INFO)<<"filter_reflect_noise start:"; 
+	filter_reflect_noise(image_height_,image_width_,d_unwrap_map_list[0]);
 
+	cudaDeviceSynchronize();
+	LOG(INFO)<<"filter_reflect_noise end";
+
+	// cv::Mat unwrap_map(1200, 1920, CV_32F, cv::Scalar(0.0));  
+	// CHECK(cudaMemcpy((float*)unwrap_map.data, d_unwrap_map_list[0], 1 * image_height_*image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+ 	// cv::imwrite("unwrap_map.tiff",unwrap_map);
 	reconstruct_pointcloud_base_table << <blocksPerGrid, threadsPerBlock >> > (d_xL_rotate_x_ , d_xL_rotate_y_, 
                                                 d_single_pattern_mapping_, d_R_1_,d_confidence_list[3],d_unwrap_map_list[0],
 												image_height_,image_width_,d_baseline_,d_point_cloud_map_,d_depth_map_);
 
-
+// cudaDeviceSynchronize();
 	// LOG(INFO)<<"remove start:";
 	// //相机像素为5.4um、焦距12mm。dot_spacing = 5.4*distance/12000 mm，典型值0.54mm（1200） 
 	// cuda_filter_radius_outlier_removal << <blocksPerGrid, threadsPerBlock >> > (image_height_,image_width_,d_point_cloud_map_,d_mask_,0.5,2.5,6); 
