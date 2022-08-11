@@ -482,6 +482,175 @@ double FilterModule::computePointsDistance(cv::Point2f p0, cv::Point2f p1)
 }
 
 
+bool FilterModule::removeReflectNoise(cv::Mat unwrap_map, cv::Mat confidence_map, cv::Mat& mask)
+{
+	if (unwrap_map.empty())
+	{
+		return false;
+	}
+
+	int nr = unwrap_map.rows;
+	int nc = unwrap_map.cols;
+
+	cv::Mat myMask(nr, nc, CV_8UC1, cv::Scalar(0));
+
+	double max;
+	// 用几句话来描述这些噪声：
+	// 1.这些噪声是递减的
+	// 2.噪声的开始部分或结束部分是有突变的，所以识别到递减的部分之后，应当寻找左侧的最大值，与右侧的最小值之间删除
+	// 3.对于突变的点，若宽度不满足判断增减性的条件时，应当删除，比如删除10列以下的突变数据，可以解决边缘的噪声问题
+	// 4.对于突变的点，要标记一个flag，在此之后出现了突降，5，则认为这部分是异常数据，给予删除，另外来说，标记一个突变flag，若10像素的后面出现了减，则认为应当在此处开始删除点
+
+	// 算法设计：
+	// 1.首先的原则是按行进行循环
+	// 2.在每一行内，使用一个值来记录当前的最大值，若小于这个最大值的数字出现，就认为出现了下降趋势，记录这个区间将所有的点删除
+	// 3.往前多删除两个点
+	int flag_here_is_up = 0;//为零表示没有突变，否则表示突变的点的col
+	int flag_here_is_down;// 为零表示没有下降趋势，否则表示开始下降的点
+	int flag_the_up_count;// 大于10表示没有突起且稀疏的点，否则表示应当给予删除
+
+	int flag_the_up_num = 0;
+
+	for (int r = 0; r < nr; r += 1)
+	{
+		int c_before = 0;
+		flag_here_is_up = 0;
+		max = -1;
+		double* phasePtr = unwrap_map.ptr<double>(r);
+		unsigned char* maskPtr = myMask.ptr<unsigned char>(r);
+		int count = 0;
+		std::cout << r << std::endl;
+		int flag = 0;
+		for (int c = 10; c < nc; c += 1)
+		{
+			if (phasePtr[c_before] == -10.)
+			{
+				// 初次进入
+
+				std::cout << "进" << c_before << std::endl;
+				for (int c_temp = 0; c_temp < nc; c_temp += 1)
+				{
+					if (phasePtr[c_temp] != -10.)
+					{
+						c_before = c_temp;
+						c = c_before;
+						flag = 1;
+						break;
+					}
+				}
+				if (flag == 0)
+				{
+					c = nc;
+					std::cout << "出" << std::endl;
+					continue;
+				}
+				if (phasePtr[c_before] != -10)
+					std::cout << "有值" << c_before << std::endl;
+			}
+			if (phasePtr[c] == -10)
+			{
+				int flag = 0;
+				for (int c_temp = c; c_temp < nc; c_temp += 1)
+				{
+					if (phasePtr[c_temp] != -10)
+					{
+						c = c_temp;
+						flag = 1;
+						break;
+					}
+				}
+				if (flag == 0)
+				{
+					c = nc;
+					continue;
+				}
+			}
+
+			if (phasePtr[c] <= phasePtr[c_before] && count < 100)
+			{
+				if (count == 0)
+				{
+					flag_here_is_up = c;
+				}
+				// 若右边比左边小
+				count += 1;
+				//phasePtr[c] = -1;
+				//std::cout << "f" << std::endl;
+			}
+			else
+			{
+				c_before = c;
+				if (count == 0)
+				{
+					flag_the_up_num += 1;
+					//count = 0;
+
+					flag_here_is_up = 0;
+				}
+				else
+				{
+					int num_up = 0;
+					//if (1)
+					//{
+					//	flag_here_is_up = c - count - 5;
+					//}
+					int temp_num = -1;
+					for (int del = 0; del < 3; del += 1)
+					{
+
+						while (phasePtr[flag_here_is_up + temp_num] == -10)
+						{
+							if (flag_here_is_up + temp_num == 0)
+							{
+								break;
+							}
+							temp_num -= 1;
+						}
+
+						phasePtr[flag_here_is_up + temp_num] = -10;
+					}
+					double min = 0;
+					int num_temp_ = 0;
+					int count_temp = 0;
+					for (int cc = flag_here_is_up; cc < c; cc += 1)
+					{
+						// 添加判断语句，使得需要使用的
+						// 倒着循环过去，记录最小值，小于最小值的要保留，否则删除
+						num_temp_ += 1;
+						// 通过while寻找到前一个点，若更大则删除，若更小，则记录
+						while (phasePtr[c - num_temp_] == -10)
+						{
+							num_temp_ += 1;
+							cc += 1;
+						}
+						if (min == 0)
+						{
+							min = phasePtr[c - num_temp_];
+							phasePtr[c - num_temp_] = -10;
+							continue;
+						}
+						if (phasePtr[c - num_temp_] < min)
+						{
+							min = phasePtr[c - num_temp_];
+						}
+						else
+						{
+							phasePtr[c - num_temp_] = -10;
+							maskPtr[c - num_temp_] = 255;
+						}
+					}
+					flag_here_is_up = 0;
+					count = 0;
+				}
+			}
+
+		}
+	}
+
+	mask = myMask.clone();
+
+	return true;
+}
 
 
 
