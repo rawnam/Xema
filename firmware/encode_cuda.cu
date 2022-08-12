@@ -2906,8 +2906,10 @@ __global__ void reconstruct_pointcloud_base_table(float * const xL_rotate_x,floa
 		//phase to position
 		float Xp = phase_x[serial_id] * d_dlp_width_ / (128.0*2*DF_PI); 
   
-    	float Xcr = bilinear_interpolation(idx, idy,1920, xL_rotate_x);
-        float Ycr = bilinear_interpolation(idx, idy, 1920,xL_rotate_y);
+    	// float Xcr = bilinear_interpolation(idx, idy,1920, xL_rotate_x);
+        // float Ycr = bilinear_interpolation(idx, idy, 1920,xL_rotate_y);
+		float Xcr = xL_rotate_x[serial_id];
+        float Ycr = xL_rotate_y[serial_id];
         float Xpr = bilinear_interpolation(Xp, (Ycr + 1) * 2000, 2000, single_pattern_mapping);
         float delta_X = std::abs(Xcr - Xpr);
 		// float delta_X = Xpr -Xcr;
@@ -2918,7 +2920,7 @@ __global__ void reconstruct_pointcloud_base_table(float * const xL_rotate_x,floa
 		float Z_L = Z * Xcr * R_1[6] + Z * Ycr * R_1[7] + Z * R_1[8];
  
   
-		if(confidence_map[serial_id] > d_confidence_ && Z_L > 10 && Z_L< 60000 && Xp > 0)
+		if(confidence_map[serial_id] > d_confidence_ && Z_L > 10 && Z_L< 3000 && Xp > 0)
 		{
 		    pointcloud[3 * serial_id + 0] = X_L;
 		    pointcloud[3 * serial_id + 1] = Y_L;
