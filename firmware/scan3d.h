@@ -4,6 +4,7 @@
 #include "lightcrafter3010.h"
 #include "camera_param.h"
 #include "vector"
+#include "system_config_settings.h"
 
 class Scan3D
 {
@@ -33,6 +34,9 @@ public:
 
     void getCameraVersion(int &version);
     
+    void setParamSystemConfig(SystemConfigDataStruct param){
+        system_config_settings_machine_ = param;
+    }
     /************************************************************************/
     
     bool captureTextureImage(int model,float exposure,unsigned char* buff);
@@ -112,5 +116,8 @@ private:
     unsigned char* buff_brightness_;
     float* buff_depth_;
     float* buff_pointcloud_;
+
+    
+    SystemConfigDataStruct system_config_settings_machine_;
 
 };

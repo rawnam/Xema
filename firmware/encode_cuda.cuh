@@ -9,10 +9,7 @@
 #include <iostream>
 #include <stdint.h>
 #include <vector>
-#include "system_config_settings.h"
-
-//滤波
-// __global__ void cuda_filter_radius_outlier_removal(uint32_t img_height, uint32_t img_width,float* const point_cloud_map,uchar* remove_mask,float radius,int threshold);
+#include "system_config_settings.h" 
 
 __device__ float computePointsDistance(float* p0,float* p1);
 
@@ -42,6 +39,13 @@ void reconstruct_copy_brightness_from_cuda_memory(unsigned char* brightness);
 
 void copy_phase_from_cuda_memory(float* phase_x,float* phase_y);
 void copy_merge_brightness_from_cuda_memory(unsigned char* brightness);
+
+//滤波
+void remove_base_radius_filter(float dot_spacing,float radius,int threshold_num);
+
+__global__ void cuda_filter_radius_outlier_removal(uint32_t img_height, uint32_t img_width,float* const point_cloud_map,unsigned char* remove_mask,float dot_spacing_2, float radius,int threshold); 
+
+
 
 __global__ void reconstruct_pointcloud_base_table(float * const xL_rotate_x,float * const xL_rotate_y,float * const single_pattern_mapping,float * const R_1,float * const confidence_map,
                                                         float * const phase_x,uint32_t img_height, uint32_t img_width,float b, float * const pointcloud,float * const depth);
@@ -215,6 +219,7 @@ __global__ void cuda_mul_phase_unwrap(float * const d_in_wrap_0, float * const d
 __global__ void cuda_rebuild(float * const d_in_unwrap_x, float * const d_in_unwrap_y, float * const camera_intrinsic, float * const camera_distortion,
 	float * const projector_intrinsic, float * const projector_distortion, float * const rotation_matrix, float * const translation_matrix,
 	float * const d_out_point_cloud_map, float * const d_out_depth_map, float * const d_out_error_map, float * const confidence_map);
+
 
 #endif
 

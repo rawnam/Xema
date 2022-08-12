@@ -684,7 +684,16 @@ bool Scan3D::captureFrame04()
     camera_->streamOff();
     LOG(INFO) << "Stream Off";
 
-    
+    if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter)
+    {
+        float r = system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r;
+        int num = system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num;
+        remove_base_radius_filter(0.5*0.5,r,num);
+    }
+     
+
+
+
     reconstruct_copy_depth_from_cuda_memory(buff_depth_);
     // reconstruct_copy_pointcloud_from_cuda_memory(buff_pointcloud_);
 
