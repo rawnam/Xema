@@ -3187,6 +3187,42 @@ int handle_cmd_set_param_mixed_hdr(int client_sock)
         return DF_FAILED;
 }
 
+//获取相机分辨率
+int handle_cmd_get_param_camera_resolution(int client_sock)
+{
+    if (check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;
+    }
+
+    int width = 0;
+    int height = 0;
+
+    scan3d_.getCameraResolution(width,height);
+
+    // lc3010.read_dmd_device_id(version); 
+
+    int ret = send_buffer(client_sock, (char *)(&width), sizeof(int) * 1);
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
+    }
+
+    ret = send_buffer(client_sock, (char *)(&height), sizeof(int) * 1);
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
+    }
+
+    LOG(INFO)<<"camera width: "<<width;
+    LOG(INFO)<<"camera height: "<<height;
+
+    return DF_SUCCESS;
+
+}
+
 //获取相机版本参数
 int handle_cmd_get_param_camera_version(int client_sock)
 {
@@ -3430,13 +3466,19 @@ int handle_set_camera_looktable(int client_sock)
     }
 
     LOG(INFO) << "recv param\n";
+
+    int width = 0;
+    int height = 0;
+    scan3d_.getCameraResolution(width,height);
+
     /**************************************************************************************/
-    cv::Mat xL_rotate_x(1200, 1920, CV_32FC1, cv::Scalar(-2));
-    cv::Mat xL_rotate_y(1200, 1920, CV_32FC1, cv::Scalar(-2));
+    cv::Mat xL_rotate_x(height, width, CV_32FC1, cv::Scalar(-2));
+    cv::Mat xL_rotate_y(height, width, CV_32FC1, cv::Scalar(-2));
     cv::Mat rectify_R1(3, 3, CV_32FC1, cv::Scalar(-2));
     cv::Mat pattern_mapping(4000, 2000, CV_32FC1, cv::Scalar(-2));
+    cv::Mat pattern_minimapping(128, 128, CV_32FC1, cv::Scalar(-2));
 
-    ret = recv_buffer(client_sock, (char *)(xL_rotate_x.data), 1200 * 1920 * sizeof(float));
+    ret = recv_buffer(client_sock, (char *)(xL_rotate_x.data), height * width * sizeof(float));
     if (ret == DF_FAILED)
     {
         LOG(INFO) << "send error, close this connection!\n";
@@ -3444,7 +3486,7 @@ int handle_set_camera_looktable(int client_sock)
     }
     LOG(INFO) << "recv xL_rotate_x\n";
 
-    ret = recv_buffer(client_sock, (char *)(xL_rotate_y.data), 1200 * 1920 * sizeof(float));
+    ret = recv_buffer(client_sock, (char *)(xL_rotate_y.data), height * width * sizeof(float));
     if (ret == DF_FAILED)
     {
         LOG(INFO) << "send error, close this connection!\n";
@@ -3468,6 +3510,14 @@ int handle_set_camera_looktable(int client_sock)
     }
     LOG(INFO) << "recv pattern_mapping\n";
 
+    ret = recv_buffer(client_sock, (char *)(pattern_minimapping.data), 128 * 128 * sizeof(float));
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
+    }
+    LOG(INFO) << "recv pattern_minimapping\n";
+
     // cv::Mat R1_t = rectify_R1.t();
 
     // LOG(INFO) << "start copy table:";
@@ -3486,6 +3536,7 @@ int handle_set_camera_looktable(int client_sock)
     lookup_table_machine_.saveBinMappingFloat("./combine_xL_rotate_y_cam1_iter.bin", xL_rotate_y);
     lookup_table_machine_.saveBinMappingFloat("./R1.bin", rectify_R1);
     lookup_table_machine_.saveBinMappingFloat("./single_pattern_mapping.bin", pattern_mapping);
+    lookup_table_machine_.saveBinMappingFloat("./single_pattern_minimapping.bin",pattern_minimapping);
 
     LOG(INFO) << "save looktable ";
 
@@ -4303,34 +4354,34 @@ int handle_commands(int client_sock)
 	    LOG(INFO)<<"DF_CMD_SET_CAMERA_PARAMETERS";
 	    handle_set_camera_parameters(client_sock);
         read_calib_param();
-            cuda_copy_calib_data(param.camera_intrinsic, 
-		         param.projector_intrinsic, 
-			 param.camera_distortion,
-	                 param.projector_distortion, 
-			 param.rotation_matrix, 
-			 param.translation_matrix);
+            // cuda_copy_calib_data(param.camera_intrinsic, 
+		    //      param.projector_intrinsic, 
+			//  param.camera_distortion,
+	        //          param.projector_distortion, 
+			//  param.rotation_matrix, 
+			//  param.translation_matrix);
 	    break;
 	case DF_CMD_SET_CAMERA_LOOKTABLE:
 	    LOG(INFO)<<"DF_CMD_SET_CAMERA_LOOKTABLE";
 	    handle_set_camera_looktable(client_sock);
         read_calib_param();
-        cuda_copy_calib_data(param.camera_intrinsic, 
-		         param.projector_intrinsic, 
-			 param.camera_distortion,
-	                 param.projector_distortion, 
-			 param.rotation_matrix, 
-			 param.translation_matrix);
+        // cuda_copy_calib_data(param.camera_intrinsic, 
+		//          param.projector_intrinsic, 
+		// 	 param.camera_distortion,
+	    //              param.projector_distortion, 
+		// 	 param.rotation_matrix, 
+		// 	 param.translation_matrix);
 	    break;
 	case DF_CMD_SET_CAMERA_MINILOOKTABLE:
 	    LOG(INFO)<<"DF_CMD_SET_CAMERA_MINILOOKTABLE";
 	    handle_set_camera_minilooktable(client_sock);
         read_calib_param();
-        cuda_copy_calib_data(param.camera_intrinsic, 
-		         param.projector_intrinsic, 
-			 param.camera_distortion,
-	                 param.projector_distortion, 
-			 param.rotation_matrix, 
-			 param.translation_matrix);
+        // cuda_copy_calib_data(param.camera_intrinsic, 
+		//          param.projector_intrinsic, 
+		// 	 param.camera_distortion,
+	    //              param.projector_distortion, 
+		// 	 param.rotation_matrix, 
+		// 	 param.translation_matrix);
 	    break;
 	case DF_CMD_ENABLE_CHECKER_BOARD:
 	    LOG(INFO)<<"DF_CMD_ENABLE_CHECKER_BOARD";
@@ -4418,7 +4469,7 @@ int handle_commands(int client_sock)
     case DF_CMD_SET_PARAM_CAMERA_GAIN:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_CAMERA_GAIN";   
     	handle_cmd_set_param_camera_gain(client_sock);
-	    break;
+	    break; 
 	case DF_CMD_GET_PARAM_CAMERA_GAIN:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_GAIN";   
     	handle_cmd_get_param_camera_gain(client_sock);
@@ -4482,6 +4533,10 @@ int handle_commands(int client_sock)
         LOG(INFO)<<"DF_CMD_CONFIGURE_FOCUSING"; 
         handle_cmd_get_focusing_image(client_sock);
         break;
+    case DF_CMD_GET_CAMERA_RESOLUTION:
+        LOG(INFO)<<"DF_CMD_GET_CAMERA_RESOLUTION"; 
+        handle_cmd_get_param_camera_resolution(client_sock);
+        break;
 	default:
 	    LOG(INFO)<<"DF_CMD_UNKNOWN";
         handle_cmd_unknown(client_sock);
@@ -4526,7 +4581,7 @@ int init()
     lc3010.read_dmd_device_id(version);
     LOG(INFO)<<"read camera version: "<<version;
 
-    cuda_set_config(system_config_settings_machine_);
+    // cuda_set_config(system_config_settings_machine_);
 
     set_camera_version(version);
     // LOG(INFO)<<"camera version: "<<DFX_800;

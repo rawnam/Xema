@@ -53,12 +53,11 @@ link_libraries(/opt/pylon/lib/libpylonc.so)
 
 add_executable(camera_server
                     camera_server_new.cpp 
-                    system_config_settings.cpp 
-                    camera_dh.cpp 
+                    system_config_settings.cpp  
                     i2c.cpp 
                     lightcrafter3010.cpp 
-                    easylogging++.cc 
-                    encode_cuda.cu 
+                    easylogging++.cc   
+                    memory_management.cu
                     configure_standard_plane.cpp 
                     configure_auto_exposure.cpp
                     scan3d.cpp

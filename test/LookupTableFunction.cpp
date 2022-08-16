@@ -1,7 +1,7 @@
 #include "LookupTableFunction.h"
 #include "iostream"
 #include <fstream>
-#include "../firmware/protocol.h"
+#include "../firmware/protocol.h" 
 //#include "FileIoFunction.h" 
 
 LookupTableFunction::LookupTableFunction()
@@ -314,6 +314,53 @@ bool LookupTableFunction::generateLookTable(cv::Mat& xL_rotate_x, cv::Mat& xL_ro
 }
 
 /******************************************************************************************************/
+
+bool LookupTableFunction::readTableFloat(std::string dir_path, cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y,
+ cv::Mat& rectify_R1, cv::Mat& pattern_mapping,cv::Mat& pattern_minimapping,int width,int height)
+{
+
+	/****************************************************************************************************************************/
+
+	if (!readBinMappingFloat(3, 3, dir_path + "/R1.bin", R_1_))
+	{
+		return false;
+	}
+
+	if (!readBinMappingFloat(128, 128, dir_path + "/single_pattern_minimapping.bin", pattern_minimapping))
+	{
+		std::cout<<"read mini mapping error!";
+	}
+
+	if (!readBinMappingFloat(4000, 2000, dir_path + "/single_pattern_mapping.bin", single_pattern_mapping_))
+	{
+		return false;
+	}
+
+	if (!readBinMappingFloat(height, width, dir_path + "/combine_xL_rotate_x_cam1_iter.bin", xL_rotate_x_))
+	{
+		return false;
+	}
+
+	if (!readBinMappingFloat(height, width, dir_path + "/combine_xL_rotate_y_cam1_iter.bin", xL_rotate_y_))
+	{
+		return false;
+	}
+	/****************************************************************************************************************************/
+
+
+
+	if (!single_pattern_mapping_.data || !xL_rotate_x_.data || !xL_rotate_y_.data)
+	{
+		return false;
+	}
+
+	xL_rotate_x = xL_rotate_x_.clone();
+	xL_rotate_y = xL_rotate_y_.clone();
+	rectify_R1 = R_1_.clone();
+	pattern_mapping = single_pattern_mapping_.clone();
+
+	return true;
+}
 
 bool LookupTableFunction::readTableFloat(std::string dir_path, cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_mapping)
 {

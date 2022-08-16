@@ -64,6 +64,8 @@ public:
 	bool setLookTable(cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_mapping);
 
 	virtual bool readTableFloat(std::string dir_path, cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_mapping);
+	
+	bool readTableFloat(std::string dir_path, cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_mapping,cv::Mat& pattern_minimapping,int width,int height);
 
 	bool setCameraVersion(int version);
 protected:
