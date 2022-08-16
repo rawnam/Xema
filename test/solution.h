@@ -63,6 +63,8 @@ public:
 
 	bool readImages(std::string dir, std::vector<cv::Mat>& patterns);
 
+	bool readColorImages(std::string dir, std::vector<cv::Mat>& patterns);
+
 	bool setCameraVersion(int version);
 
 	bool findMaskBaseConfidence(cv::Mat confidence_map, int threshold, cv::Mat& mask);
