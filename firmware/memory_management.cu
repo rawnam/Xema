@@ -1,5 +1,5 @@
 #include "memory_management.cuh"
-#include "easylogging++.h"
+
 
 #define CHECK(call)\
 {\
@@ -319,8 +319,34 @@ void cuda_copy_talbe_to_memory(float* mapping,float* mini_mapping,float* rotate_
 }
 
 
+bool cuda_copy_pattern_to_memory(unsigned char* pattern_ptr,int serial_flag)
+{
+	if(serial_flag>= MAX_PATTERNS_NUMBER)
+	{
+		return false;
+	}
 
+	CHECK(cudaMemcpyAsync(d_patterns_list_[serial_flag], pattern_ptr, d_image_height_*d_image_width_* sizeof(unsigned char), cudaMemcpyHostToDevice)); 
+}
 
+void cuda_copy_pointcloud_from_memory(float* pointcloud)
+{ 
+	CHECK(cudaMemcpy(pointcloud, d_point_cloud_map_, 3 * d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+}
 
+void cuda_copy_depth_from_memory(float* depth)
+{
+	CHECK(cudaMemcpy(depth, d_depth_map_, d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost)); 
+} 
+
+void cuda_copy_brightness_from_memory(unsigned char* brightness)
+{
+	CHECK(cudaMemcpy(brightness, d_brightness_map_, d_image_height_*d_image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToHost)); 
+}
+
+void cuda_copy_brightness_to_memory(unsigned char* brightness)
+{ 
+	CHECK(cudaMemcpyAsync(d_brightness_map_, brightness, d_image_height_*d_image_width_* sizeof(unsigned char), cudaMemcpyHostToDevice)); 
+}
 
 /********************************************************************************************/

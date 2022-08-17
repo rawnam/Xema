@@ -13,6 +13,7 @@
 #include <opencv2/core.hpp> 
 #include <opencv2/imgcodecs.hpp>
 #include "protocol.h"
+#include "easylogging++.h"
 
 
  
@@ -31,6 +32,10 @@ __device__ float d_confidence_ = 10;
 __device__ int d_dlp_width_ = 1920;
 __device__ int d_dlp_height_ = 1080;
 __device__ float d_max_phase_ = 2* CV_PI; 
+
+__device__ float d_min_z_ = 10; 
+__device__ float d_max_z_ = 3000; 
+
 
 /**********************************************************************/
 //basic memory
@@ -104,10 +109,21 @@ bool cuda_free_repetition_memory();
 /************************************************************************************/
 //copy
 void cuda_copy_calib_data(float* camera_intrinsic, float* project_intrinsic, float* camera_distortion,
-	float* projector_distortion, float* rotation_matrix, float* translation_matrix);
-
+	float* projector_distortion, float* rotation_matrix, float* translation_matrix); 
 
 void cuda_copy_talbe_to_memory(float* mapping,float* mini_mapping,float* rotate_x,float* rotate_y,float* r_1,float base_line);
+
+
+bool cuda_copy_pattern_to_memory(unsigned char* pattern_ptr,int serial_flag);
+
+
+void cuda_copy_pointcloud_from_memory(float* pointcloud);
+
+void cuda_copy_depth_from_memory(float* depth);
+
+void cuda_copy_brightness_from_memory(unsigned char* brightness);
+
+void cuda_copy_brightness_to_memory(unsigned char* brightness);
 
 
 /***********************************************************************************/
