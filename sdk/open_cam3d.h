@@ -437,7 +437,7 @@ DF_SDK_API int DfSetCalibrationParam(const struct CameraCalibParam& calibration_
 //输出参数：无
 //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfSetCalibrationLookTable(const struct CameraCalibParam& calibration_param, float* rotate_x,
-	float* rotate_y, float* rectify_r1, float* mapping);
+	float* rotate_y, float* rectify_r1, float* mapping, float* mini_mapping, int width, int height);
 
 //函数名： DfSetCalibrationMiniLookTable
 //功能：设置标定参数接口

@@ -20,8 +20,8 @@ using namespace std::chrono;
 //socket
 INITIALIZE_EASYLOGGINGPP
 
-const int image_width = 2448;
-const int image_height = 2048;
+const int image_width = 1920;
+const int image_height = 1200;
 const int image_size = image_width * image_height;
 bool connected = false;
 long long token = 0;
@@ -42,8 +42,8 @@ int (*p_OnDropped)(void*) = 0;
 struct CameraCalibParam calibration_param_;
 bool connected_flag_ = false;
 
-int camera_width_ = 2448;
-int camera_height_ = 2048;
+int camera_width_ = 1920;
+int camera_height_ = 1200;
 
 const char* camera_ip_ = "";
 
@@ -359,16 +359,48 @@ DF_SDK_API int DfConnect(const char* camera_id)
 //返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
 DF_SDK_API int DfGetCameraResolution(int* width, int* height)
 {
-	if (!connected)
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
 	{
-		return -1;
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_GET_CAMERA_RESOLUTION, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (command == DF_CMD_OK)
+	{
+
+		ret = recv_buffer((char*)(width), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		ret = recv_buffer((char*)(height), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
 	}
 
-	*width = camera_width_;
-	*height = camera_height_;
+	close_socket(g_sock);
 
+	return DF_SUCCESS;
 
-	return 0;
 }
 
 //函数名： DfCaptureRepetitionData
@@ -904,14 +936,14 @@ DF_SDK_API int DfConnectNet(const char* ip)
 {
 	/*******************************************************************************************************************/
 	//关闭log输出
-	el::Configurations conf;
-	conf.setToDefault();
-	conf.setGlobally(el::ConfigurationType::Format, "[%datetime{%H:%m:%s} | %level] %msg");
-	conf.setGlobally(el::ConfigurationType::Filename, "log\\log_%datetime{%Y%M%d}.log");
-	conf.setGlobally(el::ConfigurationType::Enabled, "true");
-	conf.setGlobally(el::ConfigurationType::ToFile, "true");
-	el::Loggers::reconfigureAllLoggers(conf);
-	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
+	//el::Configurations conf;
+	//conf.setToDefault();
+	//conf.setGlobally(el::ConfigurationType::Format, "[%datetime{%H:%m:%s} | %level] %msg");
+	//conf.setGlobally(el::ConfigurationType::Filename, "log\\log_%datetime{%Y%M%d}.log");
+	//conf.setGlobally(el::ConfigurationType::Enabled, "true");
+	//conf.setGlobally(el::ConfigurationType::ToFile, "true");
+	//el::Loggers::reconfigureAllLoggers(conf);
+	//el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
 
 
 	//DfRegisterOnDropped(on_dropped);
@@ -2334,7 +2366,7 @@ DF_SDK_API int DfGetCalibrationParam(struct CameraCalibParam& calibration_param)
 //输出参数：无
 //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfSetCalibrationLookTable(const struct CameraCalibParam& calibration_param, float* rotate_x,
-	float* rotate_y, float* rectify_r1, float* mapping)
+	float* rotate_y, float* rectify_r1, float* mapping, float* mini_mapping, int width, int height)
 {
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
@@ -2358,15 +2390,15 @@ DF_SDK_API int DfSetCalibrationLookTable(const struct CameraCalibParam& calibrat
 
 		/*****************************************************************/
 
-		LOG(INFO) << "start send_buffer rotate_x size: " << 1920 * 1200 * sizeof(float);
-		ret = send_buffer((char*)(rotate_x), 1920 * 1200 * sizeof(float), g_sock);
+		LOG(INFO) << "start send_buffer rotate_x size: " << width * height * sizeof(float);
+		ret = send_buffer((char*)(rotate_x), width * height * sizeof(float), g_sock);
 		if (ret == DF_FAILED)
 		{
 			close_socket(g_sock);
 			return DF_FAILED;
 		}
 		LOG(INFO) << "start send_buffer: rotate_y";
-		ret = send_buffer((char*)(rotate_y), 1920 * 1200 * sizeof(float), g_sock);
+		ret = send_buffer((char*)(rotate_y), width * height * sizeof(float), g_sock);
 		if (ret == DF_FAILED)
 		{
 			close_socket(g_sock);
@@ -2382,6 +2414,14 @@ DF_SDK_API int DfSetCalibrationLookTable(const struct CameraCalibParam& calibrat
 		}
 		LOG(INFO) << "start send_buffer: mapping";
 		ret = send_buffer((char*)(mapping), 4000 * 2000 * sizeof(float), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		LOG(INFO) << "start send_buffer: mapping";
+		ret = send_buffer((char*)(mini_mapping), 128 * 128 * sizeof(float), g_sock);
 		if (ret == DF_FAILED)
 		{
 			close_socket(g_sock);

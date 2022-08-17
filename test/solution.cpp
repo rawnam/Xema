@@ -1069,9 +1069,10 @@ bool DfSolution::reconstructPatterns04Repetition01BaseTable(std::vector<cv::Mat>
 	cv::Mat xL_rotate_y;
 	cv::Mat R1;
 	cv::Mat pattern_mapping;
+	cv::Mat pattern_minimapping;
 
-	lookup_table_machine_.generateLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping);
-	mini_lookup_table_machine_.generateBigLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping);
+	//lookup_table_machine_.generateLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping);
+	mini_lookup_table_machine_.generateBigLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping, pattern_minimapping);
 	lookup_table_machine_.setLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping);
 
 	//lookup_table_machine_.readTable("../", 1200, 1920);
