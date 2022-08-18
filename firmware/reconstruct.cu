@@ -1,4 +1,8 @@
 #include "reconstruct.cuh"
+#include <opencv2/core.hpp> 
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+
 
  #define CHECK(call)\
 {\
@@ -10,15 +14,8 @@
       exit(1);\
   }\
 }
+ 
 
-dim3 threadsPerBlock_reconstruct(8, 8);
-dim3 blocksPerGrid_reconstruct((d_image_width_ + threadsPerBlock_reconstruct.x - 1) / threadsPerBlock_reconstruct.x,
-(d_image_height_ + threadsPerBlock_reconstruct.y - 1) / threadsPerBlock_reconstruct.y);
-
-bool cuda_generate_pointcloud_base_table()
-{
-	kernel_reconstruct_pointcloud_base_table << <blocksPerGrid_reconstruct, threadsPerBlock_reconstruct >> > (d_confidence_map_list_[3],d_unwrap_map_list_[0],d_point_cloud_map_,d_depth_map_);
-}
 
 __device__ float bilinear_interpolation(float x, float y, int map_width, float *mapping)
 {
@@ -53,32 +50,36 @@ __device__ float bilinear_interpolation(float x, float y, int map_width, float *
 
 }
 
-__global__ void kernel_reconstruct_pointcloud_base_table(float * const confidence_map,float * const phase_x , float * const pointcloud,float * const depth)
+__global__ void kernel_reconstruct_pointcloud_base_table(int width,int height,float * const xL_rotate_x,float * const xL_rotate_y,float * const single_pattern_mapping,float * const R_1,float b,
+float * const confidence_map,float * const phase_x , float * const pointcloud,float * const depth)
 {
     const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
 
   
-	const unsigned int offset = idy * d_image_width_ + idx;
+	const unsigned int offset = idy * width + idx;
 
-	if (idx < d_image_width_ && idy < d_image_width_)
+	if (idx < width && idy < height)
 	{
 		/****************************************************************************/
 		//phase to position
-		float Xp = phase_x[offset] * d_dlp_width_ /d_max_phase_; 
-        float Xcr = d_xL_rotate_x_[offset];
-        float Ycr = d_xL_rotate_y_[offset];
+		// float Xp = phase_x[offset] * d_dlp_width_ /d_max_phase_; 
+		float Xp = (phase_x[offset] * 1280) /(2*CV_PI); 
+        float Xcr = xL_rotate_x[offset];
+        float Ycr = xL_rotate_y[offset];
  
-        float Xpr = bilinear_interpolation(Xp, (Ycr + 1) * 2000, 2000, d_single_pattern_mapping_);
+ 
+        float Xpr = bilinear_interpolation(Xp, (Ycr + 1) * 2000, 2000, single_pattern_mapping);
         float delta_X = std::abs(Xcr - Xpr); 
-        float Z = d_baseline_ / delta_X;
+        float Z = b / delta_X;
 	
-		float X_L = Z * Xcr * d_R_1_[0] + Z * Ycr * d_R_1_[1] + Z * d_R_1_[2];
-		float Y_L = Z * Xcr * d_R_1_[3] + Z * Ycr * d_R_1_[4] + Z * d_R_1_[5];
-		float Z_L = Z * Xcr * d_R_1_[6] + Z * Ycr * d_R_1_[7] + Z * d_R_1_[8];
+		float X_L = Z * Xcr * R_1[0] + Z * Ycr * R_1[1] + Z * R_1[2];
+		float Y_L = Z * Xcr * R_1[3] + Z * Ycr * R_1[4] + Z * R_1[5];
+		float Z_L = Z * Xcr * R_1[6] + Z * Ycr * R_1[7] + Z * R_1[8];
  
   
-		if(confidence_map[offset] > d_confidence_ && Z_L > d_min_z_ && Z_L< d_max_z_ && Xp > 0)
+		// if(confidence_map[offset] > d_confidence_ && Z_L > d_min_z_ && Z_L< d_max_z_ && Xp > 0)
+		if(confidence_map[offset] > 10 && Z_L > 10 && Z_L< 3000 && Xp > 0)
 		{
 		    pointcloud[3 * offset + 0] = X_L;
 		    pointcloud[3 * offset + 1] = Y_L;

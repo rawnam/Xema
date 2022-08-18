@@ -3,9 +3,7 @@
 // #include "encode_cuda.cuh" 
 #include "../test/LookupTableFunction.h"  
 #include "protocol.h"
-#include "memory_management.cuh"
-#include "encode.cuh"
-#include "reconstruct.cuh"
+#include "memory_management.cuh" 
  
 Scan3D::Scan3D()
 {
@@ -661,7 +659,8 @@ bool Scan3D::captureFrame04()
         {
         case 4:
         {
-            cuda_compute_phase_shift(0);
+        LOG(INFO)<<"cuda_compute_phase_shift:";
+            cuda_compute_phase_shift(0); 
         }
         break;
         case 8:
@@ -1289,6 +1288,8 @@ bool Scan3D::loadCalibData()
 
     bool read_map_ok = lookup_table_machine_.readTableFloat("./", xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping,pattern_minimapping,image_width_,image_height_);
   
+    LOG(INFO)<<"image_width_: "<<image_width_;
+    LOG(INFO)<<"image_height_: "<<image_height_;
     if(read_map_ok)
     {  
         LOG(INFO)<<"read table finished!";
@@ -1297,6 +1298,7 @@ bool Scan3D::loadCalibData()
         xL_rotate_y.convertTo(xL_rotate_y, CV_32F);
         R1_t.convertTo(R1_t, CV_32F);
         pattern_mapping.convertTo(pattern_mapping, CV_32F);
+ 
 
         float b = sqrt(pow(calib_param_.translation_matrix[0], 2) + pow(calib_param_.translation_matrix[1], 2) + pow(calib_param_.translation_matrix[2], 2));
 

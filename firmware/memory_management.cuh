@@ -12,6 +12,7 @@
 #include "system_config_settings.h"
 #include <opencv2/core.hpp> 
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
 #include "protocol.h"
 #include "easylogging++.h"
 
@@ -23,14 +24,14 @@
 #define MAX_UNWRAP_NUMBER 2
 #define D_HDR_MAX_NUM 6 
 #define D_REPETITIONB_MAX_NUM 10
- 
 
-__device__ int d_image_width_ = 1920;
-__device__ int d_image_height_ = 1200;
+
+__device__ int d_image_width_ = 0;
+__device__ int d_image_height_ = 0;
 __device__ float d_confidence_ = 10;
 
-__device__ int d_dlp_width_ = 1920;
-__device__ int d_dlp_height_ = 1080;
+__device__ int d_dlp_width_ = 0;
+__device__ int d_dlp_height_ = 0;
 __device__ float d_max_phase_ = 2* CV_PI; 
 
 __device__ float d_min_z_ = 10; 
@@ -128,11 +129,18 @@ void cuda_copy_brightness_to_memory(unsigned char* brightness);
 
 /***********************************************************************************/
 
+bool cuda_compute_phase_shift(int serial_flag); 
+
+bool cuda_unwrap_phase_shift(int serial_flag);
+
+bool cuda_normalize_phase(int serial_flag);
 
 
 
+/***********************************************************************************/
 
 
+bool cuda_generate_pointcloud_base_table();
 
 
 
