@@ -12,8 +12,8 @@ LookupTableFunction::LookupTableFunction()
 	min_low_z_ = 10;
 	max_max_z_ = 30000;
 
-	dlp_width_ = 1920;
-	dlp_height_ = 1080;
+	dlp_width_ = 1280;
+	dlp_height_ = 720;
 }
 
 
@@ -1827,12 +1827,12 @@ bool MiniLookupTableFunction::generateColOfDistorted(cv::InputArray _cameraMatri
 bool MiniLookupTableFunction::generateMiniGridMapping(cv::Mat& _LookupTable, cv::Mat& _MiniLookupTable)
 {
 
-	cv::Size image_size = cv::Size(1920, 1200);
+	//cv::Size image_size = cv::Size(1920, 1200);
 	cv::Mat RL, RR, PL, PR, Q;
 
 
 	cv::stereoRectify(camera_intrinsic_, camera_distortion_, project_intrinsic_, projector_distortion_,
-		image_size, rotation_matrix_, translation_matrix_, RL, RR, PL, PR, Q);
+		image_size_, rotation_matrix_, translation_matrix_, RL, RR, PL, PR, Q);
 
 
 	// std::cout << intrinsicMatrix_projector << std::endl;
@@ -1902,7 +1902,7 @@ bool MiniLookupTableFunction::generateMiniGridMapping(cv::Mat& _LookupTable, cv:
 		float* ptr_after = theBigLookUpTable.ptr<float>(row);
 		for (int col = 0; col < 2000; col += 1)
 		{
-			if (col < 7 || col > 1273)
+			if (col < 7 || col > dlp_width_ - 7)
 			{
 				ptr_after[col] = -2;
 			}

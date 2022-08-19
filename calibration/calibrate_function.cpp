@@ -954,7 +954,7 @@ bool Calibrate_Function::findCircleBoardFeature(cv::Mat img, std::vector<cv::Poi
 
 	std::vector<cv::Point2f> circle_points;
 	cv::Mat img_inv = inv_image(img);
-	bool found = cv::findCirclesGrid(img_inv, board_size_, circle_points, cv::CALIB_CB_ASYMMETRIC_GRID | cv::CALIB_CB_CLUSTERING, blobDetector);
+	bool found = cv::findCirclesGrid(img_inv, board_size_, circle_points, cv::CALIB_CB_ASYMMETRIC_GRID | cv::CALIB_CB_CLUSTERING);
 
 	if (!found)
 		return false;

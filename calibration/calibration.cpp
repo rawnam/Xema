@@ -847,6 +847,8 @@ bool calibrate_stereo(std::string patterns_path, std::string calib_path)
 		std::vector<cv::Point2f> circle_points;
 		bool found = calib_function.findCircleBoardFeature(img, circle_points);
 
+		std::string img_path = path + "/" + std::to_string(g_i) + "_board.bmp";
+		cv::imwrite(img_path, img);
 
 		if (found)
 		{
