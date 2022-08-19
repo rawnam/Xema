@@ -3,6 +3,15 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 
+__device__ float d_confidence_ = 10;
+
+__device__ int d_dlp_width_ = 0;
+__device__ int d_dlp_height_ = 0;
+__device__ float d_max_phase_ = 2* CV_PI; 
+
+__device__ float d_min_z_ = 10; 
+__device__ float d_max_z_ = 3000;
+
 
  #define CHECK(call)\
 {\
@@ -15,7 +24,57 @@
   }\
 }
  
+ 
+bool cuda_set_param_dlp_resolution(int width,int height)
+{
+	cudaError_t error_code = cudaMemcpyToSymbol(d_dlp_width_, &width, sizeof(float));
 
+	if(error_code!= cudaSuccess)
+	{
+		return false;
+	}
+
+	error_code = cudaMemcpyToSymbol(d_dlp_height_, &height, sizeof(float));
+
+	if(error_code!= cudaSuccess)
+	{
+		return false;
+	}
+
+	return true;
+}
+ 
+bool cuda_set_param_z_range(float min,float max)
+{
+	cudaError_t error_code = cudaMemcpyToSymbol(d_min_z_, &min, sizeof(float));
+
+	if(error_code!= cudaSuccess)
+	{
+		return false;
+	}
+
+	error_code = cudaMemcpyToSymbol(d_max_z_, &max, sizeof(float));
+
+	if(error_code!= cudaSuccess)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+
+bool cuda_set_param_confidence(float val)
+{
+	cudaError_t error_code = cudaMemcpyToSymbol(d_confidence_, &val, sizeof(float));
+
+	if(error_code!= cudaSuccess)
+	{
+		return false;
+	}
+
+	return true;
+}
 
 __device__ float bilinear_interpolation(float x, float y, int map_width, float *mapping)
 {
@@ -63,8 +122,8 @@ float * const confidence_map,float * const phase_x , float * const pointcloud,fl
 	{
 		/****************************************************************************/
 		//phase to position
-		// float Xp = phase_x[offset] * d_dlp_width_ /d_max_phase_; 
-		float Xp = (phase_x[offset] * 1280) /(2*CV_PI); 
+		float Xp = phase_x[offset] * d_dlp_width_ /d_max_phase_; 
+		// float Xp = (phase_x[offset] * 1280) /(2*CV_PI); 
         float Xcr = xL_rotate_x[offset];
         float Ycr = xL_rotate_y[offset];
  
@@ -78,8 +137,8 @@ float * const confidence_map,float * const phase_x , float * const pointcloud,fl
 		float Z_L = Z * Xcr * R_1[6] + Z * Ycr * R_1[7] + Z * R_1[8];
  
   
-		// if(confidence_map[offset] > d_confidence_ && Z_L > d_min_z_ && Z_L< d_max_z_ && Xp > 0)
-		if(confidence_map[offset] > 10 && Z_L > 10 && Z_L< 3000 && Xp > 0)
+		if(confidence_map[offset] > d_confidence_ && Z_L > d_min_z_ && Z_L< d_max_z_ && Xp > 0)
+		// if(confidence_map[offset] > 10 && Z_L > 10 && Z_L< 3000 && Xp > 0)
 		{
 		    pointcloud[3 * offset + 0] = X_L;
 		    pointcloud[3 * offset + 1] = Y_L;

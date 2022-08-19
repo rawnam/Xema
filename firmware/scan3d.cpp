@@ -3,7 +3,7 @@
 // #include "encode_cuda.cuh" 
 #include "../test/LookupTableFunction.h"  
 #include "protocol.h"
-#include "memory_management.cuh" 
+#include "management.cuh" 
  
 Scan3D::Scan3D()
 {
@@ -1288,8 +1288,7 @@ bool Scan3D::loadCalibData()
 
     bool read_map_ok = lookup_table_machine_.readTableFloat("./", xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping,pattern_minimapping,image_width_,image_height_);
   
-    LOG(INFO)<<"image_width_: "<<image_width_;
-    LOG(INFO)<<"image_height_: "<<image_height_;
+ 
     if(read_map_ok)
     {  
         LOG(INFO)<<"read table finished!";

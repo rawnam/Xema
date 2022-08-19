@@ -1,4 +1,4 @@
-#include "memory_management.cuh"
+#include "management.cuh"
 #include "encode.cuh"
 #include "reconstruct.cuh"
 
@@ -31,8 +31,9 @@ bool cuda_set_camera_version(int version)
     {
 		int dlp_width = 1280;
 		int dlp_height = 720;
-		cudaMemcpyToSymbol(d_dlp_width_, &dlp_width, sizeof(int));
-		cudaMemcpyToSymbol(d_dlp_height_, &dlp_height, sizeof(int));
+		cuda_set_param_dlp_resolution(dlp_width,dlp_height);
+		// cudaMemcpyToSymbol(d_dlp_width_, &dlp_width, sizeof(int));
+		// cudaMemcpyToSymbol(d_dlp_height_, &dlp_height, sizeof(int));
   
 		int camera_width = 1920;
 		int camera_height = 1200;
@@ -47,8 +48,9 @@ bool cuda_set_camera_version(int version)
     {
 		int dlp_width = 1920;
 		int dlp_height = 1080;
-		cudaMemcpyToSymbol(d_dlp_width_, &dlp_width, sizeof(int));
-		cudaMemcpyToSymbol(d_dlp_height_, &dlp_height, sizeof(int));
+		// cudaMemcpyToSymbol(d_dlp_width_, &dlp_width, sizeof(int));
+		// cudaMemcpyToSymbol(d_dlp_height_, &dlp_height, sizeof(int));
+		cuda_set_param_dlp_resolution(dlp_width,dlp_height);
 
 		int camera_width = 1920;
 		int camera_height = 1200;

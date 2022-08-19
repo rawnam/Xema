@@ -1,5 +1,5 @@
-#ifndef MEMORY_MANAGEMENT_CUDA_CUH
-#define MEMORY_MANAGEMENT_CUDA_CUH
+#ifndef MANAGEMENT_CUDA_CUH
+#define MANAGEMENT_CUDA_CUH
 #pragma once
 #include <device_launch_parameters.h>
 #include <device_functions.h>
@@ -28,14 +28,7 @@
 
 __device__ int d_image_width_ = 0;
 __device__ int d_image_height_ = 0;
-__device__ float d_confidence_ = 10;
-
-__device__ int d_dlp_width_ = 0;
-__device__ int d_dlp_height_ = 0;
-__device__ float d_max_phase_ = 2* CV_PI; 
-
-__device__ float d_min_z_ = 10; 
-__device__ float d_max_z_ = 3000; 
+ 
 
 
 /**********************************************************************/

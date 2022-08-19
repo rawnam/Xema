@@ -16,7 +16,7 @@
 #include <mutex>
 #include <thread>
 #include "easylogging++.h"
-#include "encode_cuda.cuh"
+// #include "encode_cuda.cuh"
 #include "system_config_settings.h"
 #include "version.h"
 #include "configure_standard_plane.h"
@@ -129,7 +129,7 @@ bool set_camera_version(int version)
     {
     case DFX_800:
     {
-        cuda_set_camera_version(DFX_800);
+        // cuda_set_camera_version(DFX_800);
         max_camera_exposure_ = 60000;
         min_camera_exposure_ = 6000;
         return true;
@@ -139,7 +139,7 @@ bool set_camera_version(int version)
     case DFX_1800:
     {
 
-        cuda_set_camera_version(DFX_1800);
+        // cuda_set_camera_version(DFX_1800);
         max_camera_exposure_ = 28000; 
         min_camera_exposure_ = 6000;
         return true;
