@@ -1,5 +1,6 @@
-#include "memory_management.cuh"
-#include "easylogging++.h"
+#include "management.cuh"
+#include "encode.cuh"
+#include "reconstruct.cuh"
 
 #define CHECK(call)\
 {\
@@ -11,6 +12,11 @@
       exit(1);\
   }\
 }
+
+dim3 threadsPerBlock(8, 8);
+dim3 blocksPerGrid((d_image_width_ + threadsPerBlock.x - 1) / threadsPerBlock.x,
+(d_image_height_ + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
 
 
 // int d_image_width_ = 1920;
@@ -25,8 +31,9 @@ bool cuda_set_camera_version(int version)
     {
 		int dlp_width = 1280;
 		int dlp_height = 720;
-		cudaMemcpyToSymbol(d_dlp_width_, &dlp_width, sizeof(int));
-		cudaMemcpyToSymbol(d_dlp_height_, &dlp_height, sizeof(int));
+		cuda_set_param_dlp_resolution(dlp_width,dlp_height);
+		// cudaMemcpyToSymbol(d_dlp_width_, &dlp_width, sizeof(int));
+		// cudaMemcpyToSymbol(d_dlp_height_, &dlp_height, sizeof(int));
   
 		int camera_width = 1920;
 		int camera_height = 1200;
@@ -41,8 +48,9 @@ bool cuda_set_camera_version(int version)
     {
 		int dlp_width = 1920;
 		int dlp_height = 1080;
-		cudaMemcpyToSymbol(d_dlp_width_, &dlp_width, sizeof(int));
-		cudaMemcpyToSymbol(d_dlp_height_, &dlp_height, sizeof(int));
+		// cudaMemcpyToSymbol(d_dlp_width_, &dlp_width, sizeof(int));
+		// cudaMemcpyToSymbol(d_dlp_height_, &dlp_height, sizeof(int));
+		cuda_set_param_dlp_resolution(dlp_width,dlp_height);
 
 		int camera_width = 1920;
 		int camera_height = 1200;
@@ -77,6 +85,10 @@ bool cuda_set_camera_resolution(int width,int height)
 	{
 		return false;
 	}
+ 
+
+	blocksPerGrid.x = (width + threadsPerBlock.x - 1) / threadsPerBlock.x;
+	blocksPerGrid.y = (height + threadsPerBlock.y - 1) / threadsPerBlock.y;
 
 	return true;
 }
@@ -313,14 +325,234 @@ void cuda_copy_talbe_to_memory(float* mapping,float* mini_mapping,float* rotate_
 	CHECK(cudaMemcpyAsync(d_xL_rotate_y_, rotate_y, d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyHostToDevice));
 	
     d_baseline_ = base_line;  
+ 
 
 	LOG(INFO)<<"d_baseline_: "<<d_baseline_;
 	cudaDeviceSynchronize();
 }
 
 
+bool cuda_copy_pattern_to_memory(unsigned char* pattern_ptr,int serial_flag)
+{
+	if(serial_flag>= MAX_PATTERNS_NUMBER)
+	{
+		return false;
+	}
 
+	CHECK(cudaMemcpyAsync(d_patterns_list_[serial_flag], pattern_ptr, d_image_height_*d_image_width_* sizeof(unsigned char), cudaMemcpyHostToDevice)); 
+}
 
+void cuda_copy_pointcloud_from_memory(float* pointcloud)
+{ 
+	CHECK(cudaMemcpy(pointcloud, d_point_cloud_map_, 3 * d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+}
 
+void cuda_copy_depth_from_memory(float* depth)
+{
+	CHECK(cudaMemcpy(depth, d_depth_map_, d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost)); 
+} 
+
+void cuda_copy_brightness_from_memory(unsigned char* brightness)
+{
+	CHECK(cudaMemcpy(brightness, d_brightness_map_, d_image_height_*d_image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToHost)); 
+}
+
+void cuda_copy_brightness_to_memory(unsigned char* brightness)
+{ 
+	CHECK(cudaMemcpyAsync(d_brightness_map_, brightness, d_image_height_*d_image_width_* sizeof(unsigned char), cudaMemcpyHostToDevice)); 
+}
 
 /********************************************************************************************/
+
+
+bool cuda_compute_phase_shift(int serial_flag)
+{
+	 
+	switch(serial_flag)
+	{
+		case 0:
+		{ 
+        	LOG(INFO)<<"kernel_four_step_phase_shift:"<<d_image_width_;
+			int i= 0;
+			kernel_four_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_patterns_list_[i+0], d_patterns_list_[i + 1], d_patterns_list_[i + 2],
+				d_patterns_list_[i + 3], d_wrap_map_list_[serial_flag], d_confidence_map_list_[serial_flag]);
+
+				// kernel_four_step_phase_shift_texture<< <blocksPerGrid, threadsPerBlock >> >(serial_flag,d_wrap_map_list_[serial_flag], d_confidence_map_list_[serial_flag]);
+		}
+		break;
+		case 1:
+		{
+
+			int i= 4;
+			kernel_four_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_patterns_list_[i+0], d_patterns_list_[i + 1], d_patterns_list_[i + 2],
+				d_patterns_list_[i + 3], d_wrap_map_list_[serial_flag], d_confidence_map_list_[serial_flag]);
+				
+				// kernel_four_step_phase_shift_texture<< <blocksPerGrid, threadsPerBlock >> >(serial_flag,d_wrap_map_list_[serial_flag], d_confidence_map_list_[serial_flag]);
+			
+		}
+		break;
+		case 2:
+		{ 
+			int i= 8;
+			kernel_four_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_patterns_list_[i+0], d_patterns_list_[i + 1], d_patterns_list_[i + 2],
+				d_patterns_list_[i + 3], d_wrap_map_list_[serial_flag], d_confidence_map_list_[serial_flag]);
+				
+				// kernel_four_step_phase_shift_texture<< <blocksPerGrid, threadsPerBlock >> >(serial_flag,d_wrap_map_list_[serial_flag], d_confidence_map_list_[serial_flag]);
+		}
+		break;
+		case 3:
+		{ 
+			int i= 12; 
+			kernel_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_patterns_list_[i+0], d_patterns_list_[i + 1], d_patterns_list_[i + 2],
+				d_patterns_list_[i + 3],d_patterns_list_[i + 4],d_patterns_list_[i + 5] ,d_wrap_map_list_[serial_flag], d_confidence_map_list_[serial_flag]);
+ 
+            
+				// cuda_six_step_phase_shift_texture<< <blocksPerGrid, threadsPerBlock >> > (d_wrap_map_list_[serial_flag], d_confidence_map_list_[serial_flag]);
+				// cudaDeviceSynchronize();
+
+				// cv::Mat phase(1200, 1920, CV_32F, cv::Scalar(0));
+				// CHECK(cudaMemcpy(phase.data, d_wrap_map_list_[serial_flag], 1 * image_height_ * image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+				// cv::imwrite("phase1.tiff",phase);
+		}
+		break;
+		case 4:
+		{
+			int i= 18;
+			kernel_four_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_patterns_list_[i+0], d_patterns_list_[i + 1], d_patterns_list_[i + 2],
+				d_patterns_list_[i + 3], d_wrap_map_list_[serial_flag], d_confidence_map_list_[serial_flag]);
+		}
+		break;
+		case 5:
+		{
+			int i= 22;
+			kernel_four_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_patterns_list_[i+0], d_patterns_list_[i + 1], d_patterns_list_[i + 2],
+				d_patterns_list_[i + 3], d_wrap_map_list_[serial_flag], d_confidence_map_list_[serial_flag]);
+		}
+		break;
+		case 6:
+		{
+			int i= 26;
+			kernel_four_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_patterns_list_[i+0], d_patterns_list_[i + 1], d_patterns_list_[i + 2],
+				d_patterns_list_[i + 3], d_wrap_map_list_[serial_flag], d_confidence_map_list_[serial_flag]);
+		}
+		break;
+  
+		default :
+			break;
+	}
+
+	
+	
+	return true;
+}
+
+
+bool cuda_normalize_phase(int serial_flag)
+{
+    switch(serial_flag)
+	{ 
+        case 0:
+		{   
+            kernel_normalize_phase<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_unwrap_map_list_[0], (float)128.0, d_unwrap_map_list_[0]);  
+		}
+		break; 
+		case 1:
+		{   
+  
+            kernel_normalize_phase<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_unwrap_map_list_[1], (float)18., d_unwrap_map_list_[1]); 
+		}
+		break;
+
+		case 2:
+		{ 
+			kernel_normalize_phase<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_unwrap_map_list_[1], (float)72., d_unwrap_map_list_[1]); 
+		}
+		break;
+
+		default :
+			break;
+	}
+
+
+	return true;
+}
+
+bool cuda_unwrap_phase_shift(int serial_flag)
+{
+
+	switch(serial_flag)
+	{ 
+		case 1:
+		{  
+            kernel_unwrap_variable_phase<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_wrap_map_list_[0], d_wrap_map_list_[1], 8.0, CV_PI, d_unwrap_map_list_[0]);
+  
+		}
+		break;
+
+		case 2:
+		{ 
+			// CHECK( cudaFuncSetCacheConfig (kernel_unwrap_variable_phase, cudaFuncCachePreferL1) );
+			kernel_unwrap_variable_phase << <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_unwrap_map_list_[0], d_wrap_map_list_[2], 4.0,CV_PI, d_unwrap_map_list_[0]); 
+			// CHECK ( cudaGetLastError () );
+		}
+		break;
+		case 3:
+		{ 
+			// CHECK( cudaFuncSetCacheConfig (kernel_unwrap_variable_phase, cudaFuncCachePreferL1) );
+			kernel_unwrap_variable_phase << <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_unwrap_map_list_[0], d_wrap_map_list_[3], 4.0,1.5, d_unwrap_map_list_[0]); 
+ 
+		}
+		break;
+		case 4:
+		{
+ 
+		}
+		break;
+		case 5:
+		{
+			kernel_unwrap_variable_phase << <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_wrap_map_list_[4], d_wrap_map_list_[5], 8.0,CV_PI, d_unwrap_map_list_[1]);
+		}
+		break;
+		case 6:
+		{
+			kernel_unwrap_variable_phase << <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_unwrap_map_list_[1], d_wrap_map_list_[6], 4.0,CV_PI, d_unwrap_map_list_[1]);
+ 
+			LOG(INFO)<<"unwrap 6:  ";
+
+		}
+		break;
+		case 7:
+		{
+			kernel_unwrap_variable_phase << <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_unwrap_map_list_[1], d_wrap_map_list_[7], 4.0,CV_PI, d_unwrap_map_list_[1]);
+ 
+		 	LOG(INFO)<<"unwrap 7:  ";
+
+		}
+		break;
+ 
+
+		default :
+			break;
+	}
+
+
+	return true;
+}
+
+/********************************************************************************************************************************************/
+
+bool cuda_generate_pointcloud_base_table()
+{
+	cv::Mat phase(2048,2448,CV_32FC1,cv::Scalar(0));
+	CHECK(cudaMemcpy(phase.data, d_unwrap_map_list_[0], 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+	cv::imwrite("phase.tiff", phase);
+
+	kernel_reconstruct_pointcloud_base_table << <blocksPerGrid, threadsPerBlock>> > (d_image_width_,d_image_height_,d_xL_rotate_x_,d_xL_rotate_y_,d_single_pattern_mapping_,d_R_1_,d_baseline_,
+	d_confidence_map_list_[3],d_unwrap_map_list_[0],d_point_cloud_map_,d_depth_map_);
+
+	cv::Mat depth(2048,2448,CV_32FC1,cv::Scalar(0));
+	CHECK(cudaMemcpy(depth.data, d_depth_map_, 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+	cv::imwrite("depth.tiff", depth);
+}
+
+/********************************************************************************************************************************************/

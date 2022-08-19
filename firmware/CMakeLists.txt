@@ -57,7 +57,9 @@ add_executable(camera_server
                     i2c.cpp 
                     lightcrafter3010.cpp 
                     easylogging++.cc   
-                    memory_management.cu
+                    management.cu
+                    encode.cu
+                    reconstruct.cu
                     configure_standard_plane.cpp 
                     configure_auto_exposure.cpp
                     scan3d.cpp
