@@ -139,7 +139,7 @@ int get_repetition_frame_03(const char* ip, int count, const char* frame_path);
 int get_repetition_frame_04(const char* ip, int count, const char* frame_path);
 int get_frame_hdr(const char* ip, const char* frame_path);
 void save_frame(float* depth_buffer, unsigned char* bright_buffer, const char* frame_path);
-void save_images(const char* raw_image_dir, unsigned char* buffer, int image_size, int image_num);
+void save_images(const char* raw_image_dir, unsigned char* buffer, int width, int height, int image_num);
 void save_point_cloud(float* point_cloud_buffer, const char* pointcloud_path);
 void save_color_point_cloud(float* point_cloud_buffer, unsigned char* brightness_buffer, const char* pointcloud_path);
 void write_fbin(std::ofstream& out, float val);
@@ -601,16 +601,18 @@ void save_frame(float* depth_buffer, unsigned char* bright_buffer, const char* f
 
 }
 
-void save_images(const char* raw_image_dir, unsigned char* buffer, int image_size, int image_num)
+void save_images(const char* raw_image_dir, unsigned char* buffer, int width, int height, int image_num)
 {
 	std::string folderPath = raw_image_dir;
 	std::string mkdir_cmd = std::string("mkdir ") + folderPath;
 	system(mkdir_cmd.c_str());
 
+	int image_size = width * height;
+
 	for (int i = 0; i < image_num; i++)
 	{
 		std::stringstream ss;
-		cv::Mat image(1200, 1920, CV_8UC1, buffer + (long)(image_size * i));
+		cv::Mat image(height, width, CV_8UC1, buffer + (long)(image_size * i));
 		ss << std::setw(2) << std::setfill('0') << i;
 		std::string filename = folderPath + "/phase" + ss.str() + ".bmp";
 		cv::imwrite(filename, image);
@@ -1302,7 +1304,7 @@ int get_raw_01(const char* ip, const char* raw_image_dir)
 
 	ret = DfGetCameraRawData01(raw_buf, image_size * capture_num);
 
-	save_images(raw_image_dir, raw_buf, image_size, capture_num);
+	save_images(raw_image_dir, raw_buf, width, height, capture_num);
 
 	delete[] raw_buf;
 
@@ -1331,7 +1333,7 @@ int get_raw_03(const char* ip, const char* raw_image_dir)
 
 	ret = DfGetCameraRawData03(raw_buf, image_size * 31);
 
-	save_images(raw_image_dir, raw_buf, image_size, 31);
+	save_images(raw_image_dir, raw_buf, width, height, 31);
 
 	delete[] raw_buf;
 
@@ -1360,7 +1362,7 @@ int get_raw_02(const char* ip, const char* raw_image_dir)
 
 	ret = DfGetCameraRawDataTest(raw_buf, image_size * capture_num);
 
-	save_images(raw_image_dir, raw_buf, image_size, capture_num);
+	save_images(raw_image_dir, raw_buf, width, height, capture_num);
 
 	delete[] raw_buf;
 
@@ -1552,7 +1554,7 @@ int set_calib_looktable(const char* ip, const char* calib_param_path)
 	pattern_mapping.convertTo(pattern_mapping, CV_32F);
 	pattern_minimapping.convertTo(pattern_minimapping, CV_32F);
 
-
+	cv::imwrite("../cmd_table.tiff", pattern_mapping);
 	DfRegisterOnDropped(on_dropped);
 
 	ret = DfConnectNet(ip);

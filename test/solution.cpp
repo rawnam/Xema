@@ -1612,7 +1612,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 	startTime = clock();//��ʱ��ʼ
 
 
-	LookupTableFunction lookup_table_machine_;
+	MiniLookupTableFunction lookup_table_machine_;
 	//LookupTableFunction lookup_table_machine;
 	lookup_table_machine_.setCalibData(calib_param);
 	lookup_table_machine_.setCameraVersion(camera_version_);
@@ -1622,13 +1622,29 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 	cv::Mat xL_rotate_y;
 	cv::Mat R1;
 	cv::Mat pattern_mapping;
-	lookup_table_machine_.generateLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping);
+	cv::Mat pattern_minimapping;
+	//lookup_table_machine_.generateLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping);
 
 	//lookup_table_machine_.readTable("../", 1200, 1920);
 
+	//MiniLookupTableFunction minilooktable_machine;
+	//minilooktable_machine.setCameraResolution(nc, nr);
+	//minilooktable_machine.setCameraVersion(camera_version_);
+	//minilooktable_machine.setCalibData(calib_param);
+	cv::Mat xL_rotate_x_new;
+	cv::Mat xL_rotate_y_new;
+	cv::Mat R1_new;
+	cv::Mat pattern_mapping_new;
+	cv::Mat pattern_minimapping_new;
+
+
+	std::cout << "Start Generate LookTable Param" << std::endl;
+	//bool ok = looktable_machine.generateLookTable(xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping);
+	bool ok = lookup_table_machine_.generateBigLookTable(xL_rotate_x_new, xL_rotate_y_new, R1_new, pattern_mapping_new, pattern_minimapping_new);
 
 	endTime = clock();//��ʱ����
 	std::cout << "The run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+
 
 	/************************************************************************************/
 
