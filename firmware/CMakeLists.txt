@@ -60,6 +60,8 @@ add_executable(camera_server
                     management.cu
                     encode.cu
                     reconstruct.cu
+                    merge_hdr.cu
+                    merge_repetition.cu
                     configure_standard_plane.cpp 
                     configure_auto_exposure.cpp
                     scan3d.cpp

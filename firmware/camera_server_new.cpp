@@ -1883,7 +1883,7 @@ int handle_cmd_get_frame_04_repetition_01_parallel(int client_sock)
       repetition_count = 10;
     }
 
-    scan3d_.captureFrame04Repetition02(repetition_count);
+    scan3d_.captureFrame04Repetition01(repetition_count);
 
     scan3d_.copyBrightnessData(brightness);
     scan3d_.copyDepthData(depth_map);

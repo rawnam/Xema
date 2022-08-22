@@ -1,5 +1,5 @@
-#ifndef MANAGEMENT_CUDA_CUH
-#define MANAGEMENT_CUDA_CUH
+#ifndef MEMORY_MANAGEMENT_CUDA_CUH
+#define MEMORY_MANAGEMENT_CUDA_CUH
 #pragma once
 #include <device_launch_parameters.h>
 #include <device_functions.h>
@@ -15,8 +15,10 @@
 #include <opencv2/highgui.hpp>
 #include "protocol.h"
 #include "easylogging++.h"
-
-
+#include "encode.cuh"
+#include "reconstruct.cuh"
+#include "merge_hdr.cuh"
+#include "merge_repetition.cuh"
  
 
 #define MAX_PATTERNS_NUMBER 36
@@ -29,6 +31,7 @@
 __device__ int d_image_width_ = 0;
 __device__ int d_image_height_ = 0;
  
+
 
 
 /**********************************************************************/
@@ -133,11 +136,36 @@ bool cuda_normalize_phase(int serial_flag);
 /***********************************************************************************/
 
 
+
+
 bool cuda_generate_pointcloud_base_table();
 
 
 
 
+/***********************************************************************************/
+//hdr 
+
+bool cuda_copy_result_to_hdr(int serial_flag,int brigntness_serial);
 
 
+bool cuda_merge_hdr_data(int hdr_num,float* depth_map, unsigned char* brightness);
+/***********************************************************************************/
+
+
+bool cuda_copy_repetition_pattern_to_memory(unsigned char* patterns_ptr,int serial_flag);
+
+
+bool cuda_merge_repetition_patterns(int repetition_serial);
+
+
+bool cuda_compute_merge_phase(int repetition_count);
+
+
+bool cuda_clear_repetition_02_patterns();
+
+bool cuda_merge_repetition_02_patterns(int repetition_serial);
+
+bool cuda_compute_merge_repetition_02_phase(int repetition_count);
+/***********************************************************************************/
 #endif

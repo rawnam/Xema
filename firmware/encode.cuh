@@ -28,6 +28,11 @@ __global__ void kernel_unwrap_variable_phase(int width,int height,float * const 
  
 __global__ void kernel_normalize_phase(int width,int height,float * const d_in_unwrap_map, float rate,  float * const d_out_normal_map);
 
- 
+__global__ void kernel_merge_six_step_phase_shift(unsigned short * const d_in_0, unsigned short * const d_in_1, unsigned short * const d_in_2, 
+	unsigned short * const d_in_3,unsigned short* const d_in_4,unsigned short* const d_in_5,int repetition_count,
+	uint32_t img_height, uint32_t img_width,float * const d_out, float * const confidence);
+    
+__global__ void kernel_merge_four_step_phase_shift(unsigned short * const d_in_0, unsigned short * const d_in_1, unsigned short * const d_in_2, 
+	unsigned short * const d_in_3,int repetition_count,uint32_t img_height, uint32_t img_width,float * const d_out, float * const confidence);
 
 #endif

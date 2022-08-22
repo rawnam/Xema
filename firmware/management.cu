@@ -1,6 +1,9 @@
 #include "management.cuh"
-#include "encode.cuh"
-#include "reconstruct.cuh"
+
+
+int h_image_width_ = 0;
+int h_image_height_ = 0;
+
 
 #define CHECK(call)\
 {\
@@ -69,9 +72,11 @@ bool cuda_set_camera_version(int version)
 
 bool cuda_set_camera_resolution(int width,int height)
 {
+	h_image_width_ = width;
+	h_image_height_ = height;
+ 
 	d_image_width_ = width;
 	d_image_height_ = height;
- 
 
 	cudaError_t error_code = cudaMemcpyToSymbol(d_image_width_, &width, sizeof(int)); 
 	if(error_code!= cudaSuccess)
@@ -543,16 +548,234 @@ bool cuda_unwrap_phase_shift(int serial_flag)
 
 bool cuda_generate_pointcloud_base_table()
 {
-	cv::Mat phase(2048,2448,CV_32FC1,cv::Scalar(0));
-	CHECK(cudaMemcpy(phase.data, d_unwrap_map_list_[0], 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
-	cv::imwrite("phase.tiff", phase);
+	// cv::Mat phase(2048,2448,CV_32FC1,cv::Scalar(0));
+	// CHECK(cudaMemcpy(phase.data, d_unwrap_map_list_[0], 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+	// cv::imwrite("phase.tiff", phase);
 
 	kernel_reconstruct_pointcloud_base_table << <blocksPerGrid, threadsPerBlock>> > (d_image_width_,d_image_height_,d_xL_rotate_x_,d_xL_rotate_y_,d_single_pattern_mapping_,d_R_1_,d_baseline_,
 	d_confidence_map_list_[3],d_unwrap_map_list_[0],d_point_cloud_map_,d_depth_map_);
 
-	cv::Mat depth(2048,2448,CV_32FC1,cv::Scalar(0));
-	CHECK(cudaMemcpy(depth.data, d_depth_map_, 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
-	cv::imwrite("depth.tiff", depth);
+	// cv::Mat depth(2048,2448,CV_32FC1,cv::Scalar(0));
+	// CHECK(cudaMemcpy(depth.data, d_depth_map_, 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+	// cv::imwrite("depth.tiff", depth);
 }
 
+/********************************************************************************************************************************************/
+
+bool cuda_copy_result_to_hdr(int serial_flag,int brigntness_serial)
+{
+	if(!load_calib_data_flag_)
+	{
+		return false;
+	}
+ 
+
+	CHECK(cudaMemcpyAsync(d_hdr_depth_map_list_[serial_flag], d_depth_map_, 1 * d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyDeviceToDevice)); 
+	CHECK(cudaMemcpyAsync(d_hdr_brightness_list_[serial_flag], d_patterns_list_[brigntness_serial], 1 * d_image_height_*d_image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToDevice));
+
+	float val  = 0;
+	CHECK(cudaMemcpyAsync(d_hdr_bright_pixel_sum_list_[serial_flag], &val, sizeof(float), cudaMemcpyHostToDevice)); 
+ 	cuda_count_sum_pixel << <blocksPerGrid, threadsPerBlock >> > (d_hdr_brightness_list_[serial_flag],d_image_height_,d_image_width_,d_hdr_bright_pixel_sum_list_[serial_flag]);
+ 
+	LOG(INFO)<<"cuda_copy_result_to_hdr: "<<serial_flag;
+	return true;
+}
+
+
+bool cuda_merge_hdr_data(int hdr_num,float* depth_map, unsigned char* brightness)
+{
+	
+	LOG(INFO)<<"sum pixels ";
+	float sum_pixels_list[6];  
+
+    for(int i= 0;i<hdr_num;i++)
+    { 
+		CHECK(cudaMemcpy(&sum_pixels_list[i], d_hdr_bright_pixel_sum_list_[i], 1* sizeof(float), cudaMemcpyDeviceToHost));
+    }
+ 
+ 
+	std::vector<float> param_list;
+	std::vector<int> id; 
+	std::vector<bool> flag_list;
+
+	for (int i = 0; i < hdr_num; i++)
+	{ 
+        param_list.push_back(sum_pixels_list[i]);
+		id.push_back(0);
+		flag_list.push_back(true);
+    } 
+   	std::sort(param_list.begin(),param_list.end(),std::greater<float>());
+ 
+ 
+	for (int i = 0; i < hdr_num; i++)
+	{ 
+		
+		for(int j= 0;j< hdr_num;j++)
+		{
+			if(param_list[i] == sum_pixels_list[j])
+			{
+				if(flag_list[j])
+				{ 
+					id[i] = j;
+					flag_list[j] = false; 
+					break;
+				}
+			}
+		}
+		 
+    } 
+
+ 
+	for (int i = 0; i < hdr_num; i++)
+	{ 
+        LOG(INFO)<<"sum pixels "<<i<<": "<<sum_pixels_list[i]<<" _ "<<id[i];
+    }
+ 
+
+	switch(hdr_num)
+	{
+		case 1:
+		{
+
+			CHECK(cudaMemcpy(depth_map, d_hdr_depth_map_list_[0], 1 * h_image_height_*h_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+			// CHECK(cudaMemcpy(brightness, d_hdr_brightness_list_[0], 1*image_height_*image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToHost));
+		} 
+		break;
+		case 2:
+		{
+			cuda_merge_hdr_2 << <blocksPerGrid, threadsPerBlock >> > (d_hdr_depth_map_list_[id[0]],d_hdr_depth_map_list_[id[1]], d_hdr_brightness_list_[id[0]], 
+				d_hdr_brightness_list_[id[1]], h_image_height_, h_image_width_, d_depth_map_,d_brightness_map_);
+
+				
+			CHECK(cudaMemcpy(depth_map, d_depth_map_, 1 * h_image_height_*h_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+			// CHECK(cudaMemcpy(brightness, d_hdr_brightness_, 1*image_height_*image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToHost));
+
+		}
+		break;
+		case 3:
+		{
+			cuda_merge_hdr_3 << <blocksPerGrid, threadsPerBlock >> > (d_hdr_depth_map_list_[id[0]],d_hdr_depth_map_list_[id[1]],d_hdr_depth_map_list_[id[2]], d_hdr_brightness_list_[id[0]], 
+				d_hdr_brightness_list_[id[1]], d_hdr_brightness_list_[id[2]], h_image_height_, h_image_width_, d_depth_map_,d_brightness_map_);
+				
+			CHECK(cudaMemcpy(depth_map, d_depth_map_, 1 * h_image_height_*h_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+			// CHECK(cudaMemcpy(brightness, d_hdr_brightness_, 1*image_height_*image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToHost));
+
+		}
+		break;
+		case 4:
+		{
+			cuda_merge_hdr_4 << <blocksPerGrid, threadsPerBlock >> > (d_hdr_depth_map_list_[id[0]],d_hdr_depth_map_list_[id[1]],d_hdr_depth_map_list_[id[2]],d_hdr_depth_map_list_[id[3]],
+				 d_hdr_brightness_list_[id[0]], d_hdr_brightness_list_[id[1]], d_hdr_brightness_list_[id[2]], d_hdr_brightness_list_[id[3]], 
+				h_image_height_, h_image_width_, d_depth_map_,d_brightness_map_);
+				
+			CHECK(cudaMemcpy(depth_map, d_depth_map_, 1 * h_image_height_*h_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+			// CHECK(cudaMemcpy(brightness, d_hdr_brightness_, 1*image_height_*image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToHost));
+
+		}
+		break;
+		case 5:
+		{
+			cuda_merge_hdr_5 << <blocksPerGrid, threadsPerBlock >> > (d_hdr_depth_map_list_[id[0]],d_hdr_depth_map_list_[id[1]],d_hdr_depth_map_list_[id[2]],
+				d_hdr_depth_map_list_[id[3]],d_hdr_depth_map_list_[id[4]],
+				 d_hdr_brightness_list_[id[0]], d_hdr_brightness_list_[id[1]], d_hdr_brightness_list_[id[2]], d_hdr_brightness_list_[id[3]], d_hdr_brightness_list_[id[4]], 
+				h_image_height_, h_image_width_, d_depth_map_,d_brightness_map_);
+				
+			CHECK(cudaMemcpy(depth_map, d_depth_map_, 1 * h_image_height_*h_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+			// CHECK(cudaMemcpy(brightness, d_hdr_brightness_, 1*image_height_*image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToHost));
+
+		}
+		break;
+		case 6:
+		{
+			cuda_merge_hdr_6 << <blocksPerGrid, threadsPerBlock >> > (d_hdr_depth_map_list_[id[0]],d_hdr_depth_map_list_[id[1]],d_hdr_depth_map_list_[id[2]],
+				d_hdr_depth_map_list_[id[3]],d_hdr_depth_map_list_[id[4]],d_hdr_depth_map_list_[id[5]],
+				 d_hdr_brightness_list_[id[0]], d_hdr_brightness_list_[id[1]], d_hdr_brightness_list_[id[2]], d_hdr_brightness_list_[id[3]], d_hdr_brightness_list_[id[4]], 
+				 d_hdr_brightness_list_[id[5]], 
+				h_image_height_, h_image_width_, d_depth_map_,d_brightness_map_);
+				
+			CHECK(cudaMemcpy(depth_map, d_depth_map_, 1 * h_image_height_*h_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+			// CHECK(cudaMemcpy(brightness, d_hdr_brightness_, 1*image_height_*image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToHost));
+
+		}
+		break;
+
+		default:
+		 		return false;
+
+	}
+
+ 	// CHECK(cudaMemcpy(brightness, d_hdr_brightness_list_[id[0]], 1*image_height_*image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToHost));
+ 	CHECK(cudaMemcpy(brightness, d_hdr_brightness_list_[hdr_num-1], 1*h_image_height_*h_image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToHost));
+	LOG(INFO)<<"DHR Finished!";
+
+	return true;
+}
+/********************************************************************************************************************************************/
+
+bool cuda_copy_repetition_pattern_to_memory(unsigned char* patterns_ptr,int serial_flag)
+{
+	CHECK(cudaMemcpyAsync(d_repetition_patterns_list_[serial_flag], patterns_ptr, h_image_height_*h_image_width_* sizeof(unsigned char), cudaMemcpyHostToDevice));
+}
+
+bool cuda_merge_repetition_patterns(int repetition_serial)
+{
+
+	int merge_serial = repetition_serial%6; 
+	kernel_merge_pattern<< <blocksPerGrid, threadsPerBlock >> >(d_repetition_patterns_list_[repetition_serial],h_image_height_, h_image_width_,d_repetition_merge_patterns_list_[merge_serial]);
+
+	return true;
+}
+
+
+bool cuda_compute_merge_phase(int repetition_count)
+{
+
+	kernel_merge_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_repetition_merge_patterns_list_[0], d_repetition_merge_patterns_list_[1],
+		d_repetition_merge_patterns_list_[2],d_repetition_merge_patterns_list_[3],d_repetition_merge_patterns_list_[4],d_repetition_merge_patterns_list_[5] ,
+		repetition_count,h_image_height_, h_image_width_, d_wrap_map_list_[3], d_confidence_map_list_[3]);
+
+	return true;
+}
+
+
+bool cuda_clear_repetition_02_patterns()
+{
+	for(int i = 0;i< D_REPETITION_02_MAX_NUM;i++)
+	{ 
+		 cudaMemset(d_repetition_02_merge_patterns_list_[i], 0,h_image_height_*h_image_width_*sizeof(ushort));
+		// CHECK(cudaMemcpyAsync(d_repetition_02_merge_patterns_list_[i], &val,image_width_* image_height_*sizeof(ushort), cudaMemcpyHostToDevice));
+	}
+	// cudaDeviceSynchronize();
+  
+  return true;
+}
+
+bool cuda_merge_repetition_02_patterns(int repetition_serial)
+{
+	// int merge_serial = repetition_serial%19; 
+	kernel_merge_pattern<< <blocksPerGrid, threadsPerBlock >> >(d_patterns_list_[repetition_serial],h_image_height_, h_image_width_,d_repetition_02_merge_patterns_list_[repetition_serial]);
+
+	return true;
+}
+
+
+bool cuda_compute_merge_repetition_02_phase(int repetition_count)
+{
+	
+	kernel_merge_four_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_repetition_02_merge_patterns_list_[0], d_repetition_02_merge_patterns_list_[1],
+		d_repetition_02_merge_patterns_list_[2],d_repetition_02_merge_patterns_list_[3],repetition_count, h_image_height_, h_image_width_,d_wrap_map_list_[0], d_confidence_map_list_[0]);
+			
+	kernel_merge_four_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_repetition_02_merge_patterns_list_[4], d_repetition_02_merge_patterns_list_[5],
+		d_repetition_02_merge_patterns_list_[6],d_repetition_02_merge_patterns_list_[7],repetition_count,h_image_height_, h_image_width_, d_wrap_map_list_[1], d_confidence_map_list_[1]);
+
+	kernel_merge_four_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_repetition_02_merge_patterns_list_[8], d_repetition_02_merge_patterns_list_[9],
+		d_repetition_02_merge_patterns_list_[10],d_repetition_02_merge_patterns_list_[11],repetition_count,h_image_height_, h_image_width_, d_wrap_map_list_[2], d_confidence_map_list_[2]);
+	
+	kernel_merge_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_repetition_02_merge_patterns_list_[12], d_repetition_02_merge_patterns_list_[13],
+		d_repetition_02_merge_patterns_list_[14],d_repetition_02_merge_patterns_list_[15],d_repetition_02_merge_patterns_list_[16],d_repetition_02_merge_patterns_list_[17] ,
+		repetition_count,h_image_height_, h_image_width_, d_wrap_map_list_[3], d_confidence_map_list_[3]);
+
+	kernel_merge_brigntness_map<< <blocksPerGrid, threadsPerBlock >> >(d_repetition_02_merge_patterns_list_[18],repetition_count,h_image_height_, h_image_width_,d_brightness_map_);
+	return true;
+}
 /********************************************************************************************************************************************/

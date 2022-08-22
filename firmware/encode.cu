@@ -177,3 +177,86 @@ __global__ void kernel_normalize_phase(int width,int height,float * const d_in_u
 		/******************************************************************/
 	}
 }
+
+
+__global__ void kernel_merge_six_step_phase_shift(unsigned short * const d_in_0, unsigned short * const d_in_1, unsigned short * const d_in_2, 
+	unsigned short * const d_in_3,unsigned short* const d_in_4,unsigned short* const d_in_5,int repetition_count,
+	uint32_t img_height, uint32_t img_width,float * const d_out, float * const confidence)
+{
+	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+	const unsigned int offset = idy * img_width + idx;
+	float s_0 =  0;
+	float s_1 =  0.866025;
+	float s_2 =  0.866025;
+	float s_3 =  0;
+	float s_4 =  -0.866025;
+	float s_5 =  -0.866025;
+	float c_0 =  1;
+	float c_1 =  0.5;
+	float c_2 =  -0.5;
+	float c_3 =  -1;
+	float c_4 =  -0.5;
+	float c_5 =  0.5;
+	
+	if (idx < img_width && idy < img_height)
+	{
+
+		float a = c_0 *d_in_3[offset] + c_1 *d_in_4[offset] + c_2 *d_in_5[offset] + c_3* d_in_0[offset] +c_4*d_in_1[offset] + c_5*d_in_2[offset];
+		float b = s_0 *d_in_3[offset] + s_1 *d_in_4[offset] + s_2 *d_in_5[offset] + s_3* d_in_0[offset] +s_4*d_in_1[offset] + s_5*d_in_2[offset];
+
+  
+		confidence[offset] = std::sqrt(a*a + b*b);
+		d_out[offset] = CV_PI + std::atan2(a, b);
+	}
+
+	
+}
+
+
+__global__ void kernel_merge_four_step_phase_shift(unsigned short * const d_in_0, unsigned short * const d_in_1, unsigned short * const d_in_2, 
+	unsigned short * const d_in_3,int repetition_count,uint32_t img_height, uint32_t img_width,float * const d_out, float * const confidence)
+{
+	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+	const unsigned int offset = idy * img_width + idx;
+
+	int max_pixel = 255*repetition_count;
+
+	if (idx < img_width && idy < img_height)
+	{
+
+		float a = d_in_3[offset] - d_in_1[offset];
+		float b = d_in_0[offset] - d_in_2[offset];
+
+		int over_num = 0;
+		if(d_in_0[offset]>= max_pixel)
+		{
+			over_num++;
+		}
+		if (d_in_1[offset] >= max_pixel)
+		{
+			over_num++;
+		}
+		if (d_in_2[offset] >= max_pixel)
+		{
+			over_num++;
+		}
+		if (d_in_3[offset] >= max_pixel)
+		{
+			over_num++;
+		}
+
+		if(over_num> 1)
+		{
+			confidence[offset] = 0;
+			d_out[offset] = -1;
+		}
+		else
+		{
+			confidence[offset] = std::sqrt(a*a + b*b);
+			d_out[offset] = CV_PI + std::atan2(a, b);
+		}
+  
+	}
+}
