@@ -3059,6 +3059,143 @@ int handle_cmd_set_param_generate_brightness(int client_sock)
 }
 
 
+//设置反射光滤波参数
+int handle_cmd_set_param_reflect_filter(int client_sock)
+{
+   if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+
+
+    int switch_val = 0;
+ 
+
+    int ret = recv_buffer(client_sock, (char*)(&switch_val), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+ 
+ 
+
+    system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter = switch_val; 
+
+ 
+    LOG(INFO)<<"use_reflect_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter; 
+         
+
+    return DF_SUCCESS;
+}
+
+
+int handle_cmd_get_param_reflect_filter(int client_sock)
+{
+   if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+     
+    int ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter), sizeof(int) );
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+ 
+  
+    LOG(INFO)<<"use_radius_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter; 
+          
+    return DF_SUCCESS;
+}
+
+
+//设置半径滤波参数
+int handle_cmd_set_param_radius_filter(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+
+
+    int switch_val = 0;
+    float radius = 2;
+    int num = 3;
+
+    int ret = recv_buffer(client_sock, (char*)(&switch_val), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+ 
+
+    ret = recv_buffer(client_sock, (char*)(&radius), sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+     
+    ret = recv_buffer(client_sock, (char*)(&num), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+
+    system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter = switch_val;
+    system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r = radius;
+    system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num = num;
+
+ 
+    LOG(INFO)<<"use_radius_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter;
+    LOG(INFO)<<"radius_filter_r: "<<system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r;
+    LOG(INFO)<<"radius_filter_threshold_num: "<<system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num;
+         
+
+    return DF_SUCCESS;
+}
+
+int handle_cmd_get_param_radius_filter(int client_sock)
+{
+   if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+     
+    int ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter), sizeof(int) );
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+ 
+    ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r), sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+
+    ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num), sizeof(int) );
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+
+    
+    LOG(INFO)<<"use_radius_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter;
+    LOG(INFO)<<"radius_filter_r: "<<system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r;
+    LOG(INFO)<<"radius_filter_threshold_num: "<<system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num;
+         
+
+    return DF_SUCCESS;
+}
+
 //设置双边滤波参数
 int handle_cmd_set_param_bilateral_filter(int client_sock)
 {
@@ -4505,6 +4642,22 @@ int handle_commands(int client_sock)
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_VERSION";   
     	handle_cmd_get_param_camera_version(client_sock);
 	    break;
+	case DF_CMD_SET_PARAM_REFLECT_FILTER:
+	    LOG(INFO)<<"DF_CMD_SET_PARAM_REFLECT_FILTER";   
+    	handle_cmd_set_param_reflect_filter(client_sock);
+	    break;
+	case DF_CMD_GET_PARAM_REFLECT_FILTER:
+	    LOG(INFO)<<"DF_CMD_GET_PARAM_REFLECT_FILTER";   
+    	handle_cmd_get_param_reflect_filter(client_sock);
+	    break;
+	case DF_CMD_SET_PARAM_RADIUS_FILTER:
+	    LOG(INFO)<<"DF_CMD_SET_PARAM_RADIUS_FILTER";   
+    	handle_cmd_set_param_radius_filter(client_sock);
+	    break;
+	case DF_CMD_GET_PARAM_RADIUS_FILTER:
+	    LOG(INFO)<<"DF_CMD_GET_PARAM_RADIUS_FILTER";   
+    	handle_cmd_get_param_radius_filter(client_sock);
+	    break;
 	case DF_CMD_SET_PARAM_BILATERAL_FILTER:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_BILATERAL_FILTER";   
     	handle_cmd_set_param_bilateral_filter(client_sock);
@@ -4579,7 +4732,7 @@ int init()
         LOG(INFO)<<"Set Param Gain Failed!";
     }
 
-
+    scan3d_.setParamSystemConfig(system_config_settings_machine_);
 
     int version= 0;
     lc3010.read_dmd_device_id(version);

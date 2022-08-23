@@ -1,3 +1,4 @@
+#pragma once
 #include "encode_cuda.cuh"
 #include <opencv2/core.hpp> 
 #include <opencv2/imgcodecs.hpp>
@@ -13,7 +14,9 @@
 #include <vector>  
 #include "easylogging++.h"
 #include "protocol.h"
+#include "filter_module.cuh"
 
+SystemConfigDataStruct cuda_system_config_settings_machine_;
 
 int patterns_count_ = 36;
 int wrap_count_ = 8;
@@ -151,6 +154,7 @@ bool cuda_set_confidence(float val)
 void cuda_set_config(struct SystemConfigDataStruct param)
 { 
 	cudaMemcpyToSymbol(d_confidence_, &param.Instance().firwmare_param_.confidence, sizeof(float));
+	cuda_system_config_settings_machine_ = param;
 }
 
 bool cuda_set_camera_version(int version)
@@ -494,8 +498,8 @@ bool parallel_cuda_unwrap_phase(int serial_flag)
 		{
 			cuda_variable_phase_unwrap << <blocksPerGrid, threadsPerBlock >> >(d_unwrap_map_list[1], d_wrap_map_list[6], 4.0,
 				image_height_, image_width_,CV_PI, d_unwrap_map_list[1]);
-			// cuda_normalize_phase << <blocksPerGrid, threadsPerBlock >> >(d_unwrap_map_list[0],128.0, d_unwrap_map_list[1],18.0,
-			// image_height_, image_width_, d_unwrap_map_list[0],d_unwrap_map_list[1]);
+			cuda_normalize_phase << <blocksPerGrid, threadsPerBlock >> >(d_unwrap_map_list[0],128.0, d_unwrap_map_list[1],18.0,
+			image_height_, image_width_, d_unwrap_map_list[0],d_unwrap_map_list[1]);
 			
 			LOG(INFO)<<"unwrap 6:  ";
 
@@ -2697,8 +2701,24 @@ __global__ void cuda_removal_points_base_mask(uint32_t img_height, uint32_t img_
 
 }
 
+void remove_base_radius_filter(float dot_spacing,float radius,int threshold_num)
+{
+		LOG(INFO)<<"remove_base_radius_filter start:";
+	// //相机像素为5.4um、焦距12mm。dot_spacing = 5.4*distance/12000 mm，典型值0.54mm（1200） 
+	// cuda_filter_radius_outlier_removal << <blocksPerGrid, threadsPerBlock >> > (image_height_,image_width_,d_point_cloud_map_,d_mask_,0.5,2.5,6); 
+	// cuda_removal_points_base_mask << <blocksPerGrid, threadsPerBlock >> > (image_height_,image_width_,d_point_cloud_map_,d_depth_map_,d_mask_); 
+		// LOG(INFO)<<"remove start:";
+	// //相机像素为5.4um、焦距12mm。dot_spacing = 5.4*distance/12000 mm，典型值0.54mm（1200） 
+	
+    // cudaFuncSetCacheConfig (cuda_filter_radius_outlier_removal, cudaFuncCachePreferL1);
+	cuda_filter_radius_outlier_removal << <blocksPerGrid, threadsPerBlock >> > (image_height_,image_width_,d_point_cloud_map_,d_mask_,dot_spacing,radius,threshold_num); 
+	cuda_removal_points_base_mask << <blocksPerGrid, threadsPerBlock >> > (image_height_,image_width_,d_point_cloud_map_,d_depth_map_,d_mask_); 
+
+    cudaDeviceSynchronize();
+		LOG(INFO)<<"remove_base_radius_filter finished!";
+}
 //滤波
-__global__ void cuda_filter_radius_outlier_removal(uint32_t img_height, uint32_t img_width,float* const point_cloud_map,uchar* remove_mask,float dot_spacing, float radius,int threshold)
+__global__ void cuda_filter_radius_outlier_removal(uint32_t img_height, uint32_t img_width,float* const point_cloud_map,unsigned char* remove_mask,float dot_spacing_2, float radius,int threshold)
 {
  	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y; 
@@ -2712,8 +2732,9 @@ __global__ void cuda_filter_radius_outlier_removal(uint32_t img_height, uint32_t
 		if (point_cloud_map[3 * serial_id + 2] > 0)
 		{
 			remove_mask[serial_id] = 255;
-
-			int w = 1 + radius / dot_spacing;
+			float r2 = radius*radius; 
+			// int w = 1 + radius / dot_spacing;
+			int w = 5;
 
 			int s_r = idy - w;
 			int s_c = idx - w;
@@ -2746,6 +2767,10 @@ __global__ void cuda_filter_radius_outlier_removal(uint32_t img_height, uint32_t
 			{
 				for (int c = s_c; c <= e_c; c++)
 				{
+                    float space2 = ((idx - c) * (idx - c) + (idy - r) * (idy - r))*dot_spacing_2;
+                        if (space2 > r2)
+                            continue;
+
 					int pos = r * img_width + c;
 					if (point_cloud_map[3 * pos + 2] > 0)
 					{  
@@ -2753,9 +2778,11 @@ __global__ void cuda_filter_radius_outlier_removal(uint32_t img_height, uint32_t
 						float dy= point_cloud_map[3 * serial_id + 1] - point_cloud_map[3 * pos + 1];
 						float dz= point_cloud_map[3 * serial_id + 2] - point_cloud_map[3 * pos + 2];
 
-						float dist = std::sqrt(dx * dx + dy * dx + dz * dz); 
+						float d2 = dx * dx + dy * dx + dz * dz;
+						// float dist = std::sqrt(dx * dx + dy * dx + dz * dz); 
  
-						if (radius > dist)
+						// if (radius > dist)
+						if (r2 > d2)
 						{
 							num++;
 						}
@@ -2784,11 +2811,24 @@ __global__ void cuda_filter_radius_outlier_removal(uint32_t img_height, uint32_t
 bool generate_pointcloud_base_table()
 {
 
+	if(1 == cuda_system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter)
+	{ 
+		LOG(INFO)<<"filter_reflect_noise start:"; 
+		filter_reflect_noise(image_height_,image_width_,d_unwrap_map_list[0]); 
+
+		cudaDeviceSynchronize();
+		LOG(INFO)<<"filter_reflect_noise end";
+	}
+
+
+	// cv::Mat unwrap_map(1200, 1920, CV_32F, cv::Scalar(0.0));  
+	// CHECK(cudaMemcpy((float*)unwrap_map.data, d_unwrap_map_list[0], 1 * image_height_*image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+ 	// cv::imwrite("unwrap_map.tiff",unwrap_map);
 	reconstruct_pointcloud_base_table << <blocksPerGrid, threadsPerBlock >> > (d_xL_rotate_x_ , d_xL_rotate_y_, 
                                                 d_single_pattern_mapping_, d_R_1_,d_confidence_list[3],d_unwrap_map_list[0],
 												image_height_,image_width_,d_baseline_,d_point_cloud_map_,d_depth_map_);
 
-
+// cudaDeviceSynchronize();
 	// LOG(INFO)<<"remove start:";
 	// //相机像素为5.4um、焦距12mm。dot_spacing = 5.4*distance/12000 mm，典型值0.54mm（1200） 
 	// cuda_filter_radius_outlier_removal << <blocksPerGrid, threadsPerBlock >> > (image_height_,image_width_,d_point_cloud_map_,d_mask_,0.5,2.5,6); 
@@ -2896,8 +2936,10 @@ __global__ void reconstruct_pointcloud_base_table(float * const xL_rotate_x,floa
 		//phase to position
 		float Xp = phase_x[serial_id] * d_dlp_width_ / (128.0*2*DF_PI); 
   
-    	float Xcr = bilinear_interpolation(idx, idy,1920, xL_rotate_x);
-        float Ycr = bilinear_interpolation(idx, idy, 1920,xL_rotate_y);
+    	// float Xcr = bilinear_interpolation(idx, idy,1920, xL_rotate_x);
+        // float Ycr = bilinear_interpolation(idx, idy, 1920,xL_rotate_y);
+		float Xcr = xL_rotate_x[serial_id];
+        float Ycr = xL_rotate_y[serial_id];
         float Xpr = bilinear_interpolation(Xp, (Ycr + 1) * 2000, 2000, single_pattern_mapping);
         float delta_X = std::abs(Xcr - Xpr);
 		// float delta_X = Xpr -Xcr;
@@ -2908,7 +2950,7 @@ __global__ void reconstruct_pointcloud_base_table(float * const xL_rotate_x,floa
 		float Z_L = Z * Xcr * R_1[6] + Z * Ycr * R_1[7] + Z * R_1[8];
  
   
-		if(confidence_map[serial_id] > d_confidence_ && Z_L > 10 && Z_L< 60000 && Xp > 0)
+		if(confidence_map[serial_id] > d_confidence_ && Z_L > 10 && Z_L< 3000 && Xp > 0)
 		{
 		    pointcloud[3 * serial_id + 0] = X_L;
 		    pointcloud[3 * serial_id + 1] = Y_L;
