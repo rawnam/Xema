@@ -34,9 +34,7 @@ public:
 
     void getCameraVersion(int &version);
     
-    void setParamSystemConfig(SystemConfigDataStruct param){
-        system_config_settings_machine_ = param;
-    }
+    void setParamSystemConfig(SystemConfigDataStruct param);
     /************************************************************************/
     
     bool captureTextureImage(int model,float exposure,unsigned char* buff);

@@ -171,3 +171,87 @@ float * const confidence_map,float * const phase_x , float * const pointcloud,fl
 	}
 }
 
+__device__ float mini_bilinear_interpolation(float x, float y, int map_width, float *mapping)
+{
+	//map_width = 129;
+
+	//先找到这个点所对应的mini中的四个角点
+	//然后将这四个点算出来
+	//最后双线性插值
+
+	int index_x1 = floor(x / 16);
+	int index_y1 = floor((y-1301) / 16);
+	int index_x2 = index_x1 + 1;
+	int index_y2 = index_y1 + 1;
+
+	int x1 = index_x1 * 16;
+	int y1 = index_y1 * 16 + 1301;
+	int x2 = x1 + 16;
+	int y2 = y1 + 16;
+
+	//因为我生成的表比原来大，所以无需考虑边界条件
+	//fq_xy
+	float fq11 = mapping[index_y1 *map_width + index_x1];
+	float fq21 = mapping[index_y1 *map_width + index_x2];
+	float fq12 = mapping[index_y2 *map_width + index_x1];
+	float fq22 = mapping[index_y2 *map_width + index_x2];
+
+	float out = (fq11 * (x2 - x) * (y2 - y) + fq21 * (x - x1) * (y2 - y) + fq12 * (x2 - x) * (y - y1) + fq22 * (x - x1) * (y - y1))/256.;
+
+	return out;
+}
+
+
+__global__ void kernel_reconstruct_pointcloud_base_minitable(uint32_t img_height, uint32_t img_width, float* const xL_rotate_x, float* const xL_rotate_y, float* const single_pattern_minimapping, float* const R_1, float b, 
+ float* const confidence_map, float* const phase_x,float* const pointcloud, float* const depth)
+{
+	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+
+
+	const unsigned int serial_id = idy * img_width + idx;
+
+	if (idx < img_width && idy < img_height)
+	{
+		/****************************************************************************/
+		//phase to position
+		// float Xp = phase_x[serial_id] * 1280.0 / (128.0 * 2 * DF_PI);
+		float Xp = phase_x[serial_id] * d_dlp_width_ /d_max_phase_; 
+
+        float Xcr = xL_rotate_x[serial_id];
+        float Ycr = xL_rotate_y[serial_id];
+		// float Xcr = bilinear_interpolation(idx, idy, 1920, xL_rotate_x);
+		// float Ycr = bilinear_interpolation(idx, idy, 1920, xL_rotate_y);
+		//修改此处即可，需要自己写一个函数去查表
+		float Xpr = mini_bilinear_interpolation(Xp, (Ycr + 1) * 2000, 128, single_pattern_minimapping);
+		float delta_X = std::abs(Xcr - Xpr);
+		float Z = b / delta_X;
+
+		float X_L = Z * Xcr * R_1[0] + Z * Ycr * R_1[1] + Z * R_1[2];
+		float Y_L = Z * Xcr * R_1[3] + Z * Ycr * R_1[4] + Z * R_1[5];
+		float Z_L = Z * Xcr * R_1[6] + Z * Ycr * R_1[7] + Z * R_1[8];
+
+
+		if(confidence_map[serial_id] > d_confidence_ && Z_L > d_min_z_ && Z_L< d_max_z_ && Xp > 0)
+		// if (confidence_map[serial_id] > 10 && Z_L > 100 && Z_L < 2000)
+		{
+			pointcloud[3 * serial_id + 0] = X_L;
+			pointcloud[3 * serial_id + 1] = Y_L;
+			pointcloud[3 * serial_id + 2] = Z_L;
+
+			depth[serial_id] = Z_L;
+		}
+		else
+		{
+			pointcloud[3 * serial_id + 0] = 0;
+			pointcloud[3 * serial_id + 1] = 0;
+			pointcloud[3 * serial_id + 2] = 0;
+
+			depth[serial_id] = 0;
+		}
+
+		/******************************************************************/
+
+
+	}
+}

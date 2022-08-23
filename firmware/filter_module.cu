@@ -17,10 +17,10 @@ void filter_reflect_noise(uint32_t img_height, uint32_t img_width,float * const 
     (30 + threadsPerBlock_p.y - 1) / threadsPerBlock_p.y);
    
  
- 	cuda_filter_reflect_noise << <blocksPerGrid_p, threadsPerBlock_p >> > ( img_height, img_width, unwrap_map);
+ 	kernel_filter_reflect_noise << <blocksPerGrid_p, threadsPerBlock_p >> > ( img_height, img_width, unwrap_map);
 }
 
-__global__ void cuda_filter_reflect_noise(uint32_t img_height, uint32_t img_width,float * const unwrap_map)
+__global__ void kernel_filter_reflect_noise(uint32_t img_height, uint32_t img_width,float * const unwrap_map)
 {
     const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
@@ -192,3 +192,115 @@ __global__ void cuda_filter_reflect_noise(uint32_t img_height, uint32_t img_widt
         /*****************************************************************************/
 	}
 }
+
+
+//滤波
+__global__ void kernel_filter_radius_outlier_removal(uint32_t img_height, uint32_t img_width,float* const point_cloud_map,unsigned char* remove_mask,
+float dot_spacing_2, float r_2,int threshold)
+{
+ 	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y; 
+  
+	const unsigned int serial_id = idy * img_width + idx;
+
+	if (idx < img_width && idy < img_height)
+	{
+		/****************************************************************************/
+		//定位区域
+		if (point_cloud_map[3 * serial_id + 2] > 0)
+		{
+			remove_mask[serial_id] = 255;
+			int w = 5;
+
+			int s_r = idy - w;
+			int s_c = idx - w;
+
+			int e_r = idy + w;
+			int e_c = idx + w;
+
+			if (s_r < 0)
+			{
+				s_r = 0;
+			}
+			if (s_c < 0)
+			{
+				s_c = 0;
+			}
+
+			if (e_r >= img_height)
+			{
+				e_r = img_height - 1;
+			}
+
+			if (e_c >= img_width)
+			{
+				e_c = img_width - 1;
+			}
+
+			int num = 0;
+
+			for (int r = s_r; r <= e_r; r++)
+			{
+				for (int c = s_c; c <= e_c; c++)
+				{
+					float space2 = ((idx - c) * (idx - c) + (idy - r) * (idy - r)) * dot_spacing_2;
+					if (space2 > r_2)
+						continue;
+
+					int pos = r * img_width + c;
+					if (point_cloud_map[3 * pos + 2] > 0)
+					{  
+						float dx= point_cloud_map[3 * serial_id + 0] - point_cloud_map[3 * pos + 0];
+						float dy= point_cloud_map[3 * serial_id + 1] - point_cloud_map[3 * pos + 1];
+						float dz= point_cloud_map[3 * serial_id + 2] - point_cloud_map[3 * pos + 2];
+
+						float d2 = dx * dx + dy * dx + dz * dz;
+						// float dist = std::sqrt(dx * dx + dy * dx + dz * dz); 
+ 
+						// if (radius > dist)
+						if (r_2 > d2)
+						{
+							num++;
+						}
+					}
+				}
+			} 
+
+			if (num < threshold)
+			{ 
+				remove_mask[serial_id] = 0;
+			} 
+		}
+		else
+		{ 
+			remove_mask[serial_id] = 0;
+		}
+
+		/******************************************************************/
+	}
+}
+
+//滤波
+__global__ void kernel_removal_points_base_mask(uint32_t img_height, uint32_t img_width,float* const point_cloud_map,float* const depth_map,uchar* remove_mask)
+{
+  	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y; 
+  
+	const unsigned int serial_id = idy * img_width + idx;
+
+	if (idx < img_width && idy < img_height)
+	{
+		if(0 == remove_mask[serial_id])
+		{
+			depth_map[serial_id] = 0;
+			point_cloud_map[3 * serial_id + 0] = 0;
+			point_cloud_map[3 * serial_id + 1] = 0;
+			point_cloud_map[3 * serial_id + 2] = 0;
+		}
+
+	}
+
+}
+
+
+

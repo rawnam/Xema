@@ -19,7 +19,7 @@
 #include "reconstruct.cuh"
 #include "merge_hdr.cuh"
 #include "merge_repetition.cuh"
- 
+#include "filter_module.cuh"
 
 #define MAX_PATTERNS_NUMBER 36
 #define MAX_WRAP_NUMBER 8
@@ -41,6 +41,8 @@ __device__ float* d_wrap_map_list_[MAX_WRAP_NUMBER];
 __device__ float* d_confidence_map_list_[MAX_WRAP_NUMBER];
 __device__ float* d_unwrap_map_list_[MAX_UNWRAP_NUMBER];
 
+
+__device__ unsigned char* d_mask_map_;
 __device__ unsigned char* d_brightness_map_;
 __device__ float* d_point_cloud_map_;
 __device__ float* d_depth_map_; 
@@ -81,7 +83,7 @@ __device__ unsigned short* d_repetition_merge_patterns_list_[6];
 __device__ unsigned short* d_repetition_02_merge_patterns_list_[D_REPETITION_02_MAX_NUM];  
 
 /**********************************************************************/
-
+void cuda_set_param_system_config(SystemConfigDataStruct param);
     
 bool cuda_set_camera_version(int version);
 
@@ -134,13 +136,14 @@ bool cuda_normalize_phase(int serial_flag);
 
 
 /***********************************************************************************/
-
+//reconstruct
 
 
 
 bool cuda_generate_pointcloud_base_table();
 
 
+bool cuda_generate_pointcloud_base_minitable();
 
 
 /***********************************************************************************/
@@ -168,4 +171,14 @@ bool cuda_merge_repetition_02_patterns(int repetition_serial);
 
 bool cuda_compute_merge_repetition_02_phase(int repetition_count);
 /***********************************************************************************/
+//filter
+void cuda_remove_points_base_radius_filter(float dot_spacing,float radius,int threshold_num);
+
+void cuda_filter_reflect_noise(float * const unwrap_map);
+
+
+
+/************************************************************************************************/
+
+
 #endif

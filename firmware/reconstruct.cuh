@@ -19,7 +19,10 @@ float * const confidence_map,float * const phase_x , float * const pointcloud,fl
 
 __device__ float bilinear_interpolation(float x, float y, int map_width, float *mapping);
 
-
+__global__ void kernel_reconstruct_pointcloud_base_minitable(uint32_t img_height, uint32_t img_width, float* const xL_rotate_x, float* const xL_rotate_y, float* const single_pattern_minimapping, float* const R_1, float b, 
+ float* const confidence_map, float* const phase_x,float* const pointcloud, float* const depth);
+ 
+__device__ float mini_bilinear_interpolation(float x, float y, int map_width, float *mapping);
 
 
 

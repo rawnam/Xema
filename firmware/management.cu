@@ -26,6 +26,13 @@ dim3 blocksPerGrid((d_image_width_ + threadsPerBlock.x - 1) / threadsPerBlock.x,
 // int d_image_height_ = 1200;
 // bool load_calib_data_flag_ = false;
 
+
+SystemConfigDataStruct cuda_system_config_settings_machine_;
+void cuda_set_param_system_config(SystemConfigDataStruct param)
+{
+	cuda_system_config_settings_machine_ = param;
+}
+
 bool cuda_set_camera_version(int version)
 {
     switch (version)
@@ -138,9 +145,10 @@ bool cuda_malloc_basic_memory()
 	for (int i = 0; i< MAX_UNWRAP_NUMBER; i++)
 	{
 		cudaMalloc((void**)&d_unwrap_map_list_[i], d_image_height_*d_image_width_ * sizeof(float)); 
-	}
-  
+	} 
+
 	cudaMalloc((void**)&d_brightness_map_, d_image_height_*d_image_width_ * sizeof(unsigned char)); 
+	cudaMalloc((void**)&d_mask_map_, d_image_height_*d_image_width_ * sizeof(unsigned char)); 
 
 
 	cudaMalloc((void**)&d_camera_intrinsic_, 3*3 * sizeof(float));
@@ -208,6 +216,7 @@ bool cuda_free_basic_memory()
 		cudaFree(d_unwrap_map_list_[i]); 
 	}
 
+    cudaFree(d_mask_map_);
     cudaFree(d_brightness_map_);
     cudaFree(d_point_cloud_map_);
     cudaFree(d_depth_map_);
@@ -546,11 +555,38 @@ bool cuda_unwrap_phase_shift(int serial_flag)
 
 /********************************************************************************************************************************************/
 
+bool cuda_generate_pointcloud_base_minitable()
+{
+		if(1 == cuda_system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter)
+	{ 
+		LOG(INFO)<<"filter_reflect_noise start:"; 
+		cuda_filter_reflect_noise(d_unwrap_map_list_[0]); 
+
+		cudaDeviceSynchronize();
+		LOG(INFO)<<"filter_reflect_noise end";
+	}
+
+	kernel_reconstruct_pointcloud_base_minitable<< <blocksPerGrid, threadsPerBlock>> > (d_image_width_,d_image_height_,d_xL_rotate_x_,d_xL_rotate_y_,d_single_pattern_minimapping_,d_R_1_,d_baseline_,
+	d_confidence_map_list_[3],d_unwrap_map_list_[0],d_point_cloud_map_,d_depth_map_);
+
+ 
+}
+
+
 bool cuda_generate_pointcloud_base_table()
 {
 	// cv::Mat phase(2048,2448,CV_32FC1,cv::Scalar(0));
 	// CHECK(cudaMemcpy(phase.data, d_unwrap_map_list_[0], 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
 	// cv::imwrite("phase.tiff", phase);
+	
+	if(1 == cuda_system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter)
+	{ 
+		LOG(INFO)<<"filter_reflect_noise start:"; 
+		cuda_filter_reflect_noise(d_unwrap_map_list_[0]); 
+
+		cudaDeviceSynchronize();
+		LOG(INFO)<<"filter_reflect_noise end";
+	}
 
 	kernel_reconstruct_pointcloud_base_table << <blocksPerGrid, threadsPerBlock>> > (d_image_width_,d_image_height_,d_xL_rotate_x_,d_xL_rotate_y_,d_single_pattern_mapping_,d_R_1_,d_baseline_,
 	d_confidence_map_list_[3],d_unwrap_map_list_[0],d_point_cloud_map_,d_depth_map_);
@@ -779,3 +815,55 @@ bool cuda_compute_merge_repetition_02_phase(int repetition_count)
 	return true;
 }
 /********************************************************************************************************************************************/
+//filter
+void cuda_remove_points_base_radius_filter(float dot_spacing,float radius,int threshold_num)
+{
+	LOG(INFO)<<"remove_base_radius_filter start:"; 
+ 
+	// //相机像素为5.4um、焦距12mm。dot_spacing = 5.4*distance/12000 mm，典型值0.54mm（1200） 
+
+	float d2 = dot_spacing*dot_spacing;
+	float r2 = radius*radius;
+	
+    // cudaFuncSetCacheConfig (cuda_filter_radius_outlier_removal, cudaFuncCachePreferL1);
+	kernel_filter_radius_outlier_removal << <blocksPerGrid, threadsPerBlock >> > (h_image_height_,h_image_width_,d_point_cloud_map_,d_mask_map_,d2,r2,threshold_num); 
+	
+	LOG(INFO)<<"remove start:";
+	kernel_removal_points_base_mask << <blocksPerGrid, threadsPerBlock >> > (h_image_height_,h_image_width_,d_point_cloud_map_,d_depth_map_,d_mask_map_); 
+
+    cudaDeviceSynchronize();
+	LOG(INFO)<<"remove_base_radius_filter finished!";
+}
+
+
+void cuda_filter_reflect_noise(float * const unwrap_map)
+{
+    // dim3 threadsPerBlock_p(img_width);
+    // dim3 blocksPerGrid_p(img_height);
+
+	//按行来组织线程
+    dim3 threadsPerBlock_p(4, 4);
+    // dim3 blocksPerGrid_p(15,2);
+    dim3 blocksPerGrid_p;
+	if(1200 == h_image_height_)
+	{
+		blocksPerGrid_p.x = (40 + threadsPerBlock_p.x - 1) / threadsPerBlock_p.x;
+		blocksPerGrid_p.y = (30 + threadsPerBlock_p.y - 1) / threadsPerBlock_p.y;
+	}
+	else if(2048 == h_image_height_)
+	{
+		blocksPerGrid_p.x = (64 + threadsPerBlock_p.x - 1) / threadsPerBlock_p.x;
+		blocksPerGrid_p.y = (32 + threadsPerBlock_p.y - 1) / threadsPerBlock_p.y;
+	}
+
+ 
+ 	kernel_filter_reflect_noise << <blocksPerGrid_p, threadsPerBlock_p >> > ( h_image_height_,h_image_width_, unwrap_map);
+}
+
+
+
+
+
+
+
+/*****************************************************************************************************************************************************/
