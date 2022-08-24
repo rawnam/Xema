@@ -38,6 +38,8 @@ public slots:
 
 	void do_action_select_calibration_board();
 
+	void do_action_outlier_removal_settings();
+
 	void do_slot_handle_network();
 protected:
 	void closeEvent(QCloseEvent* e);

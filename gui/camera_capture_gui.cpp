@@ -904,6 +904,35 @@ void CameraCaptureGui::sleep(int sectime)
 }
 
 
+void CameraCaptureGui::updateOutlierRemovalConfigParam(struct FirmwareConfigParam param)
+{
+	if (param.use_reflect_filter != firmware_config_param_.use_reflect_filter)
+	{
+		if (DF_SUCCESS == DfSetParamReflectFilter(param.use_reflect_filter))
+		{
+			firmware_config_param_.use_reflect_filter = param.use_reflect_filter;
+			QString str = u8"设置反射点滤除： "+QString::number(param.use_reflect_filter);
+			addLogMessage(str);
+		}
+	}
+
+	if (param.use_radius_filter != firmware_config_param_.use_radius_filter)
+	{
+		if (DF_SUCCESS == DfSetParamRadiusFilter(param.use_radius_filter, param.radius_filter_r, param.radius_filter_threshold_num));
+		{
+			firmware_config_param_.use_radius_filter = param.use_radius_filter;
+			QString str = u8"设置半径滤波： " + QString::number(param.use_radius_filter);
+			addLogMessage(str);
+		}
+	}
+	 
+}
+
+void CameraCaptureGui::getFirmwareConfigParam(struct FirmwareConfigParam& param)
+{
+	param = firmware_config_param_;
+}
+
 void CameraCaptureGui::getGuiConfigParam(struct GuiConfigDataStruct& gui_param)
 {
 	gui_param = processing_gui_settings_data_;
