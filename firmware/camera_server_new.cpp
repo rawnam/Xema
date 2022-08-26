@@ -47,7 +47,7 @@ float generate_brightness_exposure_time = 12000;
 int generate_brightness_model = 1;
  
 float max_camera_exposure_ = 28000;
-float min_camera_exposure_ = 6000;
+float min_camera_exposure_ = 1000;
 
 int camera_width_ = 0;
 int camera_height_ = 0;
@@ -131,7 +131,7 @@ bool set_camera_version(int version)
     {
         // cuda_set_camera_version(DFX_800);
         max_camera_exposure_ = 60000;
-        min_camera_exposure_ = 6000;
+        min_camera_exposure_ = 1000;
         return true;
     }
     break;
@@ -141,7 +141,7 @@ bool set_camera_version(int version)
 
         // cuda_set_camera_version(DFX_1800);
         max_camera_exposure_ = 28000; 
-        min_camera_exposure_ = 6000;
+        min_camera_exposure_ = 1000;
         return true;
     }
     break;

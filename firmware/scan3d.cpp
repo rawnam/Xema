@@ -790,11 +790,11 @@ bool Scan3D::captureFrame04Hdr()
     /******************************************************************************************************/
  
     lc3010_.SetLedCurrent(led_current_, led_current_, led_current_); 
-    // LOG(INFO) << "Set Camera Exposure Time: " << camera_exposure_ << "\n"; 
-    // if (camera_->setExposure(camera_exposure_))
-    // {
-    //     lc3010_.set_camera_exposure(camera_exposure_);
-    // }
+    LOG(INFO) << "Set Camera Exposure Time: " << camera_exposure_ << "\n"; 
+    if (camera_->setExposure(camera_exposure_))
+    {
+        lc3010_.set_camera_exposure(camera_exposure_);
+    }
 
     return true;
 }
