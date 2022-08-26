@@ -2846,7 +2846,7 @@ bool generate_pointcloud_base_table()
 	// LOG(INFO)<<"remove finished!";
 }
  
- bool generate_pointcloud_base_minitable()
+bool generate_pointcloud_base_minitable()
 {
 
 	reconstruct_pointcloud_base_minitable << <blocksPerGrid, threadsPerBlock >> > (d_xL_rotate_x_, d_xL_rotate_y_,

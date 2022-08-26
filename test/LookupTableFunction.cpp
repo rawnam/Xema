@@ -727,6 +727,7 @@ bool LookupTableFunction::readBinMappingFloat(int rows, int cols, std::string ma
 	std::ifstream inFile(mapping_file, std::ios::in | std::ios::binary); //�����ƶ���ʽ��
 	if (!inFile) {
 		std::cout << "error" << std::endl;
+		out_map = map.clone();
 		return false;
 	}
 	while (inFile.read((char*)map.data, sizeof(float) * rows * cols)) { //һֱ�����ļ�����

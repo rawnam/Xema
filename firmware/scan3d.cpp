@@ -1320,7 +1320,7 @@ bool Scan3D::loadCalibData()
     cv::Mat xL_rotate_y;
     cv::Mat rectify_R1;
     cv::Mat pattern_mapping;
-    cv::Mat pattern_minimapping;
+    cv::Mat pattern_minimapping(128,128,CV_32F,cv::Scalar(0));
 
     bool read_map_ok = lookup_table_machine_.readTableFloat("./", xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping,pattern_minimapping,image_width_,image_height_);
   
@@ -1333,6 +1333,7 @@ bool Scan3D::loadCalibData()
         xL_rotate_y.convertTo(xL_rotate_y, CV_32F);
         R1_t.convertTo(R1_t, CV_32F);
         pattern_mapping.convertTo(pattern_mapping, CV_32F);
+        pattern_minimapping.convertTo(pattern_minimapping, CV_32F); 
  
 
         float b = sqrt(pow(calib_param_.translation_matrix[0], 2) + pow(calib_param_.translation_matrix[1], 2) + pow(calib_param_.translation_matrix[2], 2));
