@@ -442,7 +442,7 @@ void CameraCaptureGui::add_exposure_item(int row, int exposure, int led)
 	}
 
 	QSpinBox* exposureSpinBoxItem = new QSpinBox();
-	exposureSpinBoxItem->setRange(6000, 60000);//设置数值显示范围
+	exposureSpinBoxItem->setRange(1000, 60000);//设置数值显示范围
 	exposureSpinBoxItem->setValue(exposure);
 	exposureSpinBoxItem->setButtonSymbols(QAbstractSpinBox::NoButtons);
 	exposureSpinBoxItem->setAlignment(Qt::AlignHCenter);
