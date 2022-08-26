@@ -299,6 +299,11 @@ bool CameraGalaxy::setExposure(double val)
         LOG(INFO) << "setExposure --";
     }
 
+    if(val< 6000)
+    {
+        val = 6000;
+    }
+
     GX_STATUS status = GX_STATUS_SUCCESS;
     status = GXSetFloat(hDevice_, GX_FLOAT_EXPOSURE_TIME, val);
 

@@ -9,7 +9,7 @@
 Scan3D::Scan3D()
 {
     max_camera_exposure_ = 28000;
-    min_camera_exposure_ = 6000;
+    min_camera_exposure_ = 1000;
 
     led_current_ = 1023;
     camera_exposure_ = 12000;
@@ -217,7 +217,7 @@ bool Scan3D::setCameraVersion(int version)
     {
         cuda_set_camera_version(DFX_800);
         max_camera_exposure_ = 60000;
-        min_camera_exposure_ = 6000;
+        min_camera_exposure_ = 1700;
         return true;
     }
     break;
@@ -227,7 +227,7 @@ bool Scan3D::setCameraVersion(int version)
 
         cuda_set_camera_version(DFX_1800);
         max_camera_exposure_ = 28000; 
-        min_camera_exposure_ = 6000;
+        min_camera_exposure_ = 1700;
         return true;
     }
     break;
