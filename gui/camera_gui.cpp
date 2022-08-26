@@ -12,6 +12,7 @@
 #include <QFileDialog>
 #include "../firmware/version.h"
 #include "select_calibration_board_gui.h"
+#include "outlier_removal_gui.h"
 
 camera_gui::camera_gui(QWidget* parent)
 	: QMainWindow(parent)
@@ -35,6 +36,7 @@ camera_gui::camera_gui(QWidget* parent)
 	connect(ui.action_exit, SIGNAL(triggered()), this, SLOT(do_action_exit()));
 	connect(ui.action_get_calibration_param, SIGNAL(triggered()), this, SLOT(do_action_show_calibration_param()));
 	connect(ui.action_select_calibration_board, SIGNAL(triggered()), this, SLOT(do_action_select_calibration_board()));
+	connect(ui.action_outlier_removal, SIGNAL(triggered()), this, SLOT(do_action_outlier_removal_settings()));
 	connect(this, SIGNAL(send_network_drop()), this, SLOT(do_slot_handle_network()));
 }
 
@@ -120,6 +122,22 @@ void camera_gui::do_action_save_camera_config()
 	}
 }
 
+
+void camera_gui::do_action_outlier_removal_settings()
+{
+	struct FirmwareConfigParam param_old; 
+	ui.tab_capture->getFirmwareConfigParam(param_old);
+
+	OutlierRemovalSettingGui removal_gui;
+	removal_gui.setConfigParam(param_old); 
+	if (QDialog::Accepted == removal_gui.exec())
+	{
+		struct FirmwareConfigParam param_new; 
+		removal_gui.getConfigParam(param_new);
+
+		ui.tab_capture->updateOutlierRemovalConfigParam(param_new);
+	}
+}
 
 void camera_gui::do_action_select_calibration_board()
 {

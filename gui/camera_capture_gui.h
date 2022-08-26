@@ -74,6 +74,10 @@ public:
 
 	void getGuiConfigParam(struct GuiConfigDataStruct& gui_param);
 
+	void getFirmwareConfigParam(struct FirmwareConfigParam& param); 
+
+	void updateOutlierRemovalConfigParam(struct FirmwareConfigParam param);
+
 	//更新生成亮度图参数
 	void updateGenerateBrightnessParam();
 

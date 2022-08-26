@@ -241,6 +241,34 @@ extern "C"
 	//输出参数：smoothing(0:关、1-5:平滑程度由低到高)
 	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 	DF_SDK_API int DfGetParamSmoothing(int& smoothing);
+
+	//函数名： DfSetParamRadiusFilter
+	//功能： 设置点云半径滤波参数
+	//输入参数：use(开关：1开、0关)、radius(半径）、num（有效点）
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfSetParamRadiusFilter(int use,float radius,int num);
+
+	//函数名： DfGetParamSmoothing
+	//功能： 设置点云平滑参数
+	//输入参数：无
+	//输出参数：use(开关：1开、0关)、radius(半径）、num（有效点）
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfGetParamRadiusFilter(int& use, float& radius, int& num);
+
+	//函数名： DfSetParamReflectFilter
+	//功能： 设置点云半径滤波参数
+	//输入参数：use(开关：1开、0关) 
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfSetParamReflectFilter(int use);
+
+	//函数名： DfGetParamReflectFilter
+	//功能： 设置点云平滑参数
+	//输入参数：无
+	//输出参数：use(开关：1开、0关)
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfGetParamReflectFilter(int& use);
 }
 
 
