@@ -162,6 +162,13 @@ int main(int argc, char* argv[])
 		{
 			board_message.rows = 11;
 			board_message.cols = 7;
+			board_message.width = 12;
+			board_message.height = 6;
+		}
+		else if ("20" == board_str)
+		{
+			board_message.rows = 11;
+			board_message.cols = 7;
 			board_message.width = 20;
 			board_message.height = 10;
 		}

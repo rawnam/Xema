@@ -944,8 +944,8 @@ bool Calibrate_Function::findCircleBoardFeature(cv::Mat img, std::vector<cv::Poi
 	cv::SimpleBlobDetector::Params params;
 	params.minThreshold = 0;
 	params.maxThreshold = 255;
-	//params.maxArea = 10e4;
-	//params.minArea = 10;
+	params.maxArea = 10e5;
+	params.minArea = 100;
 	//params.filterByArea = true;
 	/*params.minDistBetweenBlobs = 5;
 	params.filterByInertia = false;
@@ -954,7 +954,7 @@ bool Calibrate_Function::findCircleBoardFeature(cv::Mat img, std::vector<cv::Poi
 
 	std::vector<cv::Point2f> circle_points;
 	cv::Mat img_inv = inv_image(img);
-	bool found = cv::findCirclesGrid(img_inv, board_size_, circle_points, cv::CALIB_CB_ASYMMETRIC_GRID | cv::CALIB_CB_CLUSTERING);
+	bool found = cv::findCirclesGrid(img_inv, board_size_, circle_points, cv::CALIB_CB_ASYMMETRIC_GRID | cv::CALIB_CB_CLUSTERING, blobDetector);
 
 	if (!found)
 		return false;

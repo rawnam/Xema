@@ -77,6 +77,16 @@ void CameraCaptureGui::setCalibrationBoard(int flag)
 
 	switch (flag)
 	{
+	case 12:
+	{
+		board_size_.width = 12.0;
+		board_size_.height = 6.0;
+		calibration_board_flag_ = flag;
+
+		processing_gui_settings_data_.Instance().calibration_board = flag;
+	}
+	break;
+
 	case 20:
 	{
 		board_size_.width = 20.0;
