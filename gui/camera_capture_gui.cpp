@@ -1376,6 +1376,10 @@ void  CameraCaptureGui::do_pushButton_connect()
 
 		DfRegisterOnDropped(m_p_OnDropped_);
 
+		if (DF_UNKNOWN == ret_code)
+		{
+			addLogMessage(u8"相机固件版本低，请升级！");
+		}
 
 		if (0 == ret_code)
 		{

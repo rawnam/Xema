@@ -302,15 +302,16 @@ DF_SDK_API int DfConnect(const char* camera_id)
 
 
 	int ret = DfConnectNet(camera_id);
-	if (ret == DF_FAILED)
+	if (ret != DF_SUCCESS)
 	{
 		return -1;
 	}
 
 	ret = DfGetCalibrationParam(calibration_param_);
 
-	if (ret == DF_FAILED)
+	if (ret != DF_SUCCESS)
 	{
+		DfDisconnectNet();
 		return -1;
 	}
 
@@ -322,8 +323,15 @@ DF_SDK_API int DfConnect(const char* camera_id)
 	ret = DfGetCameraResolution(&width, &height);
 
 
-	if (ret == DF_FAILED)
+	if (ret != DF_SUCCESS)
 	{
+		DfDisconnectNet();
+		return ret;
+	}
+
+	if (width <= 0 || height <= 0)
+	{
+		DfDisconnectNet();
 		return -1;
 	}
 
