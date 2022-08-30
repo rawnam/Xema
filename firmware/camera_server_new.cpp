@@ -2120,7 +2120,8 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
  
 
     LOG(INFO)<<"captureFrame04";
-    scan3d_.captureFrame04();
+    //scan3d_.captureFrame04();
+    scan3d_.captureFrame04_base_confidence();
      
     LOG(INFO)<<"Reconstruct Frame04 Finished!";
     scan3d_.copyBrightnessData(brightness);

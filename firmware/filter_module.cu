@@ -2,23 +2,6 @@
 #include "filter_module.cuh"
 
 #include "easylogging++.h"
-// int image_width_ = 1920;
-// int image_height_ = 1200;
-  
-void filter_reflect_noise(uint32_t img_height, uint32_t img_width,float * const unwrap_map)
-{
-    // dim3 threadsPerBlock_p(img_width);
-    // dim3 blocksPerGrid_p(img_height);
-
-
-    dim3 threadsPerBlock_p(4, 4);
-    // dim3 blocksPerGrid_p(15,2);
-    dim3 blocksPerGrid_p((40 + threadsPerBlock_p.x - 1) / threadsPerBlock_p.x,
-    (30 + threadsPerBlock_p.y - 1) / threadsPerBlock_p.y);
-   
- 
- 	kernel_filter_reflect_noise << <blocksPerGrid_p, threadsPerBlock_p >> > ( img_height, img_width, unwrap_map);
-}
 
 __global__ void kernel_filter_reflect_noise(uint32_t img_height, uint32_t img_width,float * const unwrap_map)
 {
@@ -189,6 +172,114 @@ __global__ void kernel_filter_reflect_noise(uint32_t img_height, uint32_t img_wi
         }
 
         delete []phasePtr;
+        /*****************************************************************************/
+	}
+}
+
+
+__global__ void kernel_fisher_filter(uint32_t img_height, uint32_t img_width, float fisher_confidence, float * const fisher_map, unsigned char* mask_output, float * const unwrap_map)
+{
+    const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+  
+    int offset_y = idy * 40 + idx; 
+ 
+    int nr = img_height;
+    int nc = img_width;
+
+	if (offset_y < img_height)
+	{ 
+        //读数据
+
+        float* fisherPtr = fisher_map + (offset_y*img_width); 
+		float* neighborPtr = new float[img_width]; 
+		float* phasePtr = unwrap_map + (offset_y*img_width);
+        for(int c= 0;c< img_width;c++)
+        {
+            int offset = offset_y*img_width + c;
+			neighborPtr[c] = 0;
+        }
+
+		/*****************************************************************************/
+        // cuda代码算法顺序：
+		// 1.首先完成右减左的计算
+		int numR = 0, numC = 0;
+		for (int c = 1; c < img_width - 1; c += 1)
+		{
+			// 在此处需要循环找到非-10的值
+			while (phasePtr[c] == -10. && c < img_width - 1.)
+			{
+				c += 1;
+			}
+			numC = c;
+			while (phasePtr[c + 1] == -10. && c < img_width - 1.)
+			{
+				c += 1;
+			}
+			numR = c + 1;
+			neighborPtr[c] = phasePtr[numR] - phasePtr[numC];
+
+			
+		}
+		// 2.完成非线性变换
+		for (int c = 0; c < img_width; c += 1)
+		{
+			if (neighborPtr[c] < -1)
+			{
+				neighborPtr[c] = -1;
+			}
+			else if (neighborPtr[c] > 1)
+			{
+				neighborPtr[c] = 1;
+			}
+			neighborPtr[c] = neighborPtr[c] * (-0.5) + 0.5;
+		}
+		// 3.完成膨胀操作
+		float neighbor_max = 0;
+		for (int c = 0; c < img_width - 7; c += 1)
+		{
+			neighborPtr[c] = neighbor_max;
+			neighbor_max = 0;
+			for (int i = 1; i < 7; i += 1)
+			{
+				if (neighbor_max < neighborPtr[c + i])
+				{
+					neighbor_max = neighborPtr[c + i];
+				}
+			}
+			
+		}
+		// 实现相加
+		for (int c = 0; c < img_width; c += 1)
+		{
+			fisherPtr[c] = fisherPtr[c] + neighborPtr[c] * (-2.89004663e-05);
+		}
+		// 4.完成分类操作得到一个mask
+		for (int c = 0; c < img_width; c += 1)
+		{
+			int offset = offset_y*img_width + c;
+			if (fisherPtr[c] > fisher_confidence)
+			{
+				mask_output[c] = 255;
+			}
+			else
+			{
+				unwrap_map[offset] = -10.;
+			}
+			fisherPtr[c] = 0.;
+			mask_output[c] = 0;
+		}
+		// 5.应用mask得到最终的结果
+		
+		// 找到右侧7个点的最大值，把最大值赋值给当前
+
+		/*****************************************************************************/
+        for(int c= 0;c< img_width;c++)
+        {
+            fisher_map[offset_y*img_width + c] = fisherPtr[c];
+        }
+
+		delete []neighborPtr;
         /*****************************************************************************/
 	}
 }

@@ -149,6 +149,7 @@ bool cuda_malloc_basic_memory()
 
 	cudaMalloc((void**)&d_brightness_map_, d_image_height_*d_image_width_ * sizeof(unsigned char)); 
 	cudaMalloc((void**)&d_mask_map_, d_image_height_*d_image_width_ * sizeof(unsigned char)); 
+	cudaMalloc((void**)&d_fisher_mask_, d_image_height_ * d_image_width_ * sizeof(unsigned char));
 
 
 	cudaMalloc((void**)&d_camera_intrinsic_, 3*3 * sizeof(float));
@@ -161,6 +162,7 @@ bool cuda_malloc_basic_memory()
 	cudaMalloc((void**)&d_translation_matrix_, 1 * 3 * sizeof(float));
 
 
+	cudaMalloc((void**)&d_fisher_confidence_map, d_image_height_*d_image_width_ * sizeof(float));
 	cudaMalloc((void**)&d_point_cloud_map_, 3*d_image_height_*d_image_width_ * sizeof(float));
 	cudaMalloc((void**)&d_depth_map_, d_image_height_*d_image_width_ * sizeof(float));
 	cudaMalloc((void**)&d_triangulation_error_map_, d_image_height_*d_image_width_ * sizeof(float));
@@ -216,6 +218,8 @@ bool cuda_free_basic_memory()
 		cudaFree(d_unwrap_map_list_[i]); 
 	}
 
+	cudaFree(d_fisher_confidence_map);
+	cudaFree(d_fisher_mask_);
     cudaFree(d_mask_map_);
     cudaFree(d_brightness_map_);
     cudaFree(d_point_cloud_map_);
@@ -553,6 +557,40 @@ bool cuda_unwrap_phase_shift(int serial_flag)
 	return true;
 }
 
+bool cuda_unwrap_phase_shift_base_fisher_confidence(int serial_flag)
+{
+
+	switch(serial_flag)
+	{ 
+		case 1:
+		{  
+            kernel_unwrap_variable_phase_base_confidence<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_wrap_map_list_[0], d_wrap_map_list_[1], 8.0, CV_PI, FISHER_RATE_1, d_fisher_confidence_map, d_unwrap_map_list_[0]);
+  
+		}
+		break;
+
+		case 2:
+		{ 
+			// CHECK( cudaFuncSetCacheConfig (kernel_unwrap_variable_phase, cudaFuncCachePreferL1) );
+			kernel_unwrap_variable_phase_base_confidence << <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_unwrap_map_list_[0], d_wrap_map_list_[2], 4.0,CV_PI, FISHER_RATE_2, d_fisher_confidence_map, d_unwrap_map_list_[0]); 
+			// CHECK ( cudaGetLastError () );
+		}
+		break;
+		case 3:
+		{ 
+			// CHECK( cudaFuncSetCacheConfig (kernel_unwrap_variable_phase, cudaFuncCachePreferL1) );
+			kernel_unwrap_variable_phase_base_confidence << <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_unwrap_map_list_[0], d_wrap_map_list_[3], 4.0,1.5, FISHER_RATE_3, d_fisher_confidence_map, d_unwrap_map_list_[0]); 
+ 
+		}
+		break;
+		default :
+			break;
+	}
+
+
+	return true;
+}
+
 /********************************************************************************************************************************************/
 
 bool cuda_generate_pointcloud_base_minitable()
@@ -579,14 +617,14 @@ bool cuda_generate_pointcloud_base_table()
 	// CHECK(cudaMemcpy(phase.data, d_unwrap_map_list_[0], 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
 	// cv::imwrite("phase.tiff", phase);
 	
-	if(1 == cuda_system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter)
-	{ 
-		LOG(INFO)<<"filter_reflect_noise start:"; 
-		cuda_filter_reflect_noise(d_unwrap_map_list_[0]); 
-
-		cudaDeviceSynchronize();
-		LOG(INFO)<<"filter_reflect_noise end";
-	}
+	// if(1 == cuda_system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter)
+	// { 
+	// 	LOG(INFO)<<"filter_reflect_noise start:"; 
+	// 	cuda_filter_reflect_noise(d_unwrap_map_list_[0]); 
+	//
+	// 	cudaDeviceSynchronize();
+	// 	LOG(INFO)<<"filter_reflect_noise end";
+	// }
 
 	kernel_reconstruct_pointcloud_base_table << <blocksPerGrid, threadsPerBlock>> > (d_image_width_,d_image_height_,d_xL_rotate_x_,d_xL_rotate_y_,d_single_pattern_mapping_,d_R_1_,d_baseline_,
 	d_confidence_map_list_[3],d_unwrap_map_list_[0],d_point_cloud_map_,d_depth_map_);
@@ -861,6 +899,26 @@ void cuda_filter_reflect_noise(float * const unwrap_map)
 }
 
 
+void fisher_filter(float fisher_confidence_val)
+{
+	//按行来组织线程
+    dim3 threadsPerBlock_p(4, 4);
+    dim3 blocksPerGrid_p;
+	if(1200 == h_image_height_)
+	{
+		blocksPerGrid_p.x = (40 + threadsPerBlock_p.x - 1) / threadsPerBlock_p.x;
+		blocksPerGrid_p.y = (30 + threadsPerBlock_p.y - 1) / threadsPerBlock_p.y;
+	}
+	else if(2048 == h_image_height_)
+	{
+		blocksPerGrid_p.x = (64 + threadsPerBlock_p.x - 1) / threadsPerBlock_p.x;
+		blocksPerGrid_p.y = (32 + threadsPerBlock_p.y - 1) / threadsPerBlock_p.y;
+	}
+	LOG(INFO)<<"fisher start"; 
+	kernel_fisher_filter <<< blocksPerGrid_p, threadsPerBlock_p >>> (h_image_height_, h_image_width_, (FISHER_CENTER_LOW + (fisher_confidence_val * FISHER_CENTER_RATE)), d_fisher_confidence_map, d_fisher_mask_, d_unwrap_map_list_[0]);//
+	cudaDeviceSynchronize();
+	LOG(INFO)<<"fisher end"; 
+}
 
 
 

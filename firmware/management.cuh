@@ -26,6 +26,12 @@
 #define MAX_UNWRAP_NUMBER 2
 #define D_HDR_MAX_NUM 6 
 #define D_REPETITIONB_MAX_NUM 10
+#define FISHER_RATE_1 -6.61284856e-06
+#define FISHER_RATE_2 4.52035763e-06
+#define FISHER_RATE_3 -1.16182132e-05
+#define FISHER_RATE_4 -2.89004663e-05
+#define FISHER_CENTER_LOW -3.118464936149469e-05
+#define FISHER_CENTER_RATE 2.0478921488348731e-07
 
 
 __device__ int d_image_width_ = 0;
@@ -42,6 +48,8 @@ __device__ float* d_confidence_map_list_[MAX_WRAP_NUMBER];
 __device__ float* d_unwrap_map_list_[MAX_UNWRAP_NUMBER];
 
 
+__device__ float* d_fisher_confidence_map;
+__device__ unsigned char* d_fisher_mask_;
 __device__ unsigned char* d_mask_map_;
 __device__ unsigned char* d_brightness_map_;
 __device__ float* d_point_cloud_map_;
@@ -131,8 +139,11 @@ bool cuda_compute_phase_shift(int serial_flag);
 
 bool cuda_unwrap_phase_shift(int serial_flag);
 
+bool cuda_unwrap_phase_shift_base_fisher_confidence(int serial_flag);
+
 bool cuda_normalize_phase(int serial_flag);
 
+void fisher_filter(float fisher_confidence_val);
 
 
 /***********************************************************************************/

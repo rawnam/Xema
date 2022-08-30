@@ -53,6 +53,8 @@ public:
 
     bool captureFrame04();
 
+    bool captureFrame04_base_confidence();
+
     bool captureFrame04Hdr();
 
     bool captureFrame04Repetition01(int repetition_count);
@@ -114,6 +116,8 @@ private:
     unsigned char* buff_brightness_;
     float* buff_depth_;
     float* buff_pointcloud_;
+
+    float fisher_confidence_val_ = 50;
 
     
     SystemConfigDataStruct system_config_settings_machine_;

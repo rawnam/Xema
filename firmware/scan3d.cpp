@@ -736,6 +736,108 @@ bool Scan3D::captureFrame04()
     return true;
 }
 
+bool Scan3D::captureFrame04_base_confidence()
+{
+ 
+    lc3010_.pattern_mode04();
+    LOG(INFO) << "Stream On:";
+    if (!camera_->streamOn())
+    {
+        LOG(INFO) << "Stream On Error";
+        return false;
+    }
+
+    lc3010_.start_pattern_sequence();
+
+    unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
+
+    for (int i = 0; i < 19; i++)
+    {
+        LOG(INFO)<<"grap "<<i<<" image:";
+        if (!camera_->grap(img_ptr))
+        {
+            
+            delete[] img_ptr; 
+            camera_->streamOff();
+            return false;
+        }
+        LOG(INFO)<<"finished!";
+
+        if(18 == i)
+        {
+            cuda_copy_brightness_to_memory(img_ptr);
+        }
+
+        cuda_copy_pattern_to_memory(img_ptr, i);
+
+        // copy to gpu
+        switch (i)
+        {
+        case 4:
+        {
+        LOG(INFO)<<"cuda_compute_phase_shift:";
+            cuda_compute_phase_shift(0); 
+        }
+        break;
+        case 8:
+        {
+            cuda_compute_phase_shift(1);
+        }
+        break;
+        case 10:
+        {
+            cuda_unwrap_phase_shift_base_fisher_confidence(1);
+        }
+        break;
+        case 12:
+        {
+            cuda_compute_phase_shift(2);
+        }
+        break;
+        case 15:
+        {
+            cuda_unwrap_phase_shift_base_fisher_confidence(2);
+        }
+        break;
+        case 18:
+        {
+
+
+            cuda_compute_phase_shift(3);
+            cuda_unwrap_phase_shift_base_fisher_confidence(3);
+            fisher_filter(fisher_confidence_val_);
+            cuda_normalize_phase(0);
+
+            cuda_generate_pointcloud_base_table();
+
+            LOG(INFO) << "cuda_generate_pointcloud_base_table";
+        }
+
+        default:
+            break;
+        }
+    }
+
+    delete[] img_ptr;
+
+    camera_->streamOff();
+    LOG(INFO) << "Stream Off";
+    
+    cuda_copy_depth_from_memory(buff_depth_);
+    cuda_copy_pointcloud_from_memory(buff_pointcloud_);
+
+    if (1 == generate_brightness_model_)
+    { 
+        cuda_copy_brightness_from_memory(buff_brightness_);
+    }
+    else
+    {
+        captureTextureImage(generate_brightness_model_, generate_brightness_exposure_,buff_brightness_);
+    }
+
+    return true;
+}
+
 
 bool Scan3D::captureFrame04Hdr()
 {

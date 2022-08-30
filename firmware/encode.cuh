@@ -25,6 +25,8 @@ __global__ void kernel_six_step_phase_shift(int width,int height,unsigned char *
 unsigned char* const d_in_4,unsigned char* const d_in_5, float * const d_out, float * const confidence);
  
 __global__ void kernel_unwrap_variable_phase(int width,int height,float * const d_in_wrap_abs, float * const d_in_wrap_high,float const rate,float threshold, float * const d_out);
+
+__global__ void kernel_unwrap_variable_phase_base_confidence(int width,int height,float * const d_in_wrap_abs, float * const d_in_wrap_high,float const rate,float threshold,float fisher_rate, float* const d_fisher_confidece_mask, float * const d_out);
  
 __global__ void kernel_normalize_phase(int width,int height,float * const d_in_unwrap_map, float rate,  float * const d_out_normal_map);
 
