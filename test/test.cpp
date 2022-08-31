@@ -38,6 +38,9 @@ test.exe --reconstruct --use minilook-table --patterns ./patterns_data  --calib 
 8.Read:\n\
 test.exe --read --model patterns-04-c --patterns ./patterns_data  --calib ./param.txt --version DFX800  --pointcloud ./pointcloud_data\n\
 \n\
+9.Read(generate point cloud base confidence level:[-50, 150]):\n\
+test.exe --reconstruct --use look-table --confidence 50 --patterns ./patterns_data  --calib ./param.txt --version DFX800 --pointcloud ./pointcloud_data\n\
+\n\
 ";
 
 extern int optind, opterr, optopt;
@@ -56,7 +59,8 @@ enum opt_set
 	VERSION,
 	HELP,
 	MODEL,
-	REPETITION
+	REPETITION,
+	CONFIDENCE
 };
 
 static struct option long_options[] =
@@ -73,6 +77,7 @@ static struct option long_options[] =
 	{"help",no_argument,NULL,HELP},
 	{"model", required_argument, NULL, MODEL},
 	{"repetition", required_argument, NULL, REPETITION},
+	{"confidence", required_argument, NULL, CONFIDENCE},
 };
 
 const char* camera_ip = "";
@@ -83,6 +88,7 @@ const char* use_type = "look-table";
 const char* char_version = "";
 const char* c_model = "patterns-04";
 const char* c_repetition_count = "2";
+const char* confidence_level = "";
 int command = HELP;
 
 
@@ -97,6 +103,7 @@ void read_04_repetition_02();
 void capture_04_repetition_01(int repetition);
 void read_04_repetition_01();
 void reconstruct_base_looktable();
+void reconstruct_base_looktable_and_confidence();
 void read_phase_02();
 void reconstruct_base_minilooktable();
 
@@ -128,6 +135,9 @@ int main(int argc, char* argv[])
 			break;
 		case USE:
 			use_type = optarg;
+			break;
+		case CONFIDENCE:
+			confidence_level = optarg;
 			break;
 		case VERSION:
 		{
@@ -225,14 +235,25 @@ int main(int argc, char* argv[])
 	case RECONSTRUCT:
 	{
 		std::string cmd(use_type);
-		if ("look-table" == cmd)
+		if (confidence_level == "")
 		{
-			reconstruct_base_looktable();
+			if ("look-table" == cmd)
+			{
+				reconstruct_base_looktable();
+			}
+			else if ("minilook-table" == cmd)
+			{
+				reconstruct_base_minilooktable();
+			}
 		}
-		else if ("minilook-table" == cmd)
+		else
 		{
-			reconstruct_base_minilooktable();
+			if ("look-table" == cmd)
+			{
+				reconstruct_base_looktable_and_confidence();
+			}
 		}
+
 
 	}
 	break;
@@ -472,6 +493,37 @@ void reconstruct_base_looktable()
 
 
 	solution_machine_.reconstructMixedVariableWavelengthXPatternsBaseTable(patterns_, calibration_param_, pointcloud_path);
+}
+
+void reconstruct_base_looktable_and_confidence()
+{
+	struct CameraCalibParam calibration_param_;
+	DfSolution solution_machine_;
+	std::vector<cv::Mat> patterns_;
+
+	bool ret = solution_machine_.readImages(patterns_path, patterns_);
+
+	if (!ret)
+	{
+		std::cout << "Read Image Error!";
+	}
+
+	ret = solution_machine_.readCameraCalibData(calib_path, calibration_param_);
+
+	if (!ret)
+	{
+		std::cout << "Read Calib Param Error!" << std::endl;
+	}
+
+	ret = solution_machine_.setCameraVersion(version_number);
+	if (!ret)
+	{
+		std::cout << "Set Camera Version Error!" << std::endl;
+		return;
+	}
+
+	solution_machine_.confidence_level_ = std::atoi(confidence_level);
+	solution_machine_.reconstructMixedVariableWavelengthXPatternsBaseTableAndConfidence(patterns_, calibration_param_, pointcloud_path);
 }
 
 

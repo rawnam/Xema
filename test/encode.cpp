@@ -734,7 +734,7 @@ bool DF_Encode::fourStepPhaseShift(std::vector<cv::Mat> patterns, cv::Mat& wrap_
 
 					/***********************************************************************/
 
-					if (exposure_num > 1)
+					if (exposure_num > 1 || ptr_con[j] < 4)
 					{
 						ptr_m[j] = 0;
 						ptr_con[j] = 0;
@@ -995,6 +995,145 @@ bool DF_Encode::unwrapVariableWavelengthPatterns(std::vector<cv::Mat> wrap_img_l
 
 	return true;
 }
+
+bool DF_Encode::unwrapVariableWavelengthPatternsBaseConfidence(std::vector<cv::Mat> wrap_img_list, std::vector<double> rate_list, cv::Mat& unwrap_img, cv::Mat& mask)
+{
+	if (wrap_img_list.empty())
+	{
+		return false;
+	}
+	if (wrap_img_list.size() != rate_list.size() + 1)
+	{
+		return false;
+	}
+
+	std::vector<float> threshold_list;
+
+	for (int i = 0; i < rate_list.size(); i++)
+	{
+		threshold_list.push_back(CV_PI);
+	}
+
+
+	if (threshold_list.size() >= 3)
+	{
+		threshold_list[0] = CV_PI;
+		threshold_list[1] = CV_PI;
+		threshold_list[2] = 1.5;
+	}
+
+
+	int nr = wrap_img_list[0].rows;
+	int nc = wrap_img_list[0].cols;
+
+	bool unwrap_filter = false;
+
+	if (mask.data)
+	{
+		unwrap_filter = true;
+	}
+
+	cv::Mat h_unwrap_map(nr, nc, CV_64F, cv::Scalar(0));
+
+	cv::Mat err_map_l(nr, nc, CV_64F, cv::Scalar(0));
+	cv::Mat err_map_h(nr, nc, CV_64F, cv::Scalar(0));
+
+	cv::Mat unwrap_map = wrap_img_list[0];
+
+	cv::Mat k_mat(nr, nc, CV_8U, cv::Scalar(0));
+
+	for (int g_i = 1; g_i < wrap_img_list.size(); g_i++)
+	{
+		cv::Mat wrap_map = wrap_img_list[g_i];
+		cv::Mat h_unwrap_map(nr, nc, CV_64F, cv::Scalar(0));
+		cv::Mat err_map;
+
+		unwrapVariableWavelength(unwrap_map, wrap_map, rate_list[g_i - 1], h_unwrap_map, k_mat, threshold_list[g_i - 1], err_map);
+
+		const double fisher_rates[] = { -6.61284856e-06, 4.52035763e-06, -1.16182132e-05 };//[-6.61284856e-06  4.52035763e-06 -1.16182132e-05 -2.89004663e-05]
+		double fisher_temp = fisher_rates[g_i - 1];
+		for (int r = 0; r < mask.rows; r += 1)
+		{
+			double* mask_ptr = mask.ptr<double>(r);
+			double* err_ptr = err_map.ptr<double>(r);
+			for (int c = 0; c < mask.cols; c += 1)
+			{
+				mask_ptr[c] += err_ptr[c] * fisher_temp;
+			}
+		}
+
+		unwrap_map = h_unwrap_map.clone();
+	}
+
+	unwrap_img = unwrap_map.clone();
+
+	cv::Mat neighborhoodCharacteristicsR(unwrap_map.size(), CV_64F, cv::Scalar(0));
+	// 注意避坑：邻域的计算当中应当避免出现的问题是
+	for (int r = 0; r < neighborhoodCharacteristicsR.rows; r += 1)
+	{
+		double* neighborhoodR_Ptr = neighborhoodCharacteristicsR.ptr<double>(r);
+		double* data_ptr = unwrap_map.ptr<double>(r);
+		double* mask_ptr = mask.ptr<double>(r);
+
+		int numL = 0, numR = 0, numC = 0;
+
+		for (int c = 1; c < neighborhoodCharacteristicsR.cols - 1; c += 1)
+		{
+			// 在此处需要循环找到非-10的值
+			while (data_ptr[c] == -10 && c < neighborhoodCharacteristicsR.cols - 1)
+			{
+				c += 1;
+				mask_ptr[c] = -10;
+			}
+			numL = numC;
+			numC = c;
+			while (data_ptr[c + 1] == -10 && c < neighborhoodCharacteristicsR.cols - 1)
+			{
+				c += 1;
+				mask_ptr[c] = -10;
+			}
+			numR = c + 1;
+			neighborhoodR_Ptr[c] = data_ptr[numR] - data_ptr[numC];
+		}
+	}
+	unwrap_img = unwrap_map.clone();
+
+	// 根据右减左来写代码
+
+	for (int r = 0; r < neighborhoodCharacteristicsR.rows; r += 1)
+	{
+		double* neighborPtr = neighborhoodCharacteristicsR.ptr<double>(r);
+		for (int c = 0; c < neighborhoodCharacteristicsR.cols; c += 1)
+		{
+			if (neighborPtr[c] < -1)
+			{
+				neighborPtr[c] = -1;
+			}
+			else if (neighborPtr[c] > 1)
+			{
+				neighborPtr[c] = 1;
+			}
+			neighborPtr[c] = neighborPtr[c] * (-0.5) + 0.5;
+		}
+	}
+
+	cv::Mat kernal = (cv::Mat_<double>(1, 7) << 1, 1, 1, 1, 1, 1, 1);
+	cv::dilate(neighborhoodCharacteristicsR, neighborhoodCharacteristicsR, kernal, cv::Point(0, 0), 1);
+
+	for (int r = 0; r < neighborhoodCharacteristicsR.rows; r += 1)
+	{
+		double* neighborPtr = neighborhoodCharacteristicsR.ptr<double>(r);
+		double* maskPtr = mask.ptr<double>(r);
+		for (int c = 0; c < neighborhoodCharacteristicsR.cols; c += 1)
+		{
+			maskPtr[c] += neighborPtr[c] * (-2.89004663e-05);
+
+		}
+	}
+
+	return true;
+}
+
 
 bool DF_Encode::unwrapVariableWavelengthPatternsOpenmp(std::vector<cv::Mat> wrap_img_list, std::vector<double> rate_list, cv::Mat& unwrap_img, cv::Mat& mask)
 {
