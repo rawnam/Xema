@@ -19,6 +19,9 @@ Scan3D::Scan3D()
     generate_brightness_exposure_ = 12000;
 
     camera_opened_flag_ = false;
+
+    
+    fisher_confidence_val_ = 50;
 }
 
 Scan3D::~Scan3D()

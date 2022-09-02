@@ -137,7 +137,7 @@ float * const confidence_map,float * const phase_x , float * const pointcloud,fl
 		float Z_L = Z * Xcr * R_1[6] + Z * Ycr * R_1[7] + Z * R_1[8];
  
   
-		if(confidence_map[offset] > d_confidence_ && Z_L > d_min_z_ && Z_L< d_max_z_ && Xp > 0)
+		if(Z_L > d_min_z_ && Z_L< d_max_z_ && Xp > 0)
 		// if(confidence_map[offset] > 10 && Z_L > 10 && Z_L< 3000 && Xp > 0)
 		{
 		    pointcloud[3 * offset + 0] = X_L;

@@ -117,7 +117,7 @@ private:
     float* buff_depth_;
     float* buff_pointcloud_;
 
-    float fisher_confidence_val_ = 50;
+    float fisher_confidence_val_;
 
     
     SystemConfigDataStruct system_config_settings_machine_;

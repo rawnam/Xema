@@ -8,7 +8,7 @@ __global__ void kernel_filter_reflect_noise(uint32_t img_height, uint32_t img_wi
     const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
   
-    int offset_y = idy * 40 + idx; 
+	int offset_y = idy * blockDim.x * gridDim.x + idx;  
  
     int nr = img_height;
     int nc = img_width;
@@ -182,7 +182,8 @@ __global__ void kernel_fisher_filter(uint32_t img_height, uint32_t img_width, fl
     const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
   
-    int offset_y = idy * 40 + idx; 
+    // int offset_y = idy * 64 + idx; 
+	int offset_y = idy * blockDim.x * gridDim.x + idx;  
  
     int nr = img_height;
     int nc = img_width;
