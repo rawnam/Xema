@@ -21,7 +21,7 @@ Scan3D::Scan3D()
     camera_opened_flag_ = false;
 
     
-    fisher_confidence_val_ = 50;
+    fisher_confidence_val_ = -30;
 }
 
 Scan3D::~Scan3D()
@@ -267,6 +267,10 @@ void Scan3D::setParamSystemConfig(SystemConfigDataStruct param)
     cuda_set_param_system_config(param);
 }
 
+void Scan3D::setParamFisherConfidence(float confidence)
+{
+    fisher_confidence_val_ = confidence; 
+}
 /******************************************************************************************************************************************/
 
 

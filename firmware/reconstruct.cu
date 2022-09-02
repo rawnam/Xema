@@ -232,7 +232,7 @@ __global__ void kernel_reconstruct_pointcloud_base_minitable(uint32_t img_height
 		float Z_L = Z * Xcr * R_1[6] + Z * Ycr * R_1[7] + Z * R_1[8];
 
 
-		if(confidence_map[serial_id] > d_confidence_ && Z_L > d_min_z_ && Z_L< d_max_z_ && Xp > 0)
+		if(Z_L > d_min_z_ && Z_L< d_max_z_ && Xp > 0)
 		// if (confidence_map[serial_id] > 10 && Z_L > 100 && Z_L < 2000)
 		{
 			pointcloud[3 * serial_id + 0] = X_L;

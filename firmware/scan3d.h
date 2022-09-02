@@ -35,6 +35,8 @@ public:
     void getCameraVersion(int &version);
     
     void setParamSystemConfig(SystemConfigDataStruct param);
+
+    void setParamFisherConfidence(float confidence);
     /************************************************************************/
     
     bool captureTextureImage(int model,float exposure,unsigned char* buff);
