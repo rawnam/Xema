@@ -269,6 +269,20 @@ extern "C"
 	//输出参数：use(开关：1开、0关)
 	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 	DF_SDK_API int DfGetParamReflectFilter(int& use);
+
+	//函数名： DfSetParamOutlierFilter
+	//功能： 设置过滤阈值
+	//输入参数：threshold(阈值0-100)
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfSetParamOutlierFilter(float threshold);
+
+	//函数名： DfGetParamOutlierFilter
+	//功能： 获取过滤阈值
+	//输入参数： 无
+	//输出参数：threshold(阈值0-100)
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfGetParamOutlierFilter(float& threshold);
 }
 
 
