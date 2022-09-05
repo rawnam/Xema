@@ -851,12 +851,6 @@ bool Scan3D::captureFrame04Hdr()
 
     LOG(INFO)<<"Mixed HDR Exposure:";  
  
-    int depth_buf_size = image_width_*image_height_*4;  
-    int brightness_buf_size = image_width_*image_height_*1;
-
-    float* depth_map = new float[depth_buf_size]; 
-    unsigned char* brightness = new unsigned char[brightness_buf_size];
-
  
     for(int i= 0;i< hdr_num_;i++)
     {

@@ -3217,6 +3217,7 @@ int handle_cmd_get_param_fisher_filter(int client_sock)
     }
     return DF_SUCCESS;
 }
+
 //噪点过滤参数
 int handle_cmd_set_param_fisher_filter(int client_sock)
 {
@@ -4689,12 +4690,18 @@ int handle_commands(int client_sock)
 	    break;
     case DF_CMD_GET_PARAM_CAMERA_CONFIDENCE:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_CONFIDENCE";   
-    	// handle_cmd_get_param_confidence(client_sock);
-        handle_cmd_get_param_fisher_filter(client_sock);
+    	handle_cmd_get_param_confidence(client_sock); 
 	    break;
     case DF_CMD_SET_PARAM_CAMERA_CONFIDENCE:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_CAMERA_CONFIDENCE";   
-    	// handle_cmd_set_param_confidence(client_sock);
+    	handle_cmd_set_param_confidence(client_sock); 
+	    break;
+    case DF_CMD_GET_PARAM_FISHER_FILTER:
+	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_CONFIDENCE";    
+        handle_cmd_get_param_fisher_filter(client_sock);
+	    break;
+    case DF_CMD_SET_PARAM_FISHER_FILTER:
+	    LOG(INFO)<<"DF_CMD_SET_PARAM_FISHER_FILTER";  
         handle_cmd_set_param_fisher_filter(client_sock);
 	    break;
 	case DF_CMD_GET_PARAM_CAMERA_VERSION:
