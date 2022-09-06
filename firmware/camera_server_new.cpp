@@ -3247,7 +3247,7 @@ int handle_cmd_set_param_fisher_filter(int client_sock)
   
     LOG(INFO)<<"fisher_confidence: "<<system_config_settings_machine_.Instance().firwmare_param_.fisher_confidence;
 
-    scan3d_.setParamConfidence(offset_val);
+    scan3d_.setParamFisherConfidence(offset_val);
          
 
     return DF_SUCCESS;
