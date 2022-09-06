@@ -55,7 +55,7 @@ public:
 
     bool captureFrame04();
 
-    bool captureFrame04_base_confidence();
+    bool captureFrame04BaseConfidence();
 
     bool captureFrame04Hdr();
 

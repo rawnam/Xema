@@ -743,7 +743,7 @@ bool Scan3D::captureFrame04()
     return true;
 }
 
-bool Scan3D::captureFrame04_base_confidence()
+bool Scan3D::captureFrame04BaseConfidence()
 {
  
     lc3010_.pattern_mode04();
@@ -877,7 +877,7 @@ bool Scan3D::captureFrame04Hdr()
             lc3010_.set_camera_exposure(exposure);
         } 
 
-        captureFrame04(); 
+        captureFrame04BaseConfidence(); 
         cuda_copy_result_to_hdr(i,18); 
     }
  

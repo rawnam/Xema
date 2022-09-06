@@ -293,11 +293,11 @@ bool CameraGalaxy::getExposure(double &val)
 }
 bool CameraGalaxy::setExposure(double val)
 {
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-    {
-        LOG(INFO) << "setExposure --";
-    }
+    // std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
+    // while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+    // {
+    //     LOG(INFO) << "setExposure --";
+    // }
 
     if(val< 6000)
     {
