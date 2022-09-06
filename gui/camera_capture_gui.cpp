@@ -1442,30 +1442,19 @@ void  CameraCaptureGui::do_pushButton_connect()
 			return;
 		}
 
-
-
-		//addLogMessage(QString::fromUtf8("连接相机："));
+		 
 		addLogMessage(u8"连接相机：");
 		int ret_code = DfConnect(camera_ip_.toStdString().c_str());
 
 		DfRegisterOnDropped(m_p_OnDropped_);
 
-		if (DF_UNKNOWN == ret_code)
-		{
-			addLogMessage(u8"相机固件版本低，请升级！");
-		}
-
+		 
 		if (0 == ret_code)
 		{
 			//必须连接相机成功后，才可获取相机分辨率
 			ret_code = DfGetCameraResolution(&camera_width_, &camera_height_);
 			std::cout << "Width: " << camera_width_ << "    Height: " << camera_height_ << std::endl;
 
-			if (0 != ret_code)
-			{
-				qDebug() << "Connect Error!;";
-				return;
-			}
 			//获取相机标定参数
 			ret_code = DfGetCalibrationParam(camera_calibration_param_);
 			if (0 != ret_code)

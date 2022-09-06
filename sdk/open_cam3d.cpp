@@ -334,11 +334,11 @@ DF_SDK_API int DfConnect(const char* camera_id)
 	ret = DfGetCameraResolution(&width, &height);
 
 
-	if (ret != DF_SUCCESS)
-	{
-		DfDisconnectNet();
-		return ret;
-	}
+	//if (ret != DF_SUCCESS)
+	//{
+	//	DfDisconnectNet();
+	//	return ret;
+	//}
 
 	if (width <= 0 || height <= 0)
 	{
@@ -425,6 +425,9 @@ DF_SDK_API int DfConnect(const char* camera_id)
 //返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
 DF_SDK_API int DfGetCameraResolution(int* width, int* height)
 {
+	*width = camera_width_;
+	*height = camera_height_;
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -459,6 +462,7 @@ DF_SDK_API int DfGetCameraResolution(int* width, int* height)
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
+
 		close_socket(g_sock);
 		return DF_UNKNOWN;
 	}
