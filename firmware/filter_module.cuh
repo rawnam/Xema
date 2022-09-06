@@ -22,9 +22,9 @@
 #include <vector>  
 
 
-void filter_reflect_noise(uint32_t img_height, uint32_t img_width,float * const unwrap_map);
-
 __global__ void kernel_filter_reflect_noise(uint32_t img_height, uint32_t img_width,float * const unwrap_map);
+
+__global__ void kernel_fisher_filter(uint32_t img_height, uint32_t img_width, float fisher_confidence, float * const fisher_map, unsigned char* mask_output, float * const unwrap_map);
 
 //滤波
 __global__ void kernel_filter_radius_outlier_removal(uint32_t img_height, uint32_t img_width,float* const point_cloud_map,

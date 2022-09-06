@@ -2120,7 +2120,8 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
  
 
     LOG(INFO)<<"captureFrame04";
-    scan3d_.captureFrame04();
+    //scan3d_.captureFrame04();
+    scan3d_.captureFrame04_base_confidence();
      
     LOG(INFO)<<"Reconstruct Frame04 Finished!";
     scan3d_.copyBrightnessData(brightness);
@@ -3195,6 +3196,63 @@ int handle_cmd_get_param_radius_filter(int client_sock)
 
     return DF_SUCCESS;
 }
+
+//获取置信度参数
+int handle_cmd_get_param_fisher_filter(int client_sock)
+{
+    if (check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;
+    }
+ 
+    float confidence = system_config_settings_machine_.Instance().firwmare_param_.fisher_confidence;
+ 
+    float offset_val = (confidence + 50)/2;
+
+    int ret = send_buffer(client_sock, (char *)(&offset_val), sizeof(float) * 1);
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
+    }
+    return DF_SUCCESS;
+}
+
+//噪点过滤参数
+int handle_cmd_set_param_fisher_filter(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+
+
+    float confidence = 0;
+
+    int ret = recv_buffer(client_sock, (char*)&confidence, sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+
+    if(0> confidence || confidence > 100)
+    {
+        return DF_FAILED;
+    }
+ 
+    float offset_val = (confidence*2)-50;
+ 
+    system_config_settings_machine_.Instance().firwmare_param_.fisher_confidence = offset_val;
+  
+    LOG(INFO)<<"fisher_confidence: "<<system_config_settings_machine_.Instance().firwmare_param_.fisher_confidence;
+
+    scan3d_.setParamConfidence(offset_val);
+         
+
+    return DF_SUCCESS;
+}
+
 
 //设置双边滤波参数
 int handle_cmd_set_param_bilateral_filter(int client_sock)
@@ -4632,11 +4690,19 @@ int handle_commands(int client_sock)
 	    break;
     case DF_CMD_GET_PARAM_CAMERA_CONFIDENCE:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_CONFIDENCE";   
-    	handle_cmd_get_param_confidence(client_sock);
+    	handle_cmd_get_param_confidence(client_sock); 
 	    break;
     case DF_CMD_SET_PARAM_CAMERA_CONFIDENCE:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_CAMERA_CONFIDENCE";   
-    	handle_cmd_set_param_confidence(client_sock);
+    	handle_cmd_set_param_confidence(client_sock); 
+	    break;
+    case DF_CMD_GET_PARAM_FISHER_FILTER:
+	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_CONFIDENCE";    
+        handle_cmd_get_param_fisher_filter(client_sock);
+	    break;
+    case DF_CMD_SET_PARAM_FISHER_FILTER:
+	    LOG(INFO)<<"DF_CMD_SET_PARAM_FISHER_FILTER";  
+        handle_cmd_set_param_fisher_filter(client_sock);
 	    break;
 	case DF_CMD_GET_PARAM_CAMERA_VERSION:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_VERSION";   

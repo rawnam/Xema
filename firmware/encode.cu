@@ -161,6 +161,41 @@ __global__ void kernel_unwrap_variable_phase(int width,int height,float * const 
 }
 
 
+__global__ void kernel_unwrap_variable_phase_base_confidence(int width,int height,float * const d_in_wrap_abs, float * const d_in_wrap_high,float const rate,float threshold, float fisher_rate, float* const d_fisher_confidence_mask, float * const d_out)
+{
+	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+
+	int offset = idy * width + idx;
+
+	if (idx < width && idy < height)
+	{
+
+		/*****************************************************************************/
+
+		float temp = 0.5 + (rate * d_in_wrap_abs[offset] - d_in_wrap_high[offset]) / (2*CV_PI);
+		int k = temp;
+        
+		float unwrap_value =  2*CV_PI*k + d_in_wrap_high[offset]; 
+  
+        float err = unwrap_value - (rate * d_in_wrap_abs[offset]);
+
+		d_fisher_confidence_mask[offset] = d_fisher_confidence_mask[offset] + (abs(err) * fisher_rate);
+
+		if(abs(err)> threshold)
+		{
+			d_out[offset] = -10.0; 
+		}
+		else
+		{ 
+			d_out[offset] = unwrap_value;
+		}
+
+		/******************************************************************/
+	}
+}
+
+
 __global__ void kernel_normalize_phase(int width,int height,float * const d_in_unwrap_map, float rate,  float * const d_out_normal_map)
 {
 	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;

@@ -1075,7 +1075,7 @@ bool DF_Encode::unwrapVariableWavelengthPatternsBaseConfidence(std::vector<cv::M
 		double* data_ptr = unwrap_map.ptr<double>(r);
 		double* mask_ptr = mask.ptr<double>(r);
 
-		int numL = 0, numR = 0, numC = 0;
+		int numR = 0, numC = 0;
 
 		for (int c = 1; c < neighborhoodCharacteristicsR.cols - 1; c += 1)
 		{
@@ -1085,7 +1085,6 @@ bool DF_Encode::unwrapVariableWavelengthPatternsBaseConfidence(std::vector<cv::M
 				c += 1;
 				mask_ptr[c] = -10;
 			}
-			numL = numC;
 			numC = c;
 			while (data_ptr[c + 1] == -10 && c < neighborhoodCharacteristicsR.cols - 1)
 			{

@@ -51,6 +51,7 @@ struct FirmwareConfigParam
 	float radius_filter_r; 
 	int radius_filter_threshold_num; 
 	int use_reflect_filter;
+	float fisher_confidence;
 };
 
 

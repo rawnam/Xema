@@ -124,6 +124,7 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.spinBox_min_z, SIGNAL(valueChanged(int)), this, SLOT(do_spin_min_z_changed(int)));
 	connect(ui.spinBox_max_z, SIGNAL(valueChanged(int)), this, SLOT(do_spin_max_z_changed(int)));
 	connect(ui.doubleSpinBox_confidence, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_confidence(double)));
+	connect(ui.doubleSpinBox_fisher, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_fisher(double)));
 	connect(ui.doubleSpinBox_gain, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_gain(double)));
 	connect(ui.spinBox_repetition_count, SIGNAL(valueChanged(int)), this, SLOT(do_spin_repetition_count_changed(int)));
 
@@ -396,6 +397,9 @@ void CameraCaptureGui::undateSystemConfigUiData()
 	{
 		ui.spinBox_smoothing->setValue(firmware_config_param_.bilateral_filter_param_d / 2);
 	}
+
+	float val = (50 + firmware_config_param_.fisher_confidence) / 2;
+	ui.doubleSpinBox_fisher->setValue(val);
 
 }
 
@@ -728,6 +732,60 @@ void CameraCaptureGui::do_doubleSpin_gain(double val)
 	camera_setting_flag_ = false;
 }
 
+
+void CameraCaptureGui::do_doubleSpin_fisher(double val)
+{
+
+	if (camera_setting_flag_)
+	{
+		return;
+	}
+
+
+	//设置参数时加锁
+	camera_setting_flag_ = true;
+	if (connected_flag_)
+	{
+
+		firmware_config_param_.fisher_confidence = (float)(2*val)-50;
+
+		int ret_code = -1;
+		//如果连续采集在用、先暂停
+		if (start_timer_flag_)
+		{
+
+			stopCapturingOneFrameBaseThread();
+
+			ret_code = DfSetParamOutlierFilter(val);
+			if (0 == ret_code)
+			{
+				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
+				QString str = u8"设置噪点过滤: " + QString::number(val);
+				addLogMessage(str);
+			}
+
+			do_pushButton_capture_continuous();
+
+		}
+		else
+		{
+			ret_code = DfSetParamOutlierFilter(val);
+
+			if (0 == ret_code)
+			{
+				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
+				QString str = u8"设置噪点过滤: " + QString::number(val);
+				addLogMessage(str);
+			}
+
+		}
+
+	}
+
+	camera_setting_flag_ = false;
+
+}
+
 void CameraCaptureGui::do_doubleSpin_confidence(double val)
 {
 
@@ -856,6 +914,13 @@ bool CameraCaptureGui::setCameraConfigParam()
 	if (0 != ret_code)
 	{
 		addLogMessage(u8"设置相机增益失败！");
+	}
+
+	float fisher_val = (50 + firmware_config_param_.fisher_confidence) / 2;
+	ret_code = DfSetParamOutlierFilter(fisher_val);
+	if (0 != ret_code)
+	{
+		addLogMessage(u8"设置过滤噪点参数失败！");
 	}
 
 	if (DF_UNKNOWN == ret_code)

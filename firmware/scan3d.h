@@ -35,6 +35,8 @@ public:
     void getCameraVersion(int &version);
     
     void setParamSystemConfig(SystemConfigDataStruct param);
+
+    void setParamFisherConfidence(float confidence);
     /************************************************************************/
     
     bool captureTextureImage(int model,float exposure,unsigned char* buff);
@@ -52,6 +54,8 @@ public:
     bool capturePhase02Repetition02(int repetition_count,float* phase_x,float* phase_y,unsigned char* brightness);
 
     bool captureFrame04();
+
+    bool captureFrame04_base_confidence();
 
     bool captureFrame04Hdr();
 
@@ -114,6 +118,8 @@ private:
     unsigned char* buff_brightness_;
     float* buff_depth_;
     float* buff_pointcloud_;
+
+    float fisher_confidence_val_;
 
     
     SystemConfigDataStruct system_config_settings_machine_;
