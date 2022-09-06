@@ -718,14 +718,7 @@ bool Scan3D::captureFrame04()
     camera_->streamOff();
     LOG(INFO) << "Stream Off";
 
-    if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter)
-    {
-        float r = system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r;
-        int num = system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num;
-        cuda_remove_points_base_radius_filter(0.5,r,num);
-    }
-
-    
+ 
     cuda_copy_depth_from_memory(buff_depth_);
     cuda_copy_pointcloud_from_memory(buff_pointcloud_);
 
@@ -846,6 +839,60 @@ bool Scan3D::captureFrame04BaseConfidence()
 }
 
 
+bool Scan3D::captureFrame04HdrBaseConfidence()
+{
+
+    LOG(INFO)<<"Mixed HDR Exposure Base Confidence:";  
+    
+ 
+    for(int i= 0;i< hdr_num_;i++)
+    {
+        int led_current = led_current_list_[i];
+        lc3010_.SetLedCurrent(led_current,led_current,led_current); 
+        
+        LOG(INFO)<<"Set LED: "<<led_current;
+ 
+        float exposure = camera_exposure_list_[i];
+
+        if (exposure > max_camera_exposure_)
+        {
+            exposure = max_camera_exposure_;
+        }
+        else if (exposure < min_camera_exposure_)
+        {
+            exposure = min_camera_exposure_;
+        }
+
+        LOG(INFO) << "Set Camera Exposure Time: " << exposure;
+
+        if(camera_->setExposure(exposure))
+        {
+            lc3010_.set_camera_exposure(exposure);
+        } 
+
+        captureFrame04BaseConfidence(); 
+        cuda_copy_result_to_hdr(i,18); 
+    }
+ 
+
+
+    cuda_merge_hdr_data(hdr_num_, buff_depth_, buff_brightness_);  
+
+    
+    if (1 != generate_brightness_model_)
+    { 
+        captureTextureImage(generate_brightness_model_, generate_brightness_exposure_, buff_brightness_);
+    }
+    /******************************************************************************************************/
+ 
+    lc3010_.SetLedCurrent(led_current_, led_current_, led_current_); 
+    LOG(INFO) << "Set Camera Exposure Time: " << camera_exposure_ << "\n"; 
+    if (camera_->setExposure(camera_exposure_))
+    {
+        lc3010_.set_camera_exposure(camera_exposure_);
+    }
+}
+
 bool Scan3D::captureFrame04Hdr()
 {
 
@@ -877,7 +924,7 @@ bool Scan3D::captureFrame04Hdr()
             lc3010_.set_camera_exposure(exposure);
         } 
 
-        captureFrame04BaseConfidence(); 
+        captureFrame04(); 
         cuda_copy_result_to_hdr(i,18); 
     }
  
@@ -1036,6 +1083,90 @@ bool Scan3D::captureFrame04Repetition01(int repetition_count)
         captureTextureImage(generate_brightness_model_, generate_brightness_exposure_,buff_brightness_);
     }
 
+
+    return true;
+}
+
+
+bool Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
+{
+
+    cuda_clear_repetition_02_patterns();
+
+    unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
+
+    for(int r= 0;r< repetition_count;r++)
+    {
+        int n = 0;
+  
+        LOG(INFO) << "pattern_mode04";
+        lc3010_.pattern_mode04();
+
+        if (!camera_->streamOn())
+        {
+            LOG(INFO) << "Stream On Error";
+            return false;
+        }
+
+        lc3010_.start_pattern_sequence();
+        LOG(INFO) << "start_pattern_sequence";
+
+        for (int i = 0; i < 19; i++)
+        {
+            LOG(INFO) << "receiving " << i << "th image";
+            bool status = camera_->grap(img_ptr);
+            LOG(INFO) << "status=" << status;
+
+            if (status)
+            {
+
+                cuda_copy_pattern_to_memory(img_ptr, i);
+                cuda_merge_repetition_02_patterns(i);
+            }
+            else
+            {
+                LOG(INFO) << "grad failed!";
+                camera_->streamOff();
+                delete[] img_ptr;
+                return false;
+            }
+        }
+
+        /*********************************************************************************************/
+        camera_->streamOff();
+        lc3010_.stop_pattern_sequence(); 
+        LOG(INFO) << "GXStreamOff";
+        /***********************************************************************************************/
+    }
+
+    delete[] img_ptr;
+
+    cuda_compute_merge_repetition_02_phase(repetition_count);
+    LOG(INFO) << "parallel_cuda_compute_mergerepetition_02_phase";
+    cuda_unwrap_phase_shift_base_fisher_confidence(1);
+    cuda_unwrap_phase_shift_base_fisher_confidence(2);
+    cuda_unwrap_phase_shift_base_fisher_confidence(3);
+
+    fisher_filter(fisher_confidence_val_);
+    cuda_normalize_phase(0);
+
+    LOG(INFO) << "parallel_cuda_unwrap_phase";
+    cuda_generate_pointcloud_base_table();
+    LOG(INFO) << "generate_pointcloud_base_table";
+
+
+    cuda_copy_depth_from_memory(buff_depth_);
+    cuda_copy_pointcloud_from_memory(buff_pointcloud_);
+
+    if (1 == generate_brightness_model_)
+    { 
+        cuda_copy_brightness_from_memory(buff_brightness_);
+    }
+    else
+    {
+
+        captureTextureImage(generate_brightness_model_, generate_brightness_exposure_,buff_brightness_);
+    }
 
     return true;
 }
@@ -1470,4 +1601,14 @@ void Scan3D::getCameraResolution(int &width, int &height)
 {
     width = image_width_;
     height = image_height_;
+}
+
+void Scan3D::removeOutlierBaseRadiusFilter()
+{
+    if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter)
+    {
+        float r = system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r;
+        int num = system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num;
+        cuda_remove_points_base_radius_filter(0.5,r,num);
+    }
 }

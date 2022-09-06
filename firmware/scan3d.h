@@ -58,10 +58,14 @@ public:
     bool captureFrame04BaseConfidence();
 
     bool captureFrame04Hdr();
+    
+    bool captureFrame04HdrBaseConfidence(); 
 
-    bool captureFrame04Repetition01(int repetition_count);
+    bool captureFrame04Repetition01(int repetition_count); 
 
     bool captureFrame04Repetition02(int repetition_count);
+    
+    bool captureFrame04Repetition02BaseConfidence(int repetition_count);
 
     bool captureFrame05();
     
@@ -85,6 +89,8 @@ public:
     void copyPointcloudData(float* &ptr);
 
     void getCameraResolution(int &width, int &height);
+
+    void removeOutlierBaseRadiusFilter();
 
 private:
  

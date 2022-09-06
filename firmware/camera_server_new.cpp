@@ -1381,7 +1381,8 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
     int brightness_buf_size = camera_width_*camera_height_*1;
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
-    scan3d_.captureFrame04Hdr();
+    scan3d_.captureFrame04HdrBaseConfidence(); 
+    scan3d_.removeOutlierBaseRadiusFilter();
 
          
     scan3d_.copyBrightnessData(brightness);
@@ -1779,7 +1780,8 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
       repetition_count = 10;
     }
 
-    scan3d_.captureFrame04Repetition02(repetition_count);
+    scan3d_.captureFrame04Repetition02BaseConfidence(repetition_count);
+    scan3d_.removeOutlierBaseRadiusFilter();
              
     scan3d_.copyBrightnessData(brightness);
     scan3d_.copyDepthData(depth_map); 
@@ -1884,6 +1886,7 @@ int handle_cmd_get_frame_04_repetition_01_parallel(int client_sock)
     }
 
     scan3d_.captureFrame04Repetition01(repetition_count);
+    scan3d_.removeOutlierBaseRadiusFilter();
 
     scan3d_.copyBrightnessData(brightness);
     scan3d_.copyDepthData(depth_map);
@@ -2122,6 +2125,7 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
     LOG(INFO)<<"captureFrame04";
     //scan3d_.captureFrame04();
     scan3d_.captureFrame04BaseConfidence();
+    scan3d_.removeOutlierBaseRadiusFilter();
      
     LOG(INFO)<<"Reconstruct Frame04 Finished!";
     scan3d_.copyBrightnessData(brightness);
