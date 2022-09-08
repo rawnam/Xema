@@ -135,11 +135,12 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.radioButton_brightness, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_brightness(bool)));
 	connect(ui.radioButton_depth_color, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_color_depth(bool)));
 	connect(ui.radioButton_depth_grey, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_gray_depth(bool)));
-
-
+	 
+	connect(ui.comboBox_ip, SIGNAL(activated(int)), this, SLOT(do_comboBox_activated_ip(int)));
 	connect(ui.checkBox_hdr, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_hdr(bool)));
 
 	connect(ui.pushButton_connect, SIGNAL(clicked()), this, SLOT(do_pushButton_connect()));
+	connect(ui.pushButton_refresh, SIGNAL(clicked()), this, SLOT(do_pushButton_refresh()));
 	connect(ui.pushButton_capture_one_frame, SIGNAL(clicked()), this, SLOT(do_pushButton_capture_one_frame()));
 	connect(ui.pushButton_capture_continuous, SIGNAL(clicked()), this, SLOT(do_pushButton_capture_continuous()));
 
@@ -1429,6 +1430,36 @@ bool CameraCaptureGui::isConnect()
 }
 
 
+void CameraCaptureGui::do_pushButton_refresh()
+{
+	device_mac_list_.clear();
+	device_ip_list_.clear();
+
+	int ret_code = 0;
+	//更新相机设备列表
+	int camera_num = 0;
+	ret_code = DfUpdateDeviceList(camera_num);
+	if (0 != ret_code || 0 == camera_num)
+	{
+		return  ;
+	}
+
+	DeviceBaseInfo* pBaseinfo = (DeviceBaseInfo*)malloc(sizeof(DeviceBaseInfo) * camera_num);
+	int n_size = camera_num * sizeof(DeviceBaseInfo);
+	//获取设备信息
+	ret_code = DfGetAllDeviceBaseInfo(pBaseinfo, &n_size);
+	for (int i = 0; i < camera_num; i++)
+	{
+		device_mac_list_.push_back(QString(pBaseinfo[i].mac));
+		device_ip_list_.push_back(QString(pBaseinfo[i].ip));
+		//std::cout << "mac: " << pBaseinfo[i].mac << "  ip: " << pBaseinfo[i].ip << std::endl;
+		QString text = QString(pBaseinfo[i].ip) + "(" + QString(pBaseinfo[i].mac)+  ")";
+		ui.comboBox_ip->addItem(text);
+	}
+
+
+}
+
 void  CameraCaptureGui::do_pushButton_connect()
 {
 
@@ -2299,6 +2330,10 @@ void  CameraCaptureGui::do_pushButton_capture_continuous()
 //	}
 //}
 
+void CameraCaptureGui::do_comboBox_activated_ip(int index)
+{ 
+	ui.lineEdit_ip->setText(device_ip_list_[index]);
+}
 
 void CameraCaptureGui::do_checkBox_toggled_hdr(bool state)
 {

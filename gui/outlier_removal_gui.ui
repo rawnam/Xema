@@ -68,6 +68,9 @@
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <widget class="QCheckBox" name="checkBox_reflect">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="text">
          <string>反射滤除</string>
         </property>

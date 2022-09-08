@@ -8,6 +8,8 @@ OutlierRemovalSettingGui::OutlierRemovalSettingGui(QWidget *parent)
 
 	connect(ui.pushButton_ok, SIGNAL(clicked()), this, SLOT(do_pushButton_ok()));
 	connect(ui.pushButton_cancel, SIGNAL(clicked()), this, SLOT(do_pushButton_cancel()));
+
+	ui.checkBox_reflect->hide();
 }
 
 OutlierRemovalSettingGui::~OutlierRemovalSettingGui()

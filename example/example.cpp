@@ -8,12 +8,30 @@
 int main()
 {
 	/*****************************************************************************************************/
+	int ret_code = 0;
+	//更新相机设备列表
+	int camera_num = 0;
+	ret_code = DfUpdateDeviceList(camera_num);
+	if (0 != ret_code || 0 == camera_num)
+	{
+		return -1;
+	}
+	 
+	DeviceBaseInfo* pBaseinfo = (DeviceBaseInfo*)malloc(sizeof(DeviceBaseInfo) * camera_num);
+	int n_size = camera_num * sizeof(DeviceBaseInfo);
+	//获取设备信息
+	ret_code = DfGetAllDeviceBaseInfo(pBaseinfo, &n_size); 
+	for (int i = 0; i < camera_num; i++)
+	{
+		std::cout << "mac: "<< pBaseinfo[i].mac <<"  ip: "<< pBaseinfo[i].ip<<std::endl;
+	}
 
-	//连接相机
-	int ret_code = DfConnect("192.168.0.122");
+	char* ip = pBaseinfo[0].ip; 
+	 
+	//连接相机 
+	ret_code = DfConnect(ip);
 
-	int width = 0, height = 0;
-
+	int width = 0, height = 0; 
 	if (0 == ret_code)
 	{
 		//必须连接相机成功后，才可获取相机分辨率
@@ -210,7 +228,8 @@ int main()
 	free(depth_data);
 	free(point_cloud_data);
 	free(height_map_data);
-	free(timestamp_data);
+	free(timestamp_data); 
+	free(pBaseinfo);
 
 	DfDisconnect("192.168.88.106");
 }

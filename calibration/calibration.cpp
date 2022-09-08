@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
 			printf("calibration.exe --calibrate --use patterns --path ./capture/calib --version DFX800 --board 20 ./calib --calib ./param.txt \n");
 		}
 
-		if ("20" == board_str)
+		if ("12" == board_str)
 		{
 			board_message.rows = 11;
 			board_message.cols = 7;
