@@ -19,6 +19,7 @@
 #include "getopt.h" 
 #include <iomanip>
 #include "../test/LookupTableFunction.h"
+#include "../test/triangulation.h"
 
 using namespace std;
 
@@ -527,13 +528,19 @@ bool depthTransformPointcloud(cv::Mat depth_map, cv::Mat& point_cloud_map)
 	double camera_cx = calibration_param_.camera_intrinsic[2];
 	double camera_cy = calibration_param_.camera_intrinsic[5];
 
+	float k1 = calibration_param_.camera_distortion[0];
+	float k2 = calibration_param_.camera_distortion[1];
+	float p1 = calibration_param_.camera_distortion[2];
+	float p2 = calibration_param_.camera_distortion[3];
+	float k3 = calibration_param_.camera_distortion[4];
+
 	int nr = depth_map.rows;
 	int nc = depth_map.cols;
 
 
 	cv::Mat points_map(nr, nc, CV_32FC3, cv::Scalar(0, 0, 0));
 
-
+#pragma omp parallel for
 	for (int r = 0; r < nr; r++)
 	{
 
@@ -542,15 +549,19 @@ bool depthTransformPointcloud(cv::Mat depth_map, cv::Mat& point_cloud_map)
 
 		for (int c = 0; c < nc; c++)
 		{
-
+			double undistort_x = c;
+			double undistort_y = r;
 			if (ptr_d[c] > 0)
 			{
+
+				undistortPoint(c, r, camera_fx, camera_fy,
+					camera_cx, camera_cy, k1, k2, k3, p1, p2, undistort_x, undistort_y);
 
 				cv::Point3f p;
 				p.z = ptr_d[c];
 
-				p.x = (c - camera_cx) * p.z / camera_fx;
-				p.y = (r - camera_cy) * p.z / camera_fy;
+				p.x = (undistort_x - camera_cx) * p.z / camera_fx;
+				p.y = (undistort_y - camera_cy) * p.z / camera_fy;
 
 
 				ptr_p[c][0] = p.x;
