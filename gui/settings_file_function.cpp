@@ -207,6 +207,12 @@ bool SettingsFileFunction::loadProcessingSettingsFile(QString path)
 			qDebug() << "confidence is:" << firmware_Obj.value("confidence").toInt();
 			camera_config_.Instance().firwmare_param_.confidence = firmware_Obj.value("confidence").toInt();
 		}
+
+		if (firmware_Obj.contains("fisher_confidence") && firmware_Obj["fisher_confidence"].isDouble())
+		{
+			qDebug() << "fisher_confidence is:" << firmware_Obj.value("fisher_confidence").toInt();
+			camera_config_.Instance().firwmare_param_.fisher_confidence = firmware_Obj.value("fisher_confidence").toInt();
+		}
 	}
 
 	/******************************************************************************************************************************/
@@ -327,6 +333,7 @@ bool SettingsFileFunction::saveProcessingSettingsFile(QString path)
 	jsonObject_firmware.insert("bilateral_filter_param_d", camera_config_.Instance().firwmare_param_.bilateral_filter_param_d);
 
 	jsonObject_firmware.insert("confidence", camera_config_.Instance().firwmare_param_.confidence);
+	jsonObject_firmware.insert("fisher_confidence", camera_config_.Instance().firwmare_param_.fisher_confidence);
 
 	// 使用QJsonDocument设置该json对象
 	QJsonDocument jsonDoc;

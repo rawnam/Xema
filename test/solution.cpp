@@ -24,6 +24,7 @@
 #include "LookupTableFunction.h"
 //#include "../cmd/getopt.h" 
 #include "FilterModule.h" 
+#include <opencv2/photo/photo.hpp>
 /**************************************************************************/
 
 DfSolution::DfSolution()
@@ -418,6 +419,73 @@ bool DfSolution::readFolderImages(std::string dir, std::vector<std::vector<cv::M
 
 		patterns_list.push_back(patterns);
 	}
+}
+
+
+bool DfSolution::readColorImages(std::string dir, std::vector<cv::Mat>& patterns)
+{
+	//if (dir.empty())
+	//{
+	//	return false;
+	//}
+
+	std::vector<std::string> files;
+
+	getFiles(dir, files);
+
+	//for (int i = 0; i < files.size(); i++)
+	//{
+	//	std::cout<< files[i].c_str() << std::endl;
+	//}
+
+	patterns.clear();
+
+	for (int i = 0; i < files.size(); i++)
+	{
+		//std::string path = dir + "/phase";
+		std::string path = files[i];
+		//if (i < 10)
+		//{
+		//	path += "0";
+		//}
+
+		//path +=  std::to_string(i) + "_p.bmp";
+
+
+
+		cv::Mat img = cv::imread(path, 0);
+		if (img.empty())
+		{
+			return false;
+		}
+		std::cout << path << std::endl;
+
+
+		cv::Mat color_mat;
+		cv::cvtColor(img, color_mat, cv::COLOR_BayerBG2BGR);
+
+		std::vector < cv::Mat> channels;
+		cv::split(color_mat, channels);
+		cv::Mat b = channels[0].clone();
+
+		//cv::GaussianBlur(img, img, cv::Size(5, 5), 0, 1);
+
+		if (files.size() - 1 == i)
+		{
+			patterns.push_back(color_mat.clone());
+		}
+		else
+		{
+			patterns.push_back(b.clone());
+		}
+
+
+		//patterns[i] = img.clone();
+	}
+
+
+
+	return true;
 }
 
 bool DfSolution::readImages(std::string dir, std::vector<cv::Mat>& patterns)
@@ -1001,9 +1069,10 @@ bool DfSolution::reconstructPatterns04Repetition01BaseTable(std::vector<cv::Mat>
 	cv::Mat xL_rotate_y;
 	cv::Mat R1;
 	cv::Mat pattern_mapping;
+	cv::Mat pattern_minimapping;
 
-	lookup_table_machine_.generateLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping);
-	mini_lookup_table_machine_.generateBigLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping);
+	//lookup_table_machine_.generateLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping);
+	mini_lookup_table_machine_.generateBigLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping, pattern_minimapping);
 	lookup_table_machine_.setLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping);
 
 	//lookup_table_machine_.readTable("../", 1200, 1920);
@@ -1525,33 +1594,6 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseMiniTable(std::v
 
 bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path)
 {
-	/***********************************************************************************/
-
-	clock_t startTime, endTime;
-	startTime = clock();//��ʱ��ʼ
-
-
-	LookupTableFunction lookup_table_machine_;
-	//LookupTableFunction lookup_table_machine;
-	lookup_table_machine_.setCalibData(calib_param);
-	lookup_table_machine_.setCameraVersion(camera_version_);
-
-	cv::Mat xL_rotate_x;
-	cv::Mat xL_rotate_y;
-	cv::Mat R1;
-	cv::Mat pattern_mapping;
-	lookup_table_machine_.generateLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping);
-
-	//lookup_table_machine_.readTable("../", 1200, 1920);
-
-
-	endTime = clock();//��ʱ����
-	std::cout << "The run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
-
-	/************************************************************************************/
-
-
-
 	if (19 != patterns.size())
 	{
 		return false;
@@ -1563,6 +1605,53 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 
 	int nr = patterns[0].rows;
 	int nc = patterns[0].cols;
+
+	/***********************************************************************************/
+
+	clock_t startTime, endTime;
+	startTime = clock();//��ʱ��ʼ
+
+
+	LookupTableFunction lookup_table_machine_;
+	//LookupTableFunction lookup_table_machine;
+	lookup_table_machine_.setCalibData(calib_param);
+	lookup_table_machine_.setCameraVersion(camera_version_);
+	lookup_table_machine_.setImageResolution(nc, nr);
+
+	cv::Mat xL_rotate_x;
+	cv::Mat xL_rotate_y;
+	cv::Mat R1;
+	cv::Mat pattern_mapping;
+	cv::Mat pattern_minimapping;
+	//lookup_table_machine_.generateLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping);
+
+	//lookup_table_machine_.readTable("../", 1200, 1920);
+
+	//MiniLookupTableFunction minilooktable_machine;
+	//minilooktable_machine.setCameraResolution(nc, nr);
+	//minilooktable_machine.setCameraVersion(camera_version_);
+	//minilooktable_machine.setCalibData(calib_param);
+	cv::Mat xL_rotate_x_new;
+	cv::Mat xL_rotate_y_new;
+	cv::Mat R1_new;
+	cv::Mat pattern_mapping_new;
+	cv::Mat pattern_minimapping_new;
+
+
+	std::cout << "Start Generate LookTable Param" << std::endl;
+	//bool ok = looktable_machine.generateLookTable(xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping);
+	bool ok = lookup_table_machine_.generateLookTable(xL_rotate_x_new, xL_rotate_y_new, R1_new, pattern_mapping_new);
+
+	endTime = clock();//��ʱ����
+	std::cout << "The run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+
+
+	/************************************************************************************/
+
+
+
+
+
 
 	std::vector<cv::Mat> ver_patterns_img(patterns.begin(), patterns.begin() + ver_pstterns_num);
 
@@ -1621,7 +1710,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 	cv::Mat wrap_2 = ver_wrap_img_4[2].clone();
 	cv::Mat wrap_3 = ver_wrap_img_6[0].clone();
 
-	float confidence_val = 2;
+	float confidence_val = 5;
 
 	float ver_period = ver_period_num;
 	unwrap_ver /= ver_period;
@@ -1638,6 +1727,37 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 	cv::Mat undistort_img;
 	lookup_table_machine_.undistortedImage(texture_map, undistort_img);
 	texture_map = undistort_img.clone();
+
+	//cv::Mat balance_white_dst;
+	//cv::SimpleWB simpleWB = cv::SimpleWB.Create();
+	//simpleWB.BalanceWhite(texture_map, balance_white_dst);
+
+	//if (3 == texture_map.channels())
+	//{
+	//	std::vector<Mat> imageRGB;
+
+	//	//RGB三通道分离
+	//	split(texture_map, imageRGB);
+
+	//	//求原始图像的RGB分量的均值
+	//	double R, G, B;
+	//	B = mean(imageRGB[0])[0];
+	//	G = mean(imageRGB[1])[0];
+	//	R = mean(imageRGB[2])[0];
+
+	//	//需要调整的RGB分量的增益
+	//	double KR, KG, KB;
+	//	KB = (R + G + B) / (3 * B);
+	//	KG = (R + G + B) / (3 * G);
+	//	KR = (R + G + B) / (3 * R);
+
+	//	//调整RGB三个通道各自的值
+	//	imageRGB[0] = imageRGB[0] * KB;
+	//	imageRGB[1] = imageRGB[1] * KG;
+	//	imageRGB[2] = imageRGB[2] * KR;
+	//	//RGB三通道图像合并
+	//	merge(imageRGB, texture_map);
+	//}
 
 	cv::Mat z_map_table;
 	//����ؽ���deep_map ��ͨ��Ϊx y z��ͨ����double ����
@@ -1693,6 +1813,246 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 
 	return true;
 }
+
+bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTableAndConfidence(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path)
+{
+	if (19 != patterns.size())
+	{
+		return false;
+	}
+
+	bool ret = true;
+
+	int ver_pstterns_num = 18;
+
+	int nr = patterns[0].rows;
+	int nc = patterns[0].cols;
+
+	/***********************************************************************************/
+
+	clock_t startTime, endTime;
+	startTime = clock();//��ʱ��ʼ
+
+
+	LookupTableFunction lookup_table_machine_;
+	//LookupTableFunction lookup_table_machine;
+	lookup_table_machine_.setCalibData(calib_param);
+	lookup_table_machine_.setCameraVersion(camera_version_);
+	lookup_table_machine_.setImageResolution(nc, nr);
+
+	cv::Mat xL_rotate_x;
+	cv::Mat xL_rotate_y;
+	cv::Mat R1;
+	cv::Mat pattern_mapping;
+	cv::Mat pattern_minimapping;
+	//lookup_table_machine_.generateLookTable(xL_rotate_x, xL_rotate_y, R1, pattern_mapping);
+
+	//lookup_table_machine_.readTable("../", 1200, 1920);
+
+	//MiniLookupTableFunction minilooktable_machine;
+	//minilooktable_machine.setCameraResolution(nc, nr);
+	//minilooktable_machine.setCameraVersion(camera_version_);
+	//minilooktable_machine.setCalibData(calib_param);
+	cv::Mat xL_rotate_x_new;
+	cv::Mat xL_rotate_y_new;
+	cv::Mat R1_new;
+	cv::Mat pattern_mapping_new;
+	cv::Mat pattern_minimapping_new;
+
+
+	std::cout << "Start Generate LookTable Param" << std::endl;
+	//bool ok = looktable_machine.generateLookTable(xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping);
+	bool ok = lookup_table_machine_.generateLookTable(xL_rotate_x_new, xL_rotate_y_new, R1_new, pattern_mapping_new);
+
+	endTime = clock();//��ʱ����
+	std::cout << "The run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+
+
+	/************************************************************************************/
+
+
+
+
+
+
+	std::vector<cv::Mat> ver_patterns_img(patterns.begin(), patterns.begin() + ver_pstterns_num);
+
+	std::vector<cv::Mat> ver_wrap_img_4;
+	cv::Mat ver_confidence_map_4;
+
+
+	std::vector<cv::Mat> ver_wrap_img_6;
+	cv::Mat ver_confidence_map_6;
+
+	cv::Mat org_mask_(nr, nc, CV_8U, cv::Scalar(255));
+	cv::rectangle(org_mask_, cv::Point(0, 0), cv::Point(nc - 1, nr - 1), cv::Scalar(0), 3);
+
+
+	cv::Mat test_mask_ = org_mask_.clone();
+
+
+	std::vector<cv::Mat> ver_patterns_img_4(ver_patterns_img.begin(), ver_patterns_img.begin() + ver_pstterns_num - 6);
+	std::vector<cv::Mat> ver_patterns_img_6(ver_patterns_img.begin() + ver_pstterns_num - 6, ver_patterns_img.begin() + ver_pstterns_num);
+
+
+
+	DF_Encode encode_machine_;
+
+	ret = encode_machine_.computePhaseBaseFourStep(ver_patterns_img_4, ver_wrap_img_4, test_mask_, ver_confidence_map_4);
+	ret = encode_machine_.computePhaseBaseSixStep(ver_patterns_img_6, ver_wrap_img_6, test_mask_, ver_confidence_map_6);
+
+	std::vector<double> variable_wrap_rate;
+	variable_wrap_rate.push_back(8);
+	variable_wrap_rate.push_back(4);
+	variable_wrap_rate.push_back(4);
+
+
+	cv::Mat unwrap_mask = test_mask_.clone();
+
+	std::vector<cv::Mat> select_ver_wrap_img = ver_wrap_img_4;
+	select_ver_wrap_img.push_back(ver_wrap_img_6[0]);
+
+
+	cv::Mat unwrap_ver;
+	float ver_period_num = 1;
+
+	for (int r_i = 0; r_i < variable_wrap_rate.size(); r_i++)
+	{
+		ver_period_num *= variable_wrap_rate[r_i];
+	}
+
+	// mask for fisher
+	cv::Mat mask_4_coefficents(nr, nc, CV_64F, cv::Scalar(0));
+
+	ret = encode_machine_.unwrapVariableWavelengthPatternsBaseConfidence(select_ver_wrap_img, variable_wrap_rate, unwrap_ver, mask_4_coefficents);
+	if (!ret)
+	{
+		std::cout << "unwrap Error!";
+		return false;
+	}
+	cv::Mat wrap_0 = ver_wrap_img_4[0].clone();
+	cv::Mat wrap_1 = ver_wrap_img_4[1].clone();
+	cv::Mat wrap_2 = ver_wrap_img_4[2].clone();
+	cv::Mat wrap_3 = ver_wrap_img_6[0].clone();
+
+	float confidence_val = 5;
+
+	float ver_period = ver_period_num;
+	unwrap_ver /= ver_period;
+
+	// Generate Fisher Mask
+	cv::Mat fisherMask(wrap_0.size(), CV_8U, cv::Scalar(255));
+	double center_1 = -1.0705727873145959e-05;
+	double center_2 = -3.118464936149469e-05;
+	double center = center_2 + (center_1 - center_2) * (this->confidence_level_ / 100.);
+
+	for (int r = 0; r < fisherMask.rows; r += 1)
+	{
+		unsigned char* fisherMaskPtr = fisherMask.ptr<unsigned char>(r);
+		double* fisherVal = mask_4_coefficents.ptr<double>(r);
+		for (int c = 0; c < fisherMask.cols; c += 1)
+		{
+			if (fisherVal[c] < center)
+			{
+				fisherMaskPtr[c] = 0;
+			}
+		}
+	}
+
+	encode_machine_.maskMap(fisherMask, unwrap_ver);
+
+
+	cv::Mat texture_map = patterns[18];
+	cv::Mat undistort_img;
+	lookup_table_machine_.undistortedImage(texture_map, undistort_img);
+	texture_map = undistort_img.clone();
+
+	//cv::Mat balance_white_dst;
+	//cv::SimpleWB simpleWB = cv::SimpleWB.Create();
+	//simpleWB.BalanceWhite(texture_map, balance_white_dst);
+
+	//if (3 == texture_map.channels())
+	//{
+	//	std::vector<Mat> imageRGB;
+
+	//	//RGB三通道分离
+	//	split(texture_map, imageRGB);
+
+	//	//求原始图像的RGB分量的均值
+	//	double R, G, B;
+	//	B = mean(imageRGB[0])[0];
+	//	G = mean(imageRGB[1])[0];
+	//	R = mean(imageRGB[2])[0];
+
+	//	//需要调整的RGB分量的增益
+	//	double KR, KG, KB;
+	//	KB = (R + G + B) / (3 * B);
+	//	KG = (R + G + B) / (3 * G);
+	//	KR = (R + G + B) / (3 * R);
+
+	//	//调整RGB三个通道各自的值
+	//	imageRGB[0] = imageRGB[0] * KB;
+	//	imageRGB[1] = imageRGB[1] * KG;
+	//	imageRGB[2] = imageRGB[2] * KR;
+	//	//RGB三通道图像合并
+	//	merge(imageRGB, texture_map);
+	//}
+
+	cv::Mat z_map_table;
+	//����ؽ���deep_map ��ͨ��Ϊx y z��ͨ����double ����
+	lookup_table_machine_.rebuildData(unwrap_ver, 1, z_map_table, unwrap_mask);
+
+	cv::Mat deep_map_table;
+
+	std::vector<cv::Point3f> points_cloud;
+	ret = lookup_table_machine_.generate_pointcloud(z_map_table, unwrap_mask, deep_map_table);
+
+
+	startTime = clock();//��ʱ��ʼ   
+	FilterModule filter_machine;
+	//相机像素为5.4um、焦距12mm。dot_spacing = 5.4*distance/12 m，典型值0.54mm（1200） 
+	//filter_machine.RadiusOutlierRemoval(deep_map_table, unwrap_mask, 0.5, 3, 3);
+	//filter_machine.statisticOutlierRemoval(deep_map_table, 6, 1);
+	endTime = clock();//��ʱ����
+	std::cout << "statisticOutlierRemoval run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
+
+	/*********************************************************************************/
+
+	std::string work_path_ = pointcloud_path + "/test";
+
+
+	std::vector<cv::Mat> deep_channels;
+	cv::split(deep_map_table, deep_channels);
+	cv::Mat z_map;
+	deep_channels[2].convertTo(z_map, CV_32F);
+
+
+	std::string save_err_tiff = work_path_ + "_err_table.tiff";
+	std::string save_depth_tiff = work_path_ + "_depth_table.tiff";
+	std::string save_points_dir = work_path_ + "_points_table.xyz";
+	std::string save_depth_txt_dir = work_path_ + "_depth_table.txt";
+	std::string save_confidence_dir = work_path_ + "_confidence_table.bmp";
+	std::string save_depth_dir = work_path_ + "_depth_table.bmp";
+	std::string save_brightness_dir = work_path_ + "_brightness_table.bmp";
+	std::string save_points_z_dir = work_path_ + "point_z_table.tiff";
+
+	cv::Mat color_map, grey_map;
+	MapToColor(deep_map_table, color_map, grey_map, 300, 2000);
+	MaskZMap(color_map, unwrap_mask);
+
+
+	//cv::imwrite(save_err_tiff, err_map);
+	cv::imwrite(save_depth_tiff, z_map);
+	cv::imwrite(save_brightness_dir, texture_map);
+	cv::imwrite(save_depth_dir, color_map);
+	SavePointToTxt(deep_map_table, save_points_dir, texture_map);
+
+
+	std::cout << "pointcloud: " << save_points_dir;
+
+	return true;
+}
+
 
 
 bool DfSolution::reconstructBasePhase02(cv::Mat phase_x, cv::Mat phase_y, cv::Mat brightness, struct CameraCalibParam calib_param, std::string pointcloud_path)

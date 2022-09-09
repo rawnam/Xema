@@ -16,7 +16,7 @@
 #include <mutex>
 #include <thread>
 #include "easylogging++.h"
-#include "encode_cuda.cuh"
+// #include "encode_cuda.cuh"
 #include "system_config_settings.h"
 #include "version.h"
 #include "configure_standard_plane.h"
@@ -47,7 +47,10 @@ float generate_brightness_exposure_time = 12000;
 int generate_brightness_model = 1;
  
 float max_camera_exposure_ = 28000;
-float min_camera_exposure_ = 6000;
+float min_camera_exposure_ = 1000;
+
+int camera_width_ = 0;
+int camera_height_ = 0;
  
 
 SystemConfigDataStruct system_config_settings_machine_;
@@ -126,9 +129,9 @@ bool set_camera_version(int version)
     {
     case DFX_800:
     {
-        cuda_set_camera_version(DFX_800);
+        // cuda_set_camera_version(DFX_800);
         max_camera_exposure_ = 60000;
-        min_camera_exposure_ = 6000;
+        min_camera_exposure_ = 1000;
         return true;
     }
     break;
@@ -136,9 +139,9 @@ bool set_camera_version(int version)
     case DFX_1800:
     {
 
-        cuda_set_camera_version(DFX_1800);
+        // cuda_set_camera_version(DFX_1800);
         max_camera_exposure_ = 28000; 
-        min_camera_exposure_ = 6000;
+        min_camera_exposure_ = 1000;
         return true;
     }
     break;
@@ -516,7 +519,7 @@ int handle_cmd_set_auto_exposure_base_board(int client_sock)
         return DF_FAILED;	
     }
 
-    int buffer_size = 1920 * 1200;
+    int buffer_size = camera_width_ * camera_height_;
     char *buffer = new char[buffer_size];
 
     ConfigureAutoExposure auto_exposure;
@@ -524,7 +527,7 @@ int handle_cmd_set_auto_exposure_base_board(int client_sock)
     float over_exposure_rate = 0;
 
 
-    cv::Mat brightness_mat(1200,1920,CV_8U,cv::Scalar(0));
+    cv::Mat brightness_mat(camera_height_,camera_width_,CV_8U,cv::Scalar(0));
 
     float current_exposure = system_config_settings_machine_.Instance().config_param_.camera_exposure_time;
 
@@ -542,7 +545,7 @@ int handle_cmd_set_auto_exposure_base_roi_half(int client_sock)
         return DF_FAILED;	
     }
 
-    int buffer_size = 1920 * 1200;
+    int buffer_size = camera_width_ * camera_height_;
     char *buffer = new char[buffer_size];
 
     ConfigureAutoExposure auto_exposure_machine;
@@ -555,7 +558,7 @@ int handle_cmd_set_auto_exposure_base_roi_half(int client_sock)
     float low_max_over_rate = 0.3;
     float low_min_over_rate = 0.2;
  
-    cv::Mat brightness_mat(1200,1920,CV_8U,cv::Scalar(0));
+    cv::Mat brightness_mat(camera_height_,camera_width_,CV_8U,cv::Scalar(0));
 
 
     int current_exposure = (min_camera_exposure_ + max_camera_exposure_)/2;
@@ -793,7 +796,7 @@ int handle_cmd_set_auto_exposure_base_roi_pid(int client_sock)
         return DF_FAILED;	
     }
 
-    int buffer_size = 1920 * 1200;
+    int buffer_size = camera_width_ * camera_height_;
     char *buffer = new char[buffer_size];
 
     ConfigureAutoExposure auto_exposure_machine;
@@ -801,7 +804,7 @@ int handle_cmd_set_auto_exposure_base_roi_pid(int client_sock)
     float over_exposure_rate = 0;
 
 
-    cv::Mat brightness_mat(1200,1920,CV_8U,cv::Scalar(0));
+    cv::Mat brightness_mat(camera_height_,camera_width_,CV_8U,cv::Scalar(0));
 
     float current_exposure = system_config_settings_machine_.Instance().config_param_.camera_exposure_time;
 
@@ -1108,7 +1111,7 @@ int handle_cmd_get_focusing_image(int client_sock)
     }
     LOG(INFO) << "capture focusing image";
 
-    int buffer_size = 1920*1200;
+    int buffer_size = camera_width_*camera_height_;
     unsigned char* buffer = new unsigned char[buffer_size];
 
     //不发光，自定义曝光时间
@@ -1136,7 +1139,7 @@ int handle_cmd_get_brightness(int client_sock)
     }
     LOG(INFO)<<"capture single image";
 
-    int buffer_size = 1920*1200;
+    int buffer_size = camera_width_*camera_height_;
     unsigned char* buffer = new unsigned char[buffer_size];
 
     scan3d_.captureTextureImage(generate_brightness_model,generate_brightness_exposure_time,buffer);
@@ -1178,7 +1181,7 @@ int handle_cmd_get_raw_04_repetition(int client_sock)
 
 
     int image_num= 19 + 6*(repetition_count-1);  
-    int buffer_size = 1920*1200*image_num;
+    int buffer_size = camera_width_*camera_height_*image_num;
     unsigned char* buffer = new unsigned char[buffer_size];
     // camera.captureRawTest(image_num,buffer);
 
@@ -1372,13 +1375,14 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
     LOG(INFO)<<"Mixed HDR Exposure:"; 
 
 
-    int depth_buf_size = 1920*1200*4;
+    int depth_buf_size = camera_width_*camera_height_*4;
     float* depth_map = new float[depth_buf_size];
 
-    int brightness_buf_size = 1920*1200*1;
+    int brightness_buf_size = camera_width_*camera_height_*1;
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
-    scan3d_.captureFrame04Hdr();
+    scan3d_.captureFrame04HdrBaseConfidence(); 
+    scan3d_.removeOutlierBaseRadiusFilter();
 
          
     scan3d_.copyBrightnessData(brightness);
@@ -1391,8 +1395,8 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
 
     if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
     { 
-        cv::Mat depth_mat(1200, 1920, CV_32FC1, depth_map);
-        cv::Mat depth_bilateral_mat(1200, 1920, CV_32FC1, cv::Scalar(0));
+        cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+        cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
         cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
         memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
         LOG(INFO) << "Bilateral";
@@ -1461,8 +1465,8 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
 //         led_current_list.push_back(system_config_settings_machine_.Instance().config_param_.exposure_param[i]);
 //     }
 
-//     int depth_buf_size = 1920*1200*4;  
-//     int brightness_buf_size = 1920*1200*1;
+//     int depth_buf_size = camera_width_*camera_height_*4;  
+//     int brightness_buf_size = camera_width_*camera_height_*1;
 
 //     float* depth_map = new float[depth_buf_size]; 
 //     unsigned char* brightness = new unsigned char[brightness_buf_size];
@@ -1496,8 +1500,8 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
 
 //     if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
 //     { 
-//         cv::Mat depth_mat(1200, 1920, CV_32FC1, depth_map);
-//         cv::Mat depth_bilateral_mat(1200, 1920, CV_32FC1, cv::Scalar(0));
+//         cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+//         cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
 //         cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
 //         memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
 //         LOG(INFO) << "Bilateral";
@@ -1565,8 +1569,8 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
 //         led_current_list.push_back(system_config_settings_machine_.Instance().config_param_.exposure_param[i]);
 //     }
 
-//     int depth_buf_size = 1920*1200*4;  
-//     int brightness_buf_size = 1920*1200*1;
+//     int depth_buf_size = camera_width_*camera_height_*4;  
+//     int brightness_buf_size = camera_width_*camera_height_*1;
 
 //     float* depth_map = new float[depth_buf_size]; 
 //     unsigned char* brightness = new unsigned char[brightness_buf_size];
@@ -1660,11 +1664,11 @@ int handle_cmd_get_phase_02_repetition_02_parallel(int client_sock)
     LOG(INFO)<<"repetition_count: "<<repetition_count<<"\n";
     /***************************************************************************************/
 
-    int phase_buf_size = 1920 * 1200 * 4;
+    int phase_buf_size = camera_width_ * camera_height_ * 4;
     float *phase_map_x = new float[phase_buf_size];
     float *phase_map_y = new float[phase_buf_size];
 
-    int brightness_buf_size = 1920 * 1200 * 1;
+    int brightness_buf_size = camera_width_ * camera_height_ * 1;
     unsigned char *brightness = new unsigned char[brightness_buf_size];
 
     if (repetition_count < 1)
@@ -1760,10 +1764,10 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
     /***************************************************************************************/
 
 
-    int depth_buf_size = 1920*1200*4;
+    int depth_buf_size = camera_width_*camera_height_*4;
     float* depth_map = new float[depth_buf_size];
 
-    int brightness_buf_size = 1920*1200*1;
+    int brightness_buf_size = camera_width_*camera_height_*1;
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
     if(repetition_count< 1)
@@ -1776,7 +1780,8 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
       repetition_count = 10;
     }
 
-    scan3d_.captureFrame04Repetition02(repetition_count);
+    scan3d_.captureFrame04Repetition02BaseConfidence(repetition_count);
+    scan3d_.removeOutlierBaseRadiusFilter();
              
     scan3d_.copyBrightnessData(brightness);
     scan3d_.copyDepthData(depth_map); 
@@ -1785,8 +1790,8 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
 
     if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
     { 
-        cv::Mat depth_mat(1200, 1920, CV_32FC1, depth_map);
-        cv::Mat depth_bilateral_mat(1200, 1920, CV_32FC1, cv::Scalar(0));
+        cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+        cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
         cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
         memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
         LOG(INFO) << "Bilateral";
@@ -1864,10 +1869,10 @@ int handle_cmd_get_frame_04_repetition_01_parallel(int client_sock)
     /***************************************************************************************/
 
 
-    int depth_buf_size = 1920*1200*4;
+    int depth_buf_size = camera_width_*camera_height_*4;
     float* depth_map = new float[depth_buf_size];
 
-    int brightness_buf_size = 1920*1200*1;
+    int brightness_buf_size = camera_width_*camera_height_*1;
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
     if(repetition_count< 1)
@@ -1880,7 +1885,8 @@ int handle_cmd_get_frame_04_repetition_01_parallel(int client_sock)
       repetition_count = 10;
     }
 
-    scan3d_.captureFrame04Repetition02(repetition_count);
+    scan3d_.captureFrame04Repetition01(repetition_count);
+    scan3d_.removeOutlierBaseRadiusFilter();
 
     scan3d_.copyBrightnessData(brightness);
     scan3d_.copyDepthData(depth_map);
@@ -1889,8 +1895,8 @@ int handle_cmd_get_frame_04_repetition_01_parallel(int client_sock)
 
     if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
     { 
-        cv::Mat depth_mat(1200, 1920, CV_32FC1, depth_map);
-        cv::Mat depth_bilateral_mat(1200, 1920, CV_32FC1, cv::Scalar(0));
+        cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+        cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
         cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
         memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
         LOG(INFO) << "Bilateral";
@@ -1967,10 +1973,10 @@ int handle_cmd_get_frame_04_repetition_01_parallel(int client_sock)
 //     /***************************************************************************************/
 
 
-//     int depth_buf_size = 1920*1200*4;
+//     int depth_buf_size = camera_width_*camera_height_*4;
 //     float* depth_map = new float[depth_buf_size];
 
-//     int brightness_buf_size = 1920*1200*1;
+//     int brightness_buf_size = camera_width_*camera_height_*1;
 //     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
 //     if(repetition_count< 1)
@@ -2039,10 +2045,10 @@ int handle_cmd_get_standard_plane_param_parallel(int client_sock)
         return DF_FAILED;	
     }
 
-    int pointcloud_buf_size = 1920*1200*4*3;
+    int pointcloud_buf_size = camera_width_*camera_height_*4*3;
     float* pointcloud_map = new float[pointcloud_buf_size];
 
-    int brightness_buf_size = 1920*1200*1;
+    int brightness_buf_size = camera_width_*camera_height_*1;
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
 
@@ -2109,15 +2115,17 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
         return DF_FAILED;	
     }
 
-    int depth_buf_size = 1920*1200*4;
+    int depth_buf_size = camera_width_*camera_height_*4;
     float* depth_map = new float[depth_buf_size];
 
-    int brightness_buf_size = 1920*1200*1;
+    int brightness_buf_size = camera_width_*camera_height_*1;
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
  
 
     LOG(INFO)<<"captureFrame04";
-    scan3d_.captureFrame04();
+    //scan3d_.captureFrame04();
+    scan3d_.captureFrame04BaseConfidence();
+    scan3d_.removeOutlierBaseRadiusFilter();
      
     LOG(INFO)<<"Reconstruct Frame04 Finished!";
     scan3d_.copyBrightnessData(brightness);
@@ -2128,8 +2136,8 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
 
     if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
     { 
-        cv::Mat depth_mat(1200, 1920, CV_32FC1, depth_map);
-        cv::Mat depth_bilateral_mat(1200, 1920, CV_32FC1, cv::Scalar(0));
+        cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+        cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
         cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
         memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
         LOG(INFO) << "Bilateral"; 
@@ -2185,10 +2193,10 @@ int handle_cmd_get_frame_05_parallel(int client_sock)
         return DF_FAILED;	
     }
 
-    int depth_buf_size = 1920*1200*4;
+    int depth_buf_size = camera_width_*camera_height_*4;
     float* depth_map = new float[depth_buf_size];
 
-    int brightness_buf_size = 1920*1200*1;
+    int brightness_buf_size = camera_width_*camera_height_*1;
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
  
 
@@ -2204,8 +2212,8 @@ int handle_cmd_get_frame_05_parallel(int client_sock)
 
     if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
     { 
-        cv::Mat depth_mat(1200, 1920, CV_32FC1, depth_map);
-        cv::Mat depth_bilateral_mat(1200, 1920, CV_32FC1, cv::Scalar(0));
+        cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+        cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
         cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
         memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
         LOG(INFO) << "Bilateral"; 
@@ -2262,10 +2270,10 @@ int handle_cmd_get_frame_03_parallel(int client_sock)
         return DF_FAILED;	
     }
 
-    int depth_buf_size = 1920*1200*4;
+    int depth_buf_size = camera_width_*camera_height_*4;
     float* depth_map = new float[depth_buf_size];
 
-    int brightness_buf_size = 1920*1200*1;
+    int brightness_buf_size = camera_width_*camera_height_*1;
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
  
 
@@ -2281,8 +2289,8 @@ int handle_cmd_get_frame_03_parallel(int client_sock)
 
     if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
     { 
-        cv::Mat depth_mat(1200, 1920, CV_32FC1, depth_map);
-        cv::Mat depth_bilateral_mat(1200, 1920, CV_32FC1, cv::Scalar(0));
+        cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+        cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
         cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
         memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
         LOG(INFO) << "Bilateral"; 
@@ -2343,19 +2351,19 @@ int handle_cmd_get_frame_03_parallel(int client_sock)
 
 //     int image_count = 31;
 
-//     int buffer_size = 1920*1200*image_count;
+//     int buffer_size = camera_width_*camera_height_*image_count;
 //     char* buffer = new char[buffer_size];
 //     camera.captureRawTest(image_count,buffer);
 //     std::vector<unsigned char*> patterns_ptr_list;
 //     for(int i=0; i<image_count; i++)
 //     {
-// 	patterns_ptr_list.push_back(((unsigned char*)(buffer+i*1920*1200)));
+// 	patterns_ptr_list.push_back(((unsigned char*)(buffer+i*camera_width_*camera_height_)));
 //     }
 
-//     int depth_buf_size = 1920*1200*4;
+//     int depth_buf_size = camera_width_*camera_height_*4;
 //     float* depth_map = new float[depth_buf_size];
 
-//     int brightness_buf_size = 1920*1200*1;
+//     int brightness_buf_size = camera_width_*camera_height_*1;
 //     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
 //     int ret= cuda_get_frame_03(patterns_ptr_list, (float*)depth_map,brightness);
@@ -2419,10 +2427,10 @@ int handle_cmd_test_get_frame_01(int client_sock)
     int buffer_size = height*width*image_num;
     unsigned char* buffer = new unsigned char[buffer_size];
 
-    int depth_buf_size = 1920 * 1200 * 4;
+    int depth_buf_size = camera_width_ * camera_height_ * 4;
     float* depth_map = new float[depth_buf_size];
 
-    int brightness_buf_size = 1920*1200*1;
+    int brightness_buf_size = camera_width_*camera_height_*1;
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
     LOG(INFO) << "recv raw 01 data:";
@@ -2452,8 +2460,8 @@ int handle_cmd_test_get_frame_01(int client_sock)
 
     // if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
     // { 
-    //     cv::Mat depth_mat(1200, 1920, CV_32FC1, depth_map);
-    //     cv::Mat depth_bilateral_mat(1200, 1920, CV_32FC1, cv::Scalar(0));
+    //     cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+    //     cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
     //     cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
     //     memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
     //     LOG(INFO) << "Bilateral"; 
@@ -2510,10 +2518,10 @@ int handle_cmd_get_frame_01(int client_sock)
         return DF_FAILED;	
     }
 
-    int depth_buf_size = 1920*1200*4;
+    int depth_buf_size = camera_width_*camera_height_*4;
     float* depth_map = new float[depth_buf_size];
 
-    int brightness_buf_size = 1920*1200*1;
+    int brightness_buf_size = camera_width_*camera_height_*1;
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
  
 
@@ -2529,8 +2537,8 @@ int handle_cmd_get_frame_01(int client_sock)
 
     if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
     { 
-        cv::Mat depth_mat(1200, 1920, CV_32FC1, depth_map);
-        cv::Mat depth_bilateral_mat(1200, 1920, CV_32FC1, cv::Scalar(0));
+        cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+        cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
         cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
         memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
         LOG(INFO) << "Bilateral"; 
@@ -2591,7 +2599,7 @@ int handle_cmd_get_point_cloud(int client_sock)
     LOG(INFO) << "captureFrame01";
     scan3d_.captureFrame01();
 
-    int point_cloud_buf_size = 1920 * 1200 * 3 * 4;
+    int point_cloud_buf_size = camera_width_ * camera_height_ * 3 * 4;
     float *point_cloud_map = new float[point_cloud_buf_size];
 
     LOG(INFO) << "Reconstruct Frame01 Finished!";
@@ -3056,6 +3064,200 @@ int handle_cmd_set_param_generate_brightness(int client_sock)
 }
 
 
+//设置反射光滤波参数
+int handle_cmd_set_param_reflect_filter(int client_sock)
+{
+   if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+
+
+    int switch_val = 0;
+ 
+
+    int ret = recv_buffer(client_sock, (char*)(&switch_val), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+ 
+ 
+
+    system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter = switch_val; 
+
+ 
+    LOG(INFO)<<"use_reflect_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter; 
+         
+
+    return DF_SUCCESS;
+}
+
+
+int handle_cmd_get_param_reflect_filter(int client_sock)
+{
+   if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+     
+    int ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter), sizeof(int) );
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+ 
+  
+    LOG(INFO)<<"use_radius_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter; 
+          
+    return DF_SUCCESS;
+}
+
+
+//设置半径滤波参数
+int handle_cmd_set_param_radius_filter(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+
+
+    int switch_val = 0;
+    float radius = 2;
+    int num = 3;
+
+    int ret = recv_buffer(client_sock, (char*)(&switch_val), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+ 
+
+    ret = recv_buffer(client_sock, (char*)(&radius), sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+     
+    ret = recv_buffer(client_sock, (char*)(&num), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+
+    system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter = switch_val;
+    system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r = radius;
+    system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num = num;
+
+ 
+    LOG(INFO)<<"use_radius_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter;
+    LOG(INFO)<<"radius_filter_r: "<<system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r;
+    LOG(INFO)<<"radius_filter_threshold_num: "<<system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num;
+         
+
+    return DF_SUCCESS;
+}
+
+int handle_cmd_get_param_radius_filter(int client_sock)
+{
+   if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+     
+    int ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter), sizeof(int) );
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+ 
+    ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r), sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+
+    ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num), sizeof(int) );
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+
+    
+    LOG(INFO)<<"use_radius_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter;
+    LOG(INFO)<<"radius_filter_r: "<<system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r;
+    LOG(INFO)<<"radius_filter_threshold_num: "<<system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num;
+         
+
+    return DF_SUCCESS;
+}
+
+//获取置信度参数
+int handle_cmd_get_param_fisher_filter(int client_sock)
+{
+    if (check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;
+    }
+ 
+    float confidence = system_config_settings_machine_.Instance().firwmare_param_.fisher_confidence;
+ 
+    float offset_val = (confidence + 50)/2;
+
+    int ret = send_buffer(client_sock, (char *)(&offset_val), sizeof(float) * 1);
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
+    }
+    return DF_SUCCESS;
+}
+
+//噪点过滤参数
+int handle_cmd_set_param_fisher_filter(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+
+
+    float confidence = 0;
+
+    int ret = recv_buffer(client_sock, (char*)&confidence, sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+
+    if(0> confidence || confidence > 100)
+    {
+        return DF_FAILED;
+    }
+ 
+    float offset_val = (confidence*2)-50;
+ 
+    system_config_settings_machine_.Instance().firwmare_param_.fisher_confidence = offset_val;
+  
+    LOG(INFO)<<"fisher_confidence: "<<system_config_settings_machine_.Instance().firwmare_param_.fisher_confidence;
+
+    scan3d_.setParamFisherConfidence(offset_val);
+         
+
+    return DF_SUCCESS;
+}
+
+
 //设置双边滤波参数
 int handle_cmd_set_param_bilateral_filter(int client_sock)
 {
@@ -3185,6 +3387,42 @@ int handle_cmd_set_param_mixed_hdr(int client_sock)
         }
   
         return DF_FAILED;
+}
+
+//获取相机分辨率
+int handle_cmd_get_param_camera_resolution(int client_sock)
+{
+    if (check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;
+    }
+
+    int width = 0;
+    int height = 0;
+
+    scan3d_.getCameraResolution(width,height);
+
+    // lc3010.read_dmd_device_id(version); 
+
+    int ret = send_buffer(client_sock, (char *)(&width), sizeof(int) * 1);
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
+    }
+
+    ret = send_buffer(client_sock, (char *)(&height), sizeof(int) * 1);
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
+    }
+
+    LOG(INFO)<<"camera width: "<<width;
+    LOG(INFO)<<"camera height: "<<height;
+
+    return DF_SUCCESS;
+
 }
 
 //获取相机版本参数
@@ -3430,13 +3668,19 @@ int handle_set_camera_looktable(int client_sock)
     }
 
     LOG(INFO) << "recv param\n";
+
+    int width = 0;
+    int height = 0;
+    scan3d_.getCameraResolution(width,height);
+
     /**************************************************************************************/
-    cv::Mat xL_rotate_x(1200, 1920, CV_32FC1, cv::Scalar(-2));
-    cv::Mat xL_rotate_y(1200, 1920, CV_32FC1, cv::Scalar(-2));
+    cv::Mat xL_rotate_x(height, width, CV_32FC1, cv::Scalar(-2));
+    cv::Mat xL_rotate_y(height, width, CV_32FC1, cv::Scalar(-2));
     cv::Mat rectify_R1(3, 3, CV_32FC1, cv::Scalar(-2));
     cv::Mat pattern_mapping(4000, 2000, CV_32FC1, cv::Scalar(-2));
+    cv::Mat pattern_minimapping(128, 128, CV_32FC1, cv::Scalar(-2));
 
-    ret = recv_buffer(client_sock, (char *)(xL_rotate_x.data), 1200 * 1920 * sizeof(float));
+    ret = recv_buffer(client_sock, (char *)(xL_rotate_x.data), height * width * sizeof(float));
     if (ret == DF_FAILED)
     {
         LOG(INFO) << "send error, close this connection!\n";
@@ -3444,7 +3688,7 @@ int handle_set_camera_looktable(int client_sock)
     }
     LOG(INFO) << "recv xL_rotate_x\n";
 
-    ret = recv_buffer(client_sock, (char *)(xL_rotate_y.data), 1200 * 1920 * sizeof(float));
+    ret = recv_buffer(client_sock, (char *)(xL_rotate_y.data), height * width * sizeof(float));
     if (ret == DF_FAILED)
     {
         LOG(INFO) << "send error, close this connection!\n";
@@ -3468,6 +3712,14 @@ int handle_set_camera_looktable(int client_sock)
     }
     LOG(INFO) << "recv pattern_mapping\n";
 
+    ret = recv_buffer(client_sock, (char *)(pattern_minimapping.data), 128 * 128 * sizeof(float));
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
+    }
+    LOG(INFO) << "recv pattern_minimapping\n";
+
     // cv::Mat R1_t = rectify_R1.t();
 
     // LOG(INFO) << "start copy table:";
@@ -3486,6 +3738,7 @@ int handle_set_camera_looktable(int client_sock)
     lookup_table_machine_.saveBinMappingFloat("./combine_xL_rotate_y_cam1_iter.bin", xL_rotate_y);
     lookup_table_machine_.saveBinMappingFloat("./R1.bin", rectify_R1);
     lookup_table_machine_.saveBinMappingFloat("./single_pattern_mapping.bin", pattern_mapping);
+    lookup_table_machine_.saveBinMappingFloat("./single_pattern_minimapping.bin",pattern_minimapping);
 
     LOG(INFO) << "save looktable ";
 
@@ -3520,12 +3773,12 @@ int handle_set_camera_minilooktable(int client_sock)
 
      LOG(INFO)<<"recv param\n";
     /**************************************************************************************/
-    cv::Mat xL_rotate_x(1200,1920,CV_32FC1,cv::Scalar(-2));
-    cv::Mat xL_rotate_y(1200,1920,CV_32FC1,cv::Scalar(-2));
+    cv::Mat xL_rotate_x(camera_height_,camera_width_,CV_32FC1,cv::Scalar(-2));
+    cv::Mat xL_rotate_y(camera_height_,camera_width_,CV_32FC1,cv::Scalar(-2));
     cv::Mat rectify_R1(3,3,CV_32FC1,cv::Scalar(-2));
     cv::Mat pattern_minimapping(128,128,CV_32FC1,cv::Scalar(-2));
 
-    ret = recv_buffer(client_sock, (char*)(xL_rotate_x.data), 1200*1920 *sizeof(float));
+    ret = recv_buffer(client_sock, (char*)(xL_rotate_x.data), camera_height_*camera_width_ *sizeof(float));
     if(ret == DF_FAILED)
     {
         LOG(INFO)<<"send error, close this connection!\n";
@@ -3533,7 +3786,7 @@ int handle_set_camera_minilooktable(int client_sock)
     }
     LOG(INFO)<<"recv xL_rotate_x\n";
 
-     ret = recv_buffer(client_sock, (char*)(xL_rotate_y.data), 1200*1920 *sizeof(float));
+     ret = recv_buffer(client_sock, (char*)(xL_rotate_y.data), camera_height_*camera_width_ *sizeof(float));
     if(ret == DF_FAILED)
     {
         LOG(INFO)<<"send error, close this connection!\n";
@@ -4076,7 +4329,7 @@ int handle_get_firmware_version(int client_sock)
 bool check_trigger_line()
 {
     bool ret = false;
-    // char* buffer = new char[1920*1200];
+    // char* buffer = new char[camera_width_*camera_height_];
 
     // lc3010.pattern_mode_brightness();
     // ret = camera.CaptureSelfTest();
@@ -4303,34 +4556,34 @@ int handle_commands(int client_sock)
 	    LOG(INFO)<<"DF_CMD_SET_CAMERA_PARAMETERS";
 	    handle_set_camera_parameters(client_sock);
         read_calib_param();
-            cuda_copy_calib_data(param.camera_intrinsic, 
-		         param.projector_intrinsic, 
-			 param.camera_distortion,
-	                 param.projector_distortion, 
-			 param.rotation_matrix, 
-			 param.translation_matrix);
+            // cuda_copy_calib_data(param.camera_intrinsic, 
+		    //      param.projector_intrinsic, 
+			//  param.camera_distortion,
+	        //          param.projector_distortion, 
+			//  param.rotation_matrix, 
+			//  param.translation_matrix);
 	    break;
 	case DF_CMD_SET_CAMERA_LOOKTABLE:
 	    LOG(INFO)<<"DF_CMD_SET_CAMERA_LOOKTABLE";
 	    handle_set_camera_looktable(client_sock);
         read_calib_param();
-        cuda_copy_calib_data(param.camera_intrinsic, 
-		         param.projector_intrinsic, 
-			 param.camera_distortion,
-	                 param.projector_distortion, 
-			 param.rotation_matrix, 
-			 param.translation_matrix);
+        // cuda_copy_calib_data(param.camera_intrinsic, 
+		//          param.projector_intrinsic, 
+		// 	 param.camera_distortion,
+	    //              param.projector_distortion, 
+		// 	 param.rotation_matrix, 
+		// 	 param.translation_matrix);
 	    break;
 	case DF_CMD_SET_CAMERA_MINILOOKTABLE:
 	    LOG(INFO)<<"DF_CMD_SET_CAMERA_MINILOOKTABLE";
 	    handle_set_camera_minilooktable(client_sock);
         read_calib_param();
-        cuda_copy_calib_data(param.camera_intrinsic, 
-		         param.projector_intrinsic, 
-			 param.camera_distortion,
-	                 param.projector_distortion, 
-			 param.rotation_matrix, 
-			 param.translation_matrix);
+        // cuda_copy_calib_data(param.camera_intrinsic, 
+		//          param.projector_intrinsic, 
+		// 	 param.camera_distortion,
+	    //              param.projector_distortion, 
+		// 	 param.rotation_matrix, 
+		// 	 param.translation_matrix);
 	    break;
 	case DF_CMD_ENABLE_CHECKER_BOARD:
 	    LOG(INFO)<<"DF_CMD_ENABLE_CHECKER_BOARD";
@@ -4418,7 +4671,7 @@ int handle_commands(int client_sock)
     case DF_CMD_SET_PARAM_CAMERA_GAIN:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_CAMERA_GAIN";   
     	handle_cmd_set_param_camera_gain(client_sock);
-	    break;
+	    break; 
 	case DF_CMD_GET_PARAM_CAMERA_GAIN:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_GAIN";   
     	handle_cmd_get_param_camera_gain(client_sock);
@@ -4441,15 +4694,39 @@ int handle_commands(int client_sock)
 	    break;
     case DF_CMD_GET_PARAM_CAMERA_CONFIDENCE:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_CONFIDENCE";   
-    	handle_cmd_get_param_confidence(client_sock);
+    	handle_cmd_get_param_confidence(client_sock); 
 	    break;
     case DF_CMD_SET_PARAM_CAMERA_CONFIDENCE:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_CAMERA_CONFIDENCE";   
-    	handle_cmd_set_param_confidence(client_sock);
+    	handle_cmd_set_param_confidence(client_sock); 
+	    break;
+    case DF_CMD_GET_PARAM_FISHER_FILTER:
+	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_CONFIDENCE";    
+        handle_cmd_get_param_fisher_filter(client_sock);
+	    break;
+    case DF_CMD_SET_PARAM_FISHER_FILTER:
+	    LOG(INFO)<<"DF_CMD_SET_PARAM_FISHER_FILTER";  
+        handle_cmd_set_param_fisher_filter(client_sock);
 	    break;
 	case DF_CMD_GET_PARAM_CAMERA_VERSION:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_VERSION";   
     	handle_cmd_get_param_camera_version(client_sock);
+	    break;
+	case DF_CMD_SET_PARAM_REFLECT_FILTER:
+	    LOG(INFO)<<"DF_CMD_SET_PARAM_REFLECT_FILTER";   
+    	handle_cmd_set_param_reflect_filter(client_sock);
+	    break;
+	case DF_CMD_GET_PARAM_REFLECT_FILTER:
+	    LOG(INFO)<<"DF_CMD_GET_PARAM_REFLECT_FILTER";   
+    	handle_cmd_get_param_reflect_filter(client_sock);
+	    break;
+	case DF_CMD_SET_PARAM_RADIUS_FILTER:
+	    LOG(INFO)<<"DF_CMD_SET_PARAM_RADIUS_FILTER";   
+    	handle_cmd_set_param_radius_filter(client_sock);
+	    break;
+	case DF_CMD_GET_PARAM_RADIUS_FILTER:
+	    LOG(INFO)<<"DF_CMD_GET_PARAM_RADIUS_FILTER";   
+    	handle_cmd_get_param_radius_filter(client_sock);
 	    break;
 	case DF_CMD_SET_PARAM_BILATERAL_FILTER:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_BILATERAL_FILTER";   
@@ -4482,6 +4759,10 @@ int handle_commands(int client_sock)
         LOG(INFO)<<"DF_CMD_CONFIGURE_FOCUSING"; 
         handle_cmd_get_focusing_image(client_sock);
         break;
+    case DF_CMD_GET_CAMERA_RESOLUTION:
+        LOG(INFO)<<"DF_CMD_GET_CAMERA_RESOLUTION"; 
+        handle_cmd_get_param_camera_resolution(client_sock);
+        break;
 	default:
 	    LOG(INFO)<<"DF_CMD_UNKNOWN";
         handle_cmd_unknown(client_sock);
@@ -4504,6 +4785,7 @@ int init()
 
     scan3d_.init();
 
+    scan3d_.getCameraResolution(camera_width_,camera_height_);
     //set default param 
     if(!scan3d_.setParamConfidence(system_config_settings_machine_.Instance().firwmare_param_.confidence))
     { 
@@ -4520,13 +4802,13 @@ int init()
         LOG(INFO)<<"Set Param Gain Failed!";
     }
 
-
+    scan3d_.setParamSystemConfig(system_config_settings_machine_);
 
     int version= 0;
     lc3010.read_dmd_device_id(version);
     LOG(INFO)<<"read camera version: "<<version;
 
-    cuda_set_config(system_config_settings_machine_);
+    // cuda_set_config(system_config_settings_machine_);
 
     set_camera_version(version);
     // LOG(INFO)<<"camera version: "<<DFX_800;

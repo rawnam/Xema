@@ -77,6 +77,16 @@ void CameraCaptureGui::setCalibrationBoard(int flag)
 
 	switch (flag)
 	{
+	case 12:
+	{
+		board_size_.width = 12.0;
+		board_size_.height = 6.0;
+		calibration_board_flag_ = flag;
+
+		processing_gui_settings_data_.Instance().calibration_board = flag;
+	}
+	break;
+
 	case 20:
 	{
 		board_size_.width = 20.0;
@@ -114,6 +124,7 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.spinBox_min_z, SIGNAL(valueChanged(int)), this, SLOT(do_spin_min_z_changed(int)));
 	connect(ui.spinBox_max_z, SIGNAL(valueChanged(int)), this, SLOT(do_spin_max_z_changed(int)));
 	connect(ui.doubleSpinBox_confidence, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_confidence(double)));
+	connect(ui.doubleSpinBox_fisher, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_fisher(double)));
 	connect(ui.doubleSpinBox_gain, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_gain(double)));
 	connect(ui.spinBox_repetition_count, SIGNAL(valueChanged(int)), this, SLOT(do_spin_repetition_count_changed(int)));
 
@@ -124,11 +135,12 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.radioButton_brightness, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_brightness(bool)));
 	connect(ui.radioButton_depth_color, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_color_depth(bool)));
 	connect(ui.radioButton_depth_grey, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_gray_depth(bool)));
-
-
+	 
+	connect(ui.comboBox_ip, SIGNAL(activated(int)), this, SLOT(do_comboBox_activated_ip(int)));
 	connect(ui.checkBox_hdr, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_hdr(bool)));
 
 	connect(ui.pushButton_connect, SIGNAL(clicked()), this, SLOT(do_pushButton_connect()));
+	connect(ui.pushButton_refresh, SIGNAL(clicked()), this, SLOT(do_pushButton_refresh()));
 	connect(ui.pushButton_capture_one_frame, SIGNAL(clicked()), this, SLOT(do_pushButton_capture_one_frame()));
 	connect(ui.pushButton_capture_continuous, SIGNAL(clicked()), this, SLOT(do_pushButton_capture_continuous()));
 
@@ -209,8 +221,7 @@ bool CameraCaptureGui::saveOneFrameData(QString path_name)
 	cv::imwrite(height_str.toLocal8Bit().toStdString(), height_map_);
 
 	QString points_str = path_name + ".ply";
- 
-
+  
 	FileIoFunction file_io_machine;
 	file_io_machine.SaveBinPointsToPly(pointcloud_map_, points_str, brightness_map_);
 
@@ -386,6 +397,9 @@ void CameraCaptureGui::undateSystemConfigUiData()
 		ui.spinBox_smoothing->setValue(firmware_config_param_.bilateral_filter_param_d / 2);
 	}
 
+	float val = (50 + firmware_config_param_.fisher_confidence) / 2;
+	ui.doubleSpinBox_fisher->setValue(val);
+
 }
 
 void CameraCaptureGui::setUiData()
@@ -441,7 +455,7 @@ void CameraCaptureGui::add_exposure_item(int row, int exposure, int led)
 	}
 
 	QSpinBox* exposureSpinBoxItem = new QSpinBox();
-	exposureSpinBoxItem->setRange(6000, 60000);//设置数值显示范围
+	exposureSpinBoxItem->setRange(1000, 60000);//设置数值显示范围
 	exposureSpinBoxItem->setValue(exposure);
 	exposureSpinBoxItem->setButtonSymbols(QAbstractSpinBox::NoButtons);
 	exposureSpinBoxItem->setAlignment(Qt::AlignHCenter);
@@ -717,6 +731,60 @@ void CameraCaptureGui::do_doubleSpin_gain(double val)
 	camera_setting_flag_ = false;
 }
 
+
+void CameraCaptureGui::do_doubleSpin_fisher(double val)
+{
+
+	if (camera_setting_flag_)
+	{
+		return;
+	}
+
+
+	//设置参数时加锁
+	camera_setting_flag_ = true;
+	if (connected_flag_)
+	{
+
+		firmware_config_param_.fisher_confidence = (float)(2*val)-50;
+
+		int ret_code = -1;
+		//如果连续采集在用、先暂停
+		if (start_timer_flag_)
+		{
+
+			stopCapturingOneFrameBaseThread();
+
+			ret_code = DfSetParamOutlierFilter(val);
+			if (0 == ret_code)
+			{
+				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
+				QString str = u8"设置噪点过滤: " + QString::number(val);
+				addLogMessage(str);
+			}
+
+			do_pushButton_capture_continuous();
+
+		}
+		else
+		{
+			ret_code = DfSetParamOutlierFilter(val);
+
+			if (0 == ret_code)
+			{
+				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
+				QString str = u8"设置噪点过滤: " + QString::number(val);
+				addLogMessage(str);
+			}
+
+		}
+
+	}
+
+	camera_setting_flag_ = false;
+
+}
+
 void CameraCaptureGui::do_doubleSpin_confidence(double val)
 {
 
@@ -847,6 +915,13 @@ bool CameraCaptureGui::setCameraConfigParam()
 		addLogMessage(u8"设置相机增益失败！");
 	}
 
+	float fisher_val = (50 + firmware_config_param_.fisher_confidence) / 2;
+	ret_code = DfSetParamOutlierFilter(fisher_val);
+	if (0 != ret_code)
+	{
+		addLogMessage(u8"设置过滤噪点参数失败！");
+	}
+
 	if (DF_UNKNOWN == ret_code)
 	{
 		addLogMessage(u8"请检查相机版本！");
@@ -902,6 +977,35 @@ void CameraCaptureGui::sleep(int sectime)
 	}
 }
 
+
+void CameraCaptureGui::updateOutlierRemovalConfigParam(struct FirmwareConfigParam param)
+{
+	if (param.use_reflect_filter != firmware_config_param_.use_reflect_filter)
+	{
+		if (DF_SUCCESS == DfSetParamReflectFilter(param.use_reflect_filter))
+		{
+			firmware_config_param_.use_reflect_filter = param.use_reflect_filter;
+			QString str = u8"设置反射点滤除： "+QString::number(param.use_reflect_filter);
+			addLogMessage(str);
+		}
+	}
+
+	if (param.use_radius_filter != firmware_config_param_.use_radius_filter)
+	{
+		if (DF_SUCCESS == DfSetParamRadiusFilter(param.use_radius_filter, param.radius_filter_r, param.radius_filter_threshold_num));
+		{
+			firmware_config_param_.use_radius_filter = param.use_radius_filter;
+			QString str = u8"设置半径滤波： " + QString::number(param.use_radius_filter);
+			addLogMessage(str);
+		}
+	}
+	 
+}
+
+void CameraCaptureGui::getFirmwareConfigParam(struct FirmwareConfigParam& param)
+{
+	param = firmware_config_param_;
+}
 
 void CameraCaptureGui::getGuiConfigParam(struct GuiConfigDataStruct& gui_param)
 {
@@ -1294,7 +1398,7 @@ bool CameraCaptureGui::captureOneFrameData()
 		brightness_map_ = brightness.clone();
 		depth_map_ = depth.clone();
 
-		depthTransformPointcloud((float*)depth.data, (float*)point_cloud.data); 
+		depthTransformPointcloud((float*)depth.data, (float*)point_cloud.data);
 		pointcloud_map_ = point_cloud.clone();
 		addLogMessage(u8"采集完成！");
 
@@ -1327,6 +1431,36 @@ bool CameraCaptureGui::isConnect()
 }
 
 
+void CameraCaptureGui::do_pushButton_refresh()
+{
+	device_mac_list_.clear();
+	device_ip_list_.clear();
+
+	int ret_code = 0;
+	//更新相机设备列表
+	int camera_num = 0;
+	ret_code = DfUpdateDeviceList(camera_num);
+	if (0 != ret_code || 0 == camera_num)
+	{
+		return  ;
+	}
+
+	DeviceBaseInfo* pBaseinfo = (DeviceBaseInfo*)malloc(sizeof(DeviceBaseInfo) * camera_num);
+	int n_size = camera_num * sizeof(DeviceBaseInfo);
+	//获取设备信息
+	ret_code = DfGetAllDeviceBaseInfo(pBaseinfo, &n_size);
+	for (int i = 0; i < camera_num; i++)
+	{
+		device_mac_list_.push_back(QString(pBaseinfo[i].mac));
+		device_ip_list_.push_back(QString(pBaseinfo[i].ip));
+		//std::cout << "mac: " << pBaseinfo[i].mac << "  ip: " << pBaseinfo[i].ip << std::endl;
+		QString text = QString(pBaseinfo[i].ip) + "(" + QString(pBaseinfo[i].mac)+  ")";
+		ui.comboBox_ip->addItem(text);
+	}
+
+
+}
+
 void  CameraCaptureGui::do_pushButton_connect()
 {
 
@@ -1340,26 +1474,19 @@ void  CameraCaptureGui::do_pushButton_connect()
 			return;
 		}
 
-
-
-		//addLogMessage(QString::fromUtf8("连接相机："));
+		 
 		addLogMessage(u8"连接相机：");
 		int ret_code = DfConnect(camera_ip_.toStdString().c_str());
 
 		DfRegisterOnDropped(m_p_OnDropped_);
 
-
+		 
 		if (0 == ret_code)
 		{
 			//必须连接相机成功后，才可获取相机分辨率
 			ret_code = DfGetCameraResolution(&camera_width_, &camera_height_);
 			std::cout << "Width: " << camera_width_ << "    Height: " << camera_height_ << std::endl;
 
-			if (0 != ret_code)
-			{
-				qDebug() << "Connect Error!;";
-				return;
-			}
 			//获取相机标定参数
 			ret_code = DfGetCalibrationParam(camera_calibration_param_);
 			if (0 != ret_code)
@@ -2204,6 +2331,10 @@ void  CameraCaptureGui::do_pushButton_capture_continuous()
 //	}
 //}
 
+void CameraCaptureGui::do_comboBox_activated_ip(int index)
+{ 
+	ui.lineEdit_ip->setText(device_ip_list_[index]);
+}
 
 void CameraCaptureGui::do_checkBox_toggled_hdr(bool state)
 {

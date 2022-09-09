@@ -4,6 +4,7 @@
 #include "lightcrafter3010.h"
 #include "camera_param.h"
 #include "vector"
+#include "system_config_settings.h"
 
 class Scan3D
 {
@@ -33,6 +34,9 @@ public:
 
     void getCameraVersion(int &version);
     
+    void setParamSystemConfig(SystemConfigDataStruct param);
+
+    void setParamFisherConfidence(float confidence);
     /************************************************************************/
     
     bool captureTextureImage(int model,float exposure,unsigned char* buff);
@@ -51,11 +55,17 @@ public:
 
     bool captureFrame04();
 
-    bool captureFrame04Hdr();
+    bool captureFrame04BaseConfidence();
 
-    bool captureFrame04Repetition01(int repetition_count);
+    bool captureFrame04Hdr();
+    
+    bool captureFrame04HdrBaseConfidence(); 
+
+    bool captureFrame04Repetition01(int repetition_count); 
 
     bool captureFrame04Repetition02(int repetition_count);
+    
+    bool captureFrame04Repetition02BaseConfidence(int repetition_count);
 
     bool captureFrame05();
     
@@ -79,6 +89,8 @@ public:
     void copyPointcloudData(float* &ptr);
 
     void getCameraResolution(int &width, int &height);
+
+    void removeOutlierBaseRadiusFilter();
 
 private:
  
@@ -112,5 +124,10 @@ private:
     unsigned char* buff_brightness_;
     float* buff_depth_;
     float* buff_pointcloud_;
+
+    float fisher_confidence_val_;
+
+    
+    SystemConfigDataStruct system_config_settings_machine_;
 
 };

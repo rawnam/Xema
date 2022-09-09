@@ -53,18 +53,22 @@ link_libraries(/opt/pylon/lib/libpylonc.so)
 
 add_executable(camera_server
                     camera_server_new.cpp 
-                    system_config_settings.cpp 
-                    camera_dh.cpp 
+                    system_config_settings.cpp  
                     i2c.cpp 
                     lightcrafter3010.cpp 
-                    easylogging++.cc 
-                    encode_cuda.cu 
+                    easylogging++.cc   
+                    management.cu
+                    encode.cu
+                    reconstruct.cu
+                    merge_hdr.cu
+                    merge_repetition.cu
                     configure_standard_plane.cpp 
                     configure_auto_exposure.cpp
                     scan3d.cpp
                     camera_galaxy.cpp
                     camera_basler.cpp
                     camera.cpp
+                    filter_module.cu
                     )
 target_sources(camera_server PUBLIC "../test/LookupTableFunction.cpp") 
 target_link_libraries(camera_server PRIVATE Threads::Threads)

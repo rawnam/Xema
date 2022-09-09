@@ -12,13 +12,14 @@
 #include "../test/triangulation.h"
 #include "../firmware/protocol.h" 
 #include "../firmware/system_config_settings.h"
+#include <configuring_network.h>
 
 using namespace std;
 using namespace std::chrono;
 
 /**********************************************************************************************************************/
 //socket
-INITIALIZE_EASYLOGGINGPP
+//INITIALIZE_EASYLOGGINGPP
 
 const int image_width = 1920;
 const int image_height = 1200;
@@ -59,6 +60,8 @@ unsigned char* brightness_buf_ = NULL;
 float* undistort_map_x_ = NULL;
 float* undistort_map_y_ = NULL;
 
+std::vector<std::string> mac_list_;
+std::vector<std::string> ip_list_;
 /**************************************************************************************************************************/
 
 std::time_t getTimeStamp(long long& msec)
@@ -218,10 +221,12 @@ bool transformPointcloud(float* org_point_cloud_map, float* transform_point_clou
 
 bool depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 {
+
 	if (!connected_flag_)
 	{
 		return false;
 	}
+
 	float camera_fx = calibration_param_.camera_intrinsic[0];
 	float camera_fy = calibration_param_.camera_intrinsic[4];
 
@@ -245,7 +250,8 @@ bool depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 
 		for (int c = 0; c < nc; c++)
 		{
- 
+
+
 
 			int offset = r * camera_width_ + c;
 			if (depth_map[offset] > 0)
@@ -283,7 +289,50 @@ bool depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 
 
 /**************************************************************************************************************************/
+//函数名： DfUpdateDeviceList
+//功能： 连接相机
+//输入参数： device_num(设备数)
+//输出参数： 无
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfUpdateDeviceList(int& device_num)
+{
+	mac_list_.clear();
+	ip_list_.clear();
 
+	int ret = GetCameraList(mac_list_, ip_list_);
+
+	if (mac_list_.empty())
+	{
+		return -1;
+	}
+
+	device_num = mac_list_.size();
+
+	return 0;
+}
+
+//函数名： DfGetAllDeviceBaseInfo
+//功能： 获取设备基本信息
+//输入参数： pDeviceInfo(设备信息)、pBufferSize（设备结构体内存尺寸）
+//输出参数： 无
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetAllDeviceBaseInfo(DeviceBaseInfo* pDeviceInfo, int* pBufferSize)
+{
+	int nSize =  sizeof(DeviceBaseInfo);
+	int camera_num = *pBufferSize/ nSize;
+
+	for (int i = 0; i < camera_num && i < mac_list_.size(); i++)
+	{
+		DeviceBaseInfo info;
+
+		memcpy(info.mac, mac_list_[i].c_str(), nSize/2);
+		memcpy(info.ip, ip_list_[i].c_str(), nSize / 2);
+		memcpy(pDeviceInfo+i, &info, nSize);
+	}
+
+
+	return 0;
+}
 
 //函数名： DfConnect
 //功能： 连接相机
@@ -309,15 +358,16 @@ DF_SDK_API int DfConnect(const char* camera_id)
 
 
 	int ret = DfConnectNet(camera_id);
-	if (ret == DF_FAILED)
+	if (ret != DF_SUCCESS)
 	{
 		return -1;
 	}
 
 	ret = DfGetCalibrationParam(calibration_param_);
 
-	if (ret == DF_FAILED)
+	if (ret != DF_SUCCESS)
 	{
+		DfDisconnectNet();
 		return -1;
 	}
 
@@ -329,8 +379,15 @@ DF_SDK_API int DfConnect(const char* camera_id)
 	ret = DfGetCameraResolution(&width, &height);
 
 
-	if (ret == DF_FAILED)
+	//if (ret != DF_SUCCESS)
+	//{
+	//	DfDisconnectNet();
+	//	return ret;
+	//}
+
+	if (width <= 0 || height <= 0)
 	{
+		DfDisconnectNet();
 		return -1;
 	}
 
@@ -352,7 +409,7 @@ DF_SDK_API int DfConnect(const char* camera_id)
 
 	brightness_bug_size_ = image_size;
 	brightness_buf_ = new unsigned char[brightness_bug_size_];
-
+	 
 
 	/******************************************************************************************************/
 	//产生畸变校正表
@@ -398,6 +455,7 @@ DF_SDK_API int DfConnect(const char* camera_id)
 
 	}
 
+
 	/********************************************************************************************************/
 
 	LOG(INFO) << "Connect Camera: " << camera_ip_;
@@ -412,16 +470,52 @@ DF_SDK_API int DfConnect(const char* camera_id)
 //返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
 DF_SDK_API int DfGetCameraResolution(int* width, int* height)
 {
-	if (!connected)
-	{
-		return -1;
-	}
-
 	*width = camera_width_;
 	*height = camera_height_;
 
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_GET_CAMERA_RESOLUTION, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (command == DF_CMD_OK)
+	{
 
-	return 0;
+		ret = recv_buffer((char*)(width), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		ret = recv_buffer((char*)(height), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+
+	return DF_SUCCESS;
+
 }
 
 //函数名： DfCaptureRepetitionData
@@ -835,6 +929,7 @@ DF_SDK_API int DfDisconnect(const char* camera_id)
 	delete[] trans_point_cloud_buf_;
 	delete[] undistort_map_x_;
 	delete[] undistort_map_y_;
+	
 
 	connected_flag_ = false;
 
@@ -959,14 +1054,14 @@ DF_SDK_API int DfConnectNet(const char* ip)
 {
 	/*******************************************************************************************************************/
 	//关闭log输出
-	el::Configurations conf;
-	conf.setToDefault();
-	conf.setGlobally(el::ConfigurationType::Format, "[%datetime{%H:%m:%s} | %level] %msg");
-	conf.setGlobally(el::ConfigurationType::Filename, "log\\log_%datetime{%Y%M%d}.log");
-	conf.setGlobally(el::ConfigurationType::Enabled, "true");
-	conf.setGlobally(el::ConfigurationType::ToFile, "true");
-	el::Loggers::reconfigureAllLoggers(conf);
-	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
+	//el::Configurations conf;
+	//conf.setToDefault();
+	//conf.setGlobally(el::ConfigurationType::Format, "[%datetime{%H:%m:%s} | %level] %msg");
+	//conf.setGlobally(el::ConfigurationType::Filename, "log\\log_%datetime{%Y%M%d}.log");
+	//conf.setGlobally(el::ConfigurationType::Enabled, "true");
+	//conf.setGlobally(el::ConfigurationType::ToFile, "true");
+	//el::Loggers::reconfigureAllLoggers(conf);
+	//el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
 
 
 	//DfRegisterOnDropped(on_dropped);
@@ -2389,7 +2484,7 @@ DF_SDK_API int DfGetCalibrationParam(struct CameraCalibParam& calibration_param)
 //输出参数：无
 //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfSetCalibrationLookTable(const struct CameraCalibParam& calibration_param, float* rotate_x,
-	float* rotate_y, float* rectify_r1, float* mapping)
+	float* rotate_y, float* rectify_r1, float* mapping, float* mini_mapping, int width, int height)
 {
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
@@ -2413,15 +2508,15 @@ DF_SDK_API int DfSetCalibrationLookTable(const struct CameraCalibParam& calibrat
 
 		/*****************************************************************/
 
-		LOG(INFO) << "start send_buffer rotate_x size: " << 1920 * 1200 * sizeof(float);
-		ret = send_buffer((char*)(rotate_x), 1920 * 1200 * sizeof(float), g_sock);
+		LOG(INFO) << "start send_buffer rotate_x size: " << width * height * sizeof(float);
+		ret = send_buffer((char*)(rotate_x), width * height * sizeof(float), g_sock);
 		if (ret == DF_FAILED)
 		{
 			close_socket(g_sock);
 			return DF_FAILED;
 		}
 		LOG(INFO) << "start send_buffer: rotate_y";
-		ret = send_buffer((char*)(rotate_y), 1920 * 1200 * sizeof(float), g_sock);
+		ret = send_buffer((char*)(rotate_y), width * height * sizeof(float), g_sock);
 		if (ret == DF_FAILED)
 		{
 			close_socket(g_sock);
@@ -2437,6 +2532,14 @@ DF_SDK_API int DfSetCalibrationLookTable(const struct CameraCalibParam& calibrat
 		}
 		LOG(INFO) << "start send_buffer: mapping";
 		ret = send_buffer((char*)(mapping), 4000 * 2000 * sizeof(float), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		LOG(INFO) << "start send_buffer: mapping";
+		ret = send_buffer((char*)(mini_mapping), 128 * 128 * sizeof(float), g_sock);
 		if (ret == DF_FAILED)
 		{
 			close_socket(g_sock);
@@ -2757,6 +2860,299 @@ DF_SDK_API int DfGetParamBilateralFilter(int& use, int& param_d)
 		}
 
 		ret = recv_buffer((char*)(&param_d), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+//函数名： DfSetParamRadiusFilter
+//功能： 设置点云半径滤波参数
+//输入参数：use(开关：1开、0关)、radius(半径）、num（有效点）
+//输出参数： 无
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfSetParamRadiusFilter(int use, float radius, int num)
+{
+	if (use != 1 && use != 0)
+	{
+		std::cout << "use param should be 1 or 0:  " << use << std::endl;
+		return DF_FAILED;
+	}
+
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_SET_PARAM_RADIUS_FILTER, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (command == DF_CMD_OK)
+	{
+
+		ret = send_buffer((char*)(&use), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		ret = send_buffer((char*)(&radius), sizeof(float), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		ret = send_buffer((char*)(&num), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+//函数名： DfGetParamSmoothing
+//功能： 设置点云平滑参数
+//输入参数：无
+//输出参数：use(开关：1开、0关)、radius(半径）、num（有效点）
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfGetParamRadiusFilter(int& use, float& radius, int& num)
+{
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_GET_PARAM_RADIUS_FILTER, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (command == DF_CMD_OK)
+	{
+
+		ret = recv_buffer((char*)(&use), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		ret = recv_buffer((char*)(&radius), sizeof(float), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		ret = recv_buffer((char*)(&num), sizeof(float), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+//函数名： DfSetParamReflectFilter
+//功能： 设置点云半径滤波参数
+//输入参数：use(开关：1开、0关) 
+//输出参数： 无
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfSetParamReflectFilter(int use)
+{
+
+	if (use != 1 && use != 0)
+	{
+		std::cout << "use param should be 1 or 0:  " << use << std::endl;
+		return DF_FAILED;
+	}
+
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_SET_PARAM_REFLECT_FILTER, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (command == DF_CMD_OK)
+	{
+
+		ret = send_buffer((char*)(&use), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+//函数名： DfGetParamReflectFilter
+//功能： 设置点云平滑参数
+//输入参数：无
+//输出参数：use(开关：1开、0关)
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfGetParamReflectFilter(int& use)
+{
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_GET_PARAM_REFLECT_FILTER, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (command == DF_CMD_OK)
+	{
+
+		ret = recv_buffer((char*)(&use), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		 
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+//函数名： DfSetParamOutlierFilter
+//功能： 设置过滤阈值
+//输入参数：threshold(阈值0-100)
+//输出参数： 无
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfSetParamOutlierFilter(float threshold)
+{ 
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_SET_PARAM_FISHER_FILTER, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (command == DF_CMD_OK)
+	{
+		ret = send_buffer((char*)(&threshold), sizeof(float), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+//函数名： DfGetParamOutlierFilter
+//功能： 获取过滤阈值
+//输入参数： 无
+//输出参数：threshold(阈值0-100)
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfGetParamOutlierFilter(float& threshold)
+{
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_GET_PARAM_FISHER_FILTER, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (command == DF_CMD_OK)
+	{
+
+		ret = recv_buffer((char*)(&threshold), sizeof(float), g_sock);
 		if (ret == DF_FAILED)
 		{
 			close_socket(g_sock);

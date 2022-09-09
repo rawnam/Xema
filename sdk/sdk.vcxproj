@@ -19,7 +19,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\firmware\easylogging++.cc" />
     <ClCompile Include="..\test\triangulation.cpp" />
     <ClCompile Include="open_cam3d.cpp" />
     <ClCompile Include="socket_tcp.cpp" />
@@ -91,12 +90,16 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetName>open_cam3d_sdkd</TargetName>
+    <IncludePath>$(ProjectDir)../3rdparty/ConfiguringIP;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)../3rdparty/ConfiguringIP;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>open_cam3d_sdk</TargetName>
     <CustomBuildBeforeTargets>
     </CustomBuildBeforeTargets>
+    <IncludePath>$(ProjectDir)../3rdparty/ConfiguringIP;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)../3rdparty/ConfiguringIP;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -145,6 +148,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <AdditionalDependencies>configuring_networkd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy $(TargetDir)\open_cam3d_sdkd.lib $(ProjectDir)..\example
@@ -168,6 +172,7 @@ copy $(TargetDir)\open_cam3d_sdkd.dll $(ProjectDir)..\example</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <AdditionalDependencies>configuring_network.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy $(TargetDir)\open_cam3d_sdk.lib $(ProjectDir)..\example

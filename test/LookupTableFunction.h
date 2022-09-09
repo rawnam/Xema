@@ -11,6 +11,8 @@ public:
 	LookupTableFunction();
 	~LookupTableFunction();
 
+	void setCameraResolution(int width, int height);
+
 	virtual bool rebuildData(cv::Mat unwrap_map_x, int group_num, cv::Mat& deep_map, cv::Mat& mask);
 
 	bool mat_double_to_float(cv::Mat org_mat, cv::Mat& dst_mat);
@@ -65,7 +67,11 @@ public:
 
 	virtual bool readTableFloat(std::string dir_path, cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_mapping);
 
+	bool readTableFloat(std::string dir_path, cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_mapping, cv::Mat& pattern_minimapping, int width, int height);
+
 	bool setCameraVersion(int version);
+
+	void setImageResolution(int width, int height);
 protected:
 	void normalizePoint(
 		double x, double y,
@@ -119,7 +125,7 @@ public:
 	// 生成压缩的map
 	virtual bool generateLookTable(cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_minimapping);
 
-	bool generateBigLookTable(cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_minimapping);
+	bool generateBigLookTable(cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_mapping, cv::Mat& pattern_minimapping);
 
 	double findTheColByRowAndCol(cv::Mat& _cameraMatrix, cv::Mat& _distCoeffs,
 		cv::Mat& _matR, double _rowUndistorted, double _colDistorted);//2.2

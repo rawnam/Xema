@@ -47,6 +47,11 @@ struct FirmwareConfigParam
 	int use_bilateral_filter;
 	int bilateral_filter_param_d;  
 	float confidence;
+	int use_radius_filter; 
+	float radius_filter_r; 
+	int radius_filter_threshold_num; 
+	int use_reflect_filter;
+	float fisher_confidence;
 };
 
 

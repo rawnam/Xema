@@ -9,7 +9,7 @@
 #elif __linux 
 #include <stdio.h>  
 #endif 
- 
+
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -43,7 +43,7 @@ bool SavePointToTxt(cv::Mat deep_map, std::string path, cv::Mat texture_map);
 //��ȡz-map Roiͼ
 bool MaskZMap(cv::Mat& z_map, cv::Mat mask);
 
-bool MapToColor(cv::Mat deep_map, cv::Mat& color_map, cv::Mat& grey_map, int low_z, int high_z); 
+bool MapToColor(cv::Mat deep_map, cv::Mat& color_map, cv::Mat& grey_map, int low_z, int high_z);
 
 bool renderBrightnessImage(cv::Mat brightness, cv::Mat& render_brightness);
 
@@ -53,5 +53,8 @@ bool MergeTextureMap(std::vector<cv::Mat> patterns, cv::Mat& texture_map);
 
 bool compensatePhaseBaseScharr(cv::Mat& normal_phase, cv::Mat brightness, int offset_value);
 
-
 bool compareNat(const std::string& a, const std::string& b);
+
+bool convertBayer2Gray(cv::Mat bayer, cv::Mat& gray);
+
+bool convertBayer2Blue(cv::Mat bayer, cv::Mat& blue);

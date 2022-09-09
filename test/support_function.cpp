@@ -360,7 +360,7 @@ bool SavePointToTxt(cv::Mat deep_map, std::string path, cv::Mat texture_map)
 			{
 				if (point_cloud_buffer[i * 3 + 2] > 0.01)
 					ofile << point_cloud_buffer[i * 3] << " " << point_cloud_buffer[i * 3 + 1] << " " << point_cloud_buffer[i * 3 + 2] << " "
-					<< (int)brightness_buffer[i * 3] << " " << (int)brightness_buffer[i * 3 + 1] << " " << (int)brightness_buffer[i * 3 + 2] << std::endl;
+					<< (int)brightness_buffer[i * 3 + 2] << " " << (int)brightness_buffer[i * 3 + 1] << " " << (int)brightness_buffer[i * 3 + 0] << std::endl;
 			}
 		}
 
@@ -696,4 +696,57 @@ bool MergeTextureMap(std::vector<cv::Mat> patterns, cv::Mat& texture_map)
 
 	return true;
 
+}
+
+
+
+bool convertBayer2Gray(cv::Mat bayer, cv::Mat& gray)
+{
+	if (bayer.empty())
+	{
+		return false;
+	}
+
+	cv::Mat color_mat;
+
+	cv::cvtColor(bayer, color_mat, cv::COLOR_BayerBG2BGR);
+
+	std::vector < cv::Mat> channels;
+	cv::split(color_mat, channels);
+
+	cv::Mat b = channels[0].clone();
+	cv::Mat g = channels[1].clone();
+	cv::Mat r = channels[2].clone();
+
+	cv::Mat gray_mat;
+	cv::cvtColor(color_mat, gray_mat, cv::COLOR_BGR2GRAY);
+
+	gray = gray_mat.clone();
+
+	return true;
+}
+
+
+bool convertBayer2Blue(cv::Mat bayer, cv::Mat& blue)
+{
+	if (bayer.empty())
+	{
+		return false;
+	}
+
+	cv::Mat color_mat;
+
+	cv::cvtColor(bayer, color_mat, cv::COLOR_BayerBG2BGR);
+
+	std::vector < cv::Mat> channels;
+	cv::split(color_mat, channels);
+
+	cv::Mat b = channels[0].clone();
+	cv::Mat g = channels[1].clone();
+	cv::Mat r = channels[2].clone();
+
+
+	blue = b.clone();
+
+	return true;
 }

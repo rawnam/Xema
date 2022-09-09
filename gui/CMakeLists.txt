@@ -23,6 +23,7 @@ set(HEADERS
     camera_capture_gui.h
     calibration_param_gui.h
     select_calibration_board_gui.h
+    outlier_removal_gui.h
 )
 
 set(SOURCES 
@@ -31,6 +32,7 @@ set(SOURCES
     camera_capture_gui.cpp
     calibration_param_gui.cpp 
     select_calibration_board_gui.cpp
+    outlier_removal_gui.cpp
 )
 
 set(RESOURCES 

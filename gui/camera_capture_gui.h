@@ -74,6 +74,10 @@ public:
 
 	void getGuiConfigParam(struct GuiConfigDataStruct& gui_param);
 
+	void getFirmwareConfigParam(struct FirmwareConfigParam& param); 
+
+	void updateOutlierRemovalConfigParam(struct FirmwareConfigParam param);
+
 	//更新生成亮度图参数
 	void updateGenerateBrightnessParam();
 
@@ -112,6 +116,8 @@ public slots:
 
 	void do_pushButton_disconnect();
 
+	void do_pushButton_refresh();
+
 private slots:
 	void do_QRadioButton_toggled_brightness(bool state);
 
@@ -133,6 +139,7 @@ private slots:
 
 private slots:
 	//void do_checkBox_toggled_bilateral_filter(bool state);
+	void do_comboBox_activated_ip(int index);
 
 	void do_checkBox_toggled_hdr(bool state);
 
@@ -151,6 +158,8 @@ private slots:
 	void do_doubleSpin_gain(double val);
 
 	void do_doubleSpin_confidence(double val);
+
+	void do_doubleSpin_fisher(double val);
 
 	void do_pushButton_capture_one_frame();
 
@@ -178,6 +187,8 @@ private:
 
 	bool capture_show_flag_;
 
+	std::vector<QString> device_mac_list_;
+	std::vector<QString> device_ip_list_;
 
 	//std::mutex	capture_m_mutex_;
 	bool capturing_flag_;

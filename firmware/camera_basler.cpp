@@ -514,6 +514,11 @@ bool CameraBasler::setExposure(double val)
         LOG(INFO) << "--";
     }
 
+    if(val< 6000)
+    {
+        val = 6000;
+    }
+
     GENAPIC_RESULT              res;                      /* Return value of pylon methods. */
     res = PylonDeviceSetFloatFeature( hDev_, "ExposureTime", val);
     if(GENAPI_E_OK != res)

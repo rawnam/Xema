@@ -21,9 +21,6 @@
     <ClCompile Include="utils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\firmware\easylogging++.cc">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="open_cam3d.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
