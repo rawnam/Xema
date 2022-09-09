@@ -1435,6 +1435,7 @@ void CameraCaptureGui::do_pushButton_refresh()
 {
 	device_mac_list_.clear();
 	device_ip_list_.clear();
+	ui.comboBox_ip->clear();
 
 	int ret_code = 0;
 	//更新相机设备列表
