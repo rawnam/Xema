@@ -5,6 +5,7 @@
 #include "settings_file_function.h"
 #include <opencv2/core.hpp>
 #include "../sdk/open_cam3d.h"
+#include "../calibration/calibrate_function.h"
 //#include "../firmware/system_config_settings.h"
 #include "../firmware/protocol.h"
 #include <QThread>
@@ -246,7 +247,8 @@ private:
 	int generate_brightness_model_;
 	float generate_brightness_exposure_;
 
-	cv::Size2f board_size_;
+	//cv::Size2f board_size_;
+	struct BoardMessage board_message_;
 
 	int calibration_board_flag_;
 	int camera_version_;

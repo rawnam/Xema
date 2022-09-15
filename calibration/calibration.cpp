@@ -57,13 +57,13 @@ static struct option long_options[] =
 };
 
 
-struct BoardMessage
-{
-	int rows;
-	int cols;
-	int width;
-	int height;
-};
+//struct BoardMessage
+//{
+//	int rows;
+//	int cols;
+//	int width;
+//	int height;
+//};
 struct BoardMessage board_message;
 const char* patterns_path = "";
 const char* char_use = "";
@@ -158,6 +158,13 @@ int main(int argc, char* argv[])
 			printf("calibration.exe --calibrate --use patterns --path ./capture/calib --version DFX800 --board 20 ./calib --calib ./param.txt \n");
 		}
 
+		if ("4" == board_str)
+		{
+			board_message.rows = 11;
+			board_message.cols = 7;
+			board_message.width = 4;
+			board_message.height = 2;
+		}
 		if ("12" == board_str)
 		{
 			board_message.rows = 11;
@@ -179,7 +186,13 @@ int main(int argc, char* argv[])
 			board_message.width = 40;
 			board_message.height = 20;
 		}
-
+		else if ("80" == board_str)
+		{
+			board_message.rows = 13;
+			board_message.cols = 9;
+			board_message.width = 80;
+			board_message.height = 40;
+		}
 		if ("patterns" == use_str)
 		{
 			bool ok = calibrate_stereo(patterns_str, calib_str);

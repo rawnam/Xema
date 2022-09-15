@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>300</height>
+    <height>381</height>
    </rect>
   </property>
   <property name="font">
@@ -41,31 +41,17 @@
           <property name="spacing">
            <number>20</number>
           </property>
-          <item row="0" column="3">
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+          <item row="2" column="2">
+           <widget class="QRadioButton" name="radioButton_board_80">
+            <property name="font">
+             <font>
+              <pointsize>16</pointsize>
+             </font>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
+            <property name="text">
+             <string>80 mm</string>
             </property>
-           </spacer>
-          </item>
-          <item row="0" column="5">
-           <spacer name="horizontalSpacer_6">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
+           </widget>
           </item>
           <item row="0" column="2">
            <widget class="QRadioButton" name="radioButton_board_20">
@@ -83,31 +69,6 @@
            </widget>
           </item>
           <item row="0" column="1">
-           <spacer name="horizontalSpacer_5">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item row="0" column="4">
-           <widget class="QRadioButton" name="radioButton_board_40">
-            <property name="font">
-             <font>
-              <pointsize>16</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>40 mm</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
            <widget class="QRadioButton" name="radioButton_board_12">
             <property name="font">
              <font>
@@ -116,6 +77,30 @@
             </property>
             <property name="text">
              <string>12 mm</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QRadioButton" name="radioButton_board_4">
+            <property name="font">
+             <font>
+              <pointsize>16</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>4 mm</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QRadioButton" name="radioButton_board_40">
+            <property name="font">
+             <font>
+              <pointsize>16</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>40 mm</string>
             </property>
            </widget>
           </item>

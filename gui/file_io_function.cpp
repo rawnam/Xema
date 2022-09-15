@@ -632,7 +632,7 @@ bool  FileIoFunction::depthToColor(cv::Mat depth_map, cv::Mat& color_map, cv::Ma
 				ptr_h[c] = 255.0 * (ptr_dr[c] - low_z) / range;
 			}
 				
-			if (ptr_dr[c] > 0)
+			if (ptr_dr[c] >= low_z && ptr_dr[c]<= high_z)
 			{
 				ptr_m[c] = 255;
 			}

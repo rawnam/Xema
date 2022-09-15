@@ -8,7 +8,6 @@
 #include <QMouseEvent>
 #include <QtWidgets/qfiledialog.h>
 #include <qheaderview.h>
-#include "../calibration/calibrate_function.h"
 #include "PrecisionTest.h"
 #include <qdesktopservices.h>
 #include <thread>
@@ -77,10 +76,26 @@ void CameraCaptureGui::setCalibrationBoard(int flag)
 
 	switch (flag)
 	{
+	case 4:
+	{
+		board_message_.rows = 11;
+		board_message_.cols = 7;
+		board_message_.width = 4;
+		board_message_.height = 2;
+		    
+		calibration_board_flag_ = flag;
+
+		processing_gui_settings_data_.Instance().calibration_board = flag;
+	}
+	break;
+
 	case 12:
 	{
-		board_size_.width = 12.0;
-		board_size_.height = 6.0;
+		board_message_.rows = 11;
+		board_message_.cols = 7;
+		board_message_.width = 12;
+		board_message_.height = 6;
+		 
 		calibration_board_flag_ = flag;
 
 		processing_gui_settings_data_.Instance().calibration_board = flag;
@@ -89,8 +104,11 @@ void CameraCaptureGui::setCalibrationBoard(int flag)
 
 	case 20:
 	{
-		board_size_.width = 20.0;
-		board_size_.height = 10.0;
+		board_message_.rows = 11;
+		board_message_.cols = 7;
+		board_message_.width = 20;
+		board_message_.height = 10;
+		 
 		calibration_board_flag_ = flag;
 
 		processing_gui_settings_data_.Instance().calibration_board = flag;
@@ -99,8 +117,23 @@ void CameraCaptureGui::setCalibrationBoard(int flag)
 
 	case 40:
 	{
-		board_size_.width = 40.0;
-		board_size_.height = 20.0;
+		board_message_.rows = 11;
+		board_message_.cols = 7;
+		board_message_.width = 40;
+		board_message_.height = 20;
+		 
+		calibration_board_flag_ = flag;
+		processing_gui_settings_data_.Instance().calibration_board = flag;
+	}
+	break;
+
+	case 80:
+	{
+		board_message_.rows = 13;
+		board_message_.cols = 9;
+		board_message_.width = 80;
+		board_message_.height = 40;
+		 
 		calibration_board_flag_ = flag;
 		processing_gui_settings_data_.Instance().calibration_board = flag;
 	}
@@ -173,6 +206,10 @@ bool CameraCaptureGui::initializeFunction()
 	generate_brightness_model_ = GENERATE_BRIGHTNESS_DEFAULT_;
 	generate_brightness_exposure_ = 12000;
 
+	board_message_.rows = 11;
+	board_message_.cols = 7;
+	board_message_.width = 20;
+	board_message_.height = 10;
 	//board_size_.width = 20.0;
 	//board_size_.height = 10.0;
 
@@ -1664,6 +1701,7 @@ double CameraCaptureGui::computePointsDistance(cv::Point2f p_0, cv::Point2f p_1,
 	cv::Point3f f_p_0_inter, f_p_1_inter;
 
 	Calibrate_Function calib_function;
+	calib_function.setBoardMessage(board_message_);
 	f_p_0_inter.x = calib_function.Bilinear_interpolation(p_0.x, p_0.y, point_cloud_channels[0]);
 	f_p_0_inter.y = calib_function.Bilinear_interpolation(p_0.x, p_0.y, point_cloud_channels[1]);
 	f_p_0_inter.z = calib_function.Bilinear_interpolation(p_0.x, p_0.y, point_cloud_channels[2]);
@@ -1699,6 +1737,7 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 
 
 		Calibrate_Function calib_function;
+		calib_function.setBoardMessage(board_message_);
 		std::vector<cv::Point2f> circle_points;
 		bool found = calib_function.findCircleBoardFeature(brightness_map_, circle_points);
 
@@ -1721,7 +1760,7 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 		cv::Mat pc1(point_3d.size(), 3, CV_64F, cv::Scalar(0));
 		cv::Mat pc2(point_3d.size(), 3, CV_64F, cv::Scalar(0));
 
-		std::vector<cv::Point3f> world_points = calib_function.generateAsymmetricWorldFeature(board_size_.width, board_size_.height);
+		std::vector<cv::Point3f> world_points = calib_function.generateAsymmetricWorldFeature(board_message_);
 
 		for (int r = 0; r < point_3d.size(); r++)
 		{
@@ -1792,6 +1831,7 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 void CameraCaptureGui::do_pushButton_test_accuracy()
 {
 	Calibrate_Function calib_function;
+	calib_function.setBoardMessage(board_message_);
 
 	if (brightness_map_.empty() || brightness_map_.type() != CV_8UC1)
 	{
@@ -1820,8 +1860,9 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 
 		if (found)
 		{
-			Calibrate_Function calib_machine;
-			std::vector<cv::Point3f> objects = calib_machine.generateAsymmetricWorldFeature(board_size_.width, board_size_.height);
+			Calibrate_Function calib_machine; 
+			calib_machine.setBoardMessage(board_message_);
+			std::vector<cv::Point3f> objects = calib_machine.generateAsymmetricWorldFeature(board_message_);
 
 			cv::Mat raux, taux;
 			std::vector<cv::Point2f> image_points_pro;
@@ -1942,6 +1983,8 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 		//cv::undistort(brightness_map_, undist_img, cameraMatrix, distCoeffs);
 		//std::vector<cv::Point2f> undist_circle_points;
 		Calibrate_Function calib_function;
+		calib_function.setBoardMessage(board_message_);
+
 		std::vector<cv::Point2f> circle_points;
 		bool found = calib_function.findCircleBoardFeature(brightness_map_, circle_points);
 
@@ -1974,7 +2017,7 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 		cv::Mat pc1(point_3d.size(), 3, CV_64F, cv::Scalar(0));
 		cv::Mat pc2(point_3d.size(), 3, CV_64F, cv::Scalar(0));
 
-		std::vector<cv::Point3f> world_points = calib_function.generateAsymmetricWorldFeature(board_size_.width, board_size_.height);
+		std::vector<cv::Point3f> world_points = calib_function.generateAsymmetricWorldFeature(board_message_);
 
 		for (int r = 0; r < point_3d.size(); r++)
 		{
@@ -2524,6 +2567,7 @@ bool CameraCaptureGui::bilinearInterpolationFeaturePoints(std::vector<cv::Point2
 
 
 	Calibrate_Function calib_function;
+	calib_function.setBoardMessage(board_message_);
 	std::vector<cv::Mat> point_cloud_channels;
 	cv::split(point_cloud, point_cloud_channels);
 

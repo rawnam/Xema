@@ -18,11 +18,16 @@ public:
 	bool is_confirm();
 
 private slots:
+
+	void do_QRadioButton_toggled_board_4(bool state);
+
 	void do_QRadioButton_toggled_board_12(bool state);
 
 	void do_QRadioButton_toggled_board_20(bool state);
 
 	void do_QRadioButton_toggled_board_40(bool state);
+
+	void do_QRadioButton_toggled_board_80(bool state);
 
 	void do_pushButton_ok();
 
