@@ -21,9 +21,9 @@ using namespace std::chrono;
 //socket
 //INITIALIZE_EASYLOGGINGPP
 
-const int image_width = 1920;
-const int image_height = 1200;
-const int image_size = image_width * image_height;
+//const int image_width = 1920;
+//const int image_height = 1200;
+//const int image_size = image_width * image_height;
 bool connected = false;
 long long token = 0;
 //const char* camera_id_;
@@ -45,6 +45,7 @@ bool connected_flag_ = false;
 
 int camera_width_ = 1920;
 int camera_height_ = 1200;
+int image_size_ = camera_width_ * camera_height_;
 
 const char* camera_ip_ = "";
 
@@ -389,7 +390,7 @@ DF_SDK_API int DfConnect(const char* camera_id)
 	{
 		DfDisconnectNet();
 		return -1;
-	}
+	} 
 
 	camera_width_ = width;
 	camera_height_ = height;
@@ -397,9 +398,9 @@ DF_SDK_API int DfConnect(const char* camera_id)
 	camera_ip_ = camera_id;
 	connected_flag_ = true;
 
-	int image_size = camera_width_ * camera_height_;
+	image_size_ = camera_width_ * camera_height_;
 
-	depth_buf_size_ = image_size * 1 * 4;
+	depth_buf_size_ = image_size_ * 1 * 4;
 	depth_buf_ = (float*)(new char[depth_buf_size_]);
 
 	pointcloud_buf_size_ = depth_buf_size_ * 3;
@@ -407,7 +408,7 @@ DF_SDK_API int DfConnect(const char* camera_id)
 
 	trans_point_cloud_buf_ = (float*)(new char[pointcloud_buf_size_]);
 
-	brightness_bug_size_ = image_size;
+	brightness_bug_size_ = image_size_;
 	brightness_buf_ = new unsigned char[brightness_bug_size_];
 	 
 
@@ -1170,7 +1171,7 @@ DF_SDK_API int DfDisconnectNet()
 DF_SDK_API int DfGetFocusingImage(unsigned char* image, int image_buf_size)
 {
 	LOG(INFO) << "DfGetFocusingImage";
-	assert(image_buf_size >= image_size * sizeof(unsigned char));
+	assert(image_buf_size >= image_size_ * sizeof(unsigned char));
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -1208,7 +1209,7 @@ DF_SDK_API int DfGetFocusingImage(unsigned char* image, int image_buf_size)
 DF_SDK_API int GetBrightness(unsigned char* brightness, int brightness_buf_size)
 {
 	LOG(INFO) << "GetBrightness";
-	assert(brightness_buf_size >= image_size * sizeof(unsigned char));
+	assert(brightness_buf_size >= image_size_ * sizeof(unsigned char));
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -1252,7 +1253,7 @@ DF_SDK_API int DfGetCameraData(
 	int ret = DF_SUCCESS;
 	if (depth)
 	{
-		assert(depth_buf_size >= image_size * sizeof(short));
+		assert(depth_buf_size >= image_size_ * sizeof(short));
 		send_command(DF_CMD_GET_DEPTH, g_sock);
 		ret = recv_buffer((char*)depth, depth_buf_size, g_sock);
 		if (ret == DF_FAILED)
@@ -1267,7 +1268,7 @@ DF_SDK_API int DfGetCameraData(
 
 	if (point_cloud)
 	{
-		assert(point_cloud_buf_size >= image_size * sizeof(short) * 3);
+		assert(point_cloud_buf_size >= image_size_ * sizeof(short) * 3);
 		send_command(DF_CMD_GET_POINTCLOUD, g_sock);
 		ret = recv_buffer((char*)point_cloud, point_cloud_buf_size, g_sock);
 		if (ret == DF_FAILED)
@@ -1277,7 +1278,7 @@ DF_SDK_API int DfGetCameraData(
 	}
 	if (confidence)
 	{
-		assert(confidence_buf_size >= image_size * sizeof(unsigned char));
+		assert(confidence_buf_size >= image_size_ * sizeof(unsigned char));
 		send_command(DF_CMD_GET_CONFIDENCE, g_sock);
 		ret = recv_buffer((char*)confidence, confidence_buf_size, g_sock);
 		if (ret == DF_FAILED)
@@ -1292,8 +1293,8 @@ DF_SDK_API int DfGetFrameHdr(float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
 	LOG(INFO) << "GetFrameHdr";
-	assert(depth_buf_size == image_size * sizeof(float) * 1);
-	assert(brightness_buf_size == image_size * sizeof(char) * 1);
+	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -1350,8 +1351,8 @@ DF_SDK_API int DfGetRepetitionPhase02(int count, float* phase_x, float* phase_y,
 	unsigned char* brightness, int brightness_buf_size)
 {
 	LOG(INFO) << "DfGetRepetitionPhase02";
-	assert(phase_buf_size == image_size * sizeof(float) * 1);
-	assert(brightness_buf_size == image_size * sizeof(char) * 1);
+	assert(phase_buf_size == image_size_ * sizeof(float) * 1);
+	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -1431,8 +1432,8 @@ DF_SDK_API int DfGetRepetitionFrame04(int count, float* depth, int depth_buf_siz
 	unsigned char* brightness, int brightness_buf_size)
 {
 	LOG(INFO) << "GetRepetition01Frame04";
-	assert(depth_buf_size == image_size * sizeof(float) * 1);
-	assert(brightness_buf_size == image_size * sizeof(char) * 1);
+	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -1497,8 +1498,8 @@ DF_SDK_API int DfGetRepetitionFrame03(int count, float* depth, int depth_buf_siz
 	unsigned char* brightness, int brightness_buf_size)
 {
 	LOG(INFO) << "GetRepetitionFrame03";
-	assert(depth_buf_size == image_size * sizeof(float) * 1);
-	assert(brightness_buf_size == image_size * sizeof(char) * 1);
+	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -1562,8 +1563,8 @@ DF_SDK_API int DfGetFrame03(float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
 	LOG(INFO) << "GetFrame03";
-	assert(depth_buf_size == image_size * sizeof(float) * 1);
-	assert(brightness_buf_size == image_size * sizeof(char) * 1);
+	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -1616,8 +1617,8 @@ DF_SDK_API int DfGetFrame04(float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
 	LOG(INFO) << "GetFrame04";
-	assert(depth_buf_size == image_size * sizeof(float) * 1);
-	assert(brightness_buf_size == image_size * sizeof(char) * 1);
+	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -1669,8 +1670,8 @@ DF_SDK_API int DfGetFrame05(float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
 	LOG(INFO) << "GetFrame05";
-	assert(depth_buf_size == image_size * sizeof(float) * 1);
-	assert(brightness_buf_size == image_size * sizeof(char) * 1);
+	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -1722,8 +1723,8 @@ DF_SDK_API int DfGetFrame01(float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
 	LOG(INFO) << "GetFrame01";
-	assert(depth_buf_size == image_size * sizeof(float) * 1);
-	assert(brightness_buf_size == image_size * sizeof(char) * 1);
+	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -1774,7 +1775,7 @@ DF_SDK_API int DfGetFrame01(float* depth, int depth_buf_size,
 DF_SDK_API int DfGetPointCloud(float* point_cloud, int point_cloud_buf_size)
 {
 	LOG(INFO) << "GetPointCloud";
-	assert(point_cloud_buf_size == image_size * sizeof(float) * 3);
+	assert(point_cloud_buf_size == image_size_ * sizeof(float) * 3);
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -1873,7 +1874,7 @@ DF_SDK_API int DfGetCameraRawData04(unsigned char* raw, int raw_buf_size)
 	if (raw)
 	{
 		LOG(INFO) << "GetRaw04";
-		assert(raw_buf_size >= image_size * sizeof(unsigned char) * 19);
+		assert(raw_buf_size >= image_size_ * sizeof(unsigned char) * 19);
 		int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 		if (ret == DF_FAILED)
 		{
@@ -1915,7 +1916,7 @@ DF_SDK_API int DfGetCameraRawData03(unsigned char* raw, int raw_buf_size)
 	if (raw)
 	{
 		LOG(INFO) << "GetRaw03";
-		assert(raw_buf_size >= image_size * sizeof(unsigned char) * 31);
+		assert(raw_buf_size >= image_size_ * sizeof(unsigned char) * 31);
 		int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 		if (ret == DF_FAILED)
 		{
@@ -1957,7 +1958,7 @@ DF_SDK_API int DfGetCameraRawData02(unsigned char* raw, int raw_buf_size)
 	if (raw)
 	{
 		LOG(INFO) << "GetRawTest";
-		assert(raw_buf_size >= image_size * sizeof(unsigned char) * 37);
+		assert(raw_buf_size >= image_size_ * sizeof(unsigned char) * 37);
 		int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 		if (ret == DF_FAILED)
 		{
@@ -1999,7 +2000,7 @@ DF_SDK_API int DfGetCameraRawDataTest(unsigned char* raw, int raw_buf_size)
 	if (raw)
 	{
 		LOG(INFO) << "GetRawTest";
-		assert(raw_buf_size >= image_size * sizeof(unsigned char) * 37);
+		assert(raw_buf_size >= image_size_ * sizeof(unsigned char) * 37);
 		int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 		if (ret == DF_FAILED)
 		{
@@ -2043,7 +2044,7 @@ DF_SDK_API int DfGetCameraRawData01(unsigned char* raw, int raw_buf_size)
 	if (raw)
 	{
 		LOG(INFO) << "Get Raw 01";
-		assert(raw_buf_size >= image_size * sizeof(unsigned char) * 24);
+		assert(raw_buf_size >= image_size_ * sizeof(unsigned char) * 24);
 		int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 		if (ret == DF_FAILED)
 		{
@@ -4092,8 +4093,8 @@ DF_SDK_API int DfGetTestFrame01(unsigned char* raw, int raw_buf_size, float* dep
 	unsigned char* brightness, int brightness_buf_size)
 {
 	LOG(INFO) << "GetTestFrame01";
-	assert(depth_buf_size == image_size * sizeof(float) * 1);
-	assert(brightness_buf_size == image_size * sizeof(char) * 1);
+	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
