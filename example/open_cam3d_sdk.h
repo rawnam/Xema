@@ -26,6 +26,7 @@ extern "C"
 		float distortion[1 * 12];//<k1,k2,p1,p2,k3,k4,k5,k6,s1,s2,s3,s4>
 
 	};
+
 	//设备基本信息结构体
 	struct DeviceBaseInfo
 	{
@@ -36,7 +37,7 @@ extern "C"
 	};
 
 	//函数名： DfUpdateDeviceList
-	//功能： 连接相机
+	//功能： 获取可连接设备数
 	//输入参数： device_num(设备数)
 	//输出参数： 无
 	//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
@@ -268,22 +269,22 @@ extern "C"
 	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 	DF_SDK_API int DfSetParamRadiusFilter(int use, float radius, int num);
 
-	//函数名： DfGetParamSmoothing
-	//功能： 设置点云平滑参数
+	//函数名： DfGetParamRadiusFilter
+	//功能： 获取点云半径滤波参数
 	//输入参数：无
 	//输出参数：use(开关：1开、0关)、radius(半径）、num（有效点）
 	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 	DF_SDK_API int DfGetParamRadiusFilter(int& use, float& radius, int& num);
 
 	//函数名： DfSetParamOutlierFilter
-	//功能： 设置过滤阈值
+	//功能： 设置外点过滤阈值
 	//输入参数：threshold(阈值0-100)
 	//输出参数： 无
 	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 	DF_SDK_API int DfSetParamOutlierFilter(float threshold);
 
 	//函数名： DfGetParamOutlierFilter
-	//功能： 获取过滤阈值
+	//功能： 获取外点过滤阈值
 	//输入参数： 无
 	//输出参数：threshold(阈值0-100)
 	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.

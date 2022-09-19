@@ -2943,8 +2943,8 @@ DF_SDK_API int DfSetParamRadiusFilter(int use, float radius, int num)
 	return DF_SUCCESS;
 }
 
-//函数名： DfGetParamSmoothing
-//功能： 设置点云平滑参数
+//函数名： DfGetParamRadiusFilter
+//功能： 获取点云半径滤波参数
 //输入参数：无
 //输出参数：use(开关：1开、0关)、radius(半径）、num（有效点）
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
