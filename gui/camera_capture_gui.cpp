@@ -171,6 +171,7 @@ bool CameraCaptureGui::initializeFunction()
 	 
 	connect(ui.comboBox_ip, SIGNAL(activated(int)), this, SLOT(do_comboBox_activated_ip(int)));
 	connect(ui.checkBox_hdr, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_hdr(bool)));
+	connect(ui.checkBox_over_exposure, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_over_exposure(bool)));
 
 	connect(ui.pushButton_connect, SIGNAL(clicked()), this, SLOT(do_pushButton_connect()));
 	connect(ui.pushButton_refresh, SIGNAL(clicked()), this, SLOT(do_pushButton_refresh()));
@@ -326,8 +327,16 @@ bool CameraCaptureGui::renderBrightnessImage(cv::Mat brightness)
 		}
 
 	}
+	if (ui.checkBox_over_exposure->isChecked())
+	{
+		render_image_brightness_ = color_map.clone();
 
-	render_image_brightness_ = color_map.clone();
+	}
+	else
+	{
+		render_image_brightness_ = brightness.clone();
+
+	}
 	return true;
 }
 
@@ -2378,6 +2387,12 @@ void  CameraCaptureGui::do_pushButton_capture_continuous()
 void CameraCaptureGui::do_comboBox_activated_ip(int index)
 { 
 	ui.lineEdit_ip->setText(device_ip_list_[index]);
+}
+
+void CameraCaptureGui::do_checkBox_toggled_over_exposure(bool state)
+{
+	renderBrightnessImage(brightness_map_); 
+	showImage();
 }
 
 void CameraCaptureGui::do_checkBox_toggled_hdr(bool state)

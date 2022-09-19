@@ -152,6 +152,18 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="checkBox_over_exposure">
+          <property name="font">
+           <font>
+            <pointsize>16</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>过曝显示</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QPushButton" name="pushButton_test_accuracy">
           <property name="minimumSize">
            <size>
