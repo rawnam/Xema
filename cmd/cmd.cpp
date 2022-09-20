@@ -179,6 +179,7 @@ int self_test(const char* ip);
 int get_projector_temperature(const char* ip);
 int get_repetition_phase_02(const char* ip, int count, const char* phase_image_dir);
 int configure_focusing(const char* ip);
+int set_board_inspect(const char* ip,bool enable);
 
 extern int optind, opterr, optopt;
 extern char* optarg;
@@ -490,11 +491,11 @@ int main(int argc, char* argv[])
 		std::string switch_str(c_switch);
 		if ("enable" == switch_str)
 		{
-			DfSetBoardInspect(true);
+			set_board_inspect(camera_id,true);
 		}
 		else if ("disable" == switch_str)
 		{ 
-			DfSetBoardInspect(false);
+			set_board_inspect(camera_id, false);
 		}
 	}
 		break;
@@ -1832,6 +1833,24 @@ int get_temperature(const char* ip)
 
 	DfDisconnectNet();
 	return 1;
+}
+
+int set_board_inspect(const char* ip, bool enable)
+{
+
+	/*********************************************************************************************/
+	DfRegisterOnDropped(on_dropped);
+
+	int ret = DfConnectNet(ip);
+	if (ret == DF_FAILED)
+	{
+		return 0;
+	}
+ 
+	DfSetBoardInspect(enable);
+
+	DfDisconnectNet();
+
 }
 
 int configure_focusing(const char* ip)
