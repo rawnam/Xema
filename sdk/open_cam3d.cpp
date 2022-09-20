@@ -3079,7 +3079,7 @@ DF_SDK_API int DfSetBoardInspect(bool enable)
 			use = 0;
 		}
 
-		ret = recv_buffer((char*)(&use), sizeof(int), g_sock);
+		ret = send_buffer((char*)(&use), sizeof(int), g_sock);
 		if (ret == DF_FAILED)
 		{
 			close_socket(g_sock);
