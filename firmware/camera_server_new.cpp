@@ -510,7 +510,57 @@ int handle_cmd_disconnect(int client_sock)
     return DF_SUCCESS;
 }
 
+bool inspect_board()
+{
+     
+    int brightness_buf_size = camera_width_*camera_height_*1;
+    unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
+
+    scan3d_.captureFrame04(); 
+    scan3d_.copyBrightnessData(brightness); 
+ 
+    std::vector<cv::Point2f> points;
+    cv::Mat img(camera_height_,camera_width_,CV_8U,brightness);
+
+    ConfigureStandardPlane plane_machine; 
+    bool found = plane_machine.findCircleBoardFeature(img,points);
+
+    delete []brightness;
+
+    return found;
+}
+
+int handle_cmd_set_board_inspect(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;	
+    }
+ 
+    int use =1;
+
+    int ret = recv_buffer(client_sock, (char*)(&use), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+        LOG(INFO)<<"set board inspect: "<<use;
+    
+    if(1 == use)
+    {
+        //注册板检测中断函数
+        int found = inspect_board();
+        LOG(INFO)<<"found: "<<found;
+    }
+    else
+    {
+        //注消板检测中断函数
+    }
+
+    return DF_SUCCESS;
+}
 
 int handle_cmd_set_auto_exposure_base_board(int client_sock)
 {
@@ -4763,6 +4813,11 @@ int handle_commands(int client_sock)
         LOG(INFO)<<"DF_CMD_GET_CAMERA_RESOLUTION"; 
         handle_cmd_get_param_camera_resolution(client_sock);
         break;
+    case DF_CMD_SET_INSPECT_MODEL_FIND_BOARD:
+        LOG(INFO)<<"DF_CMD_SET_INSPECT_MODEL_FIND_BOARD"; 
+        handle_cmd_set_board_inspect(client_sock);
+        break;
+        
 	default:
 	    LOG(INFO)<<"DF_CMD_UNKNOWN";
         handle_cmd_unknown(client_sock);
