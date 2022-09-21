@@ -352,7 +352,7 @@ void cuda_copy_talbe_to_memory(float* mapping,float* mini_mapping,float* rotate_
 
 bool cuda_copy_pattern_to_memory(unsigned char* pattern_ptr,int serial_flag)
 {
-	if(serial_flag>= MAX_PATTERNS_NUMBER)
+	if(serial_flag> MAX_PATTERNS_NUMBER)
 	{
 		return false;
 	}
@@ -833,7 +833,7 @@ bool cuda_merge_repetition_02_patterns(int repetition_serial)
 }
 
 
-bool cuda_compute_merge_repetition_02_phase(int repetition_count)
+bool cuda_compute_merge_repetition_02_phase(int repetition_count,int phase_num)
 {
 	
 	kernel_merge_four_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_repetition_02_merge_patterns_list_[0], d_repetition_02_merge_patterns_list_[1],
@@ -849,7 +849,35 @@ bool cuda_compute_merge_repetition_02_phase(int repetition_count)
 		d_repetition_02_merge_patterns_list_[14],d_repetition_02_merge_patterns_list_[15],d_repetition_02_merge_patterns_list_[16],d_repetition_02_merge_patterns_list_[17] ,
 		repetition_count,h_image_height_, h_image_width_, d_wrap_map_list_[3], d_confidence_map_list_[3]);
 
-	kernel_merge_brigntness_map<< <blocksPerGrid, threadsPerBlock >> >(d_repetition_02_merge_patterns_list_[18],repetition_count,h_image_height_, h_image_width_,d_brightness_map_);
+	if(1 == phase_num)
+	{
+		kernel_merge_brigntness_map<< <blocksPerGrid, threadsPerBlock >> >(d_repetition_02_merge_patterns_list_[18],repetition_count,h_image_height_, h_image_width_,d_brightness_map_);
+	}
+	else if (2 == phase_num)
+	{
+
+		int i = 18;
+		kernel_merge_four_step_phase_shift<<<blocksPerGrid, threadsPerBlock>>>(d_repetition_02_merge_patterns_list_[i + 0], d_repetition_02_merge_patterns_list_[i + 1],
+																			   d_repetition_02_merge_patterns_list_[i + 2], d_repetition_02_merge_patterns_list_[i + 3], repetition_count, h_image_height_, h_image_width_,d_wrap_map_list_[4], d_confidence_map_list_[4]);
+
+		i = 22;
+		kernel_merge_four_step_phase_shift<<<blocksPerGrid, threadsPerBlock>>>(d_repetition_02_merge_patterns_list_[i + 0], d_repetition_02_merge_patterns_list_[i + 1],
+																			   d_repetition_02_merge_patterns_list_[i + 2], d_repetition_02_merge_patterns_list_[i + 3], repetition_count,h_image_height_, h_image_width_, d_wrap_map_list_[5], d_confidence_map_list_[5]);
+
+		i = 26;
+		kernel_merge_four_step_phase_shift<<<blocksPerGrid, threadsPerBlock>>>(d_repetition_02_merge_patterns_list_[i + 0], d_repetition_02_merge_patterns_list_[i + 1],
+																			   d_repetition_02_merge_patterns_list_[i + 2], d_repetition_02_merge_patterns_list_[i + 3], repetition_count,h_image_height_, h_image_width_, d_wrap_map_list_[6], d_confidence_map_list_[6]);
+
+		i = 30;
+		kernel_merge_six_step_phase_shift<<<blocksPerGrid, threadsPerBlock>>>(d_repetition_02_merge_patterns_list_[i + 0], d_repetition_02_merge_patterns_list_[i + 1],
+																			  d_repetition_02_merge_patterns_list_[i + 2], d_repetition_02_merge_patterns_list_[i + 3], d_repetition_02_merge_patterns_list_[i + 4], d_repetition_02_merge_patterns_list_[i + 5],
+																			  repetition_count, h_image_height_, h_image_width_, d_wrap_map_list_[7], d_confidence_map_list_[7]);
+
+		kernel_merge_brigntness_map<<<blocksPerGrid, threadsPerBlock>>>(d_repetition_02_merge_patterns_list_[36], repetition_count, h_image_height_, h_image_width_,d_brightness_map_);
+
+		 
+	}
+
 	return true;
 }
 /********************************************************************************************************************************************/
@@ -922,6 +950,25 @@ void fisher_filter(float fisher_confidence_val)
 
 
 
+/*****************************************************************************************************************************************************/
+//repetition
+
+void cuda_copy_phase_from_cuda_memory(float* phase_x,float* phase_y)
+{
+	CHECK(cudaMemcpy(phase_x, d_unwrap_map_list_[0], d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost)); 
+	CHECK(cudaMemcpy(phase_y, d_unwrap_map_list_[1], d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost)); 
+}
+
+
 
 
 /*****************************************************************************************************************************************************/
+
+
+
+
+
+
+
+
+

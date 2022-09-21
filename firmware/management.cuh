@@ -180,7 +180,7 @@ bool cuda_clear_repetition_02_patterns();
 
 bool cuda_merge_repetition_02_patterns(int repetition_serial);
 
-bool cuda_compute_merge_repetition_02_phase(int repetition_count);
+bool cuda_compute_merge_repetition_02_phase(int repetition_count,int phase_num);
 /***********************************************************************************/
 //filter
 void cuda_remove_points_base_radius_filter(float dot_spacing,float radius,int threshold_num);
@@ -188,6 +188,9 @@ void cuda_remove_points_base_radius_filter(float dot_spacing,float radius,int th
 void cuda_filter_reflect_noise(float * const unwrap_map);
 
 
+//repetition
+ 
+void cuda_copy_phase_from_cuda_memory(float* phase_x,float* phase_y);
 
 /************************************************************************************************/
 
