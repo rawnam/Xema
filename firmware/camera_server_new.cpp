@@ -26,7 +26,11 @@
 #include "scan3d.h"
 
 INITIALIZE_EASYLOGGINGPP
-#define OUTPUT_PIN     12       // BOARD pin 32, BCM pin 12
+#define INPUT_PIN           5           // BOARD pin 29, BCM pin 5
+#define OUTPUT1_PIN         6           // BOARD pin 31, BCM pin 6
+#define ACT_PIN             12          // BOARD pin 32, BCM pin 12
+#define OUTPUT2_PIN         13          // BOARD pin 33, BCM pin 13
+#define LED_CTL_PIN         19          // BOARD pin 35, BCM pin 19
 
 
 Scan3D scan3d_;
@@ -528,6 +532,14 @@ bool inspect_board()
 
     delete []brightness;
 
+    GPIO::output(OUTPUT1_PIN, GPIO::HIGH);
+
+    if (found) {
+	    GPIO::output(OUTPUT2_PIN, GPIO::HIGH);
+    } else {
+	    GPIO::output(OUTPUT2_PIN, GPIO::LOW);
+    }
+
     return found;
 }
 
@@ -551,12 +563,14 @@ int handle_cmd_set_board_inspect(int client_sock)
     if(1 == use)
     {
         //注册板检测中断函数
-        int found = inspect_board();
-        LOG(INFO)<<"found: "<<found;
+        GPIO::add_event_detect(INPUT_PIN, GPIO::Edge::RISING, inspect_board, 1);
+        LOG(INFO)<<"Regist Interrupt Callback\n";
     }
     else
     {
         //注消板检测中断函数
+        GPIO::add_event_detect(INPUT_PIN, GPIO::Edge::RISING);
+        LOG(INFO)<<"Cancle Interrupt Callback\n";
     }
 
     return DF_SUCCESS;
@@ -4487,7 +4501,7 @@ int handle_commands(int client_sock)
     }
 
     // set led indicator
-	GPIO::output(OUTPUT_PIN, GPIO::HIGH); 
+	GPIO::output(ACT_PIN, GPIO::HIGH); 
 
     switch(command)
     {
@@ -4825,7 +4839,7 @@ int handle_commands(int client_sock)
     }
 
     // close led indicator
-	GPIO::output(OUTPUT_PIN, GPIO::LOW); 
+	GPIO::output(ACT_PIN, GPIO::LOW); 
 
     close(client_sock);
     return DF_SUCCESS;
@@ -4834,10 +4848,13 @@ int handle_commands(int client_sock)
 int init()
 {  
     // init led indicator
-	GPIO::setmode(GPIO::BCM);                       // BCM mode
-	GPIO::setup(OUTPUT_PIN, GPIO::OUT, GPIO::LOW); // output pin, set to HIGH level
+	GPIO::setmode(GPIO::BCM);                           // BCM mode
+	GPIO::setup(INPUT_PIN, GPIO::IN);                   // inutput pin, set to HIGH level
+	GPIO::setup(OUTPUT1_PIN, GPIO::OUT, GPIO::LOW);     // output pin, set to LOW level
+ 	GPIO::setup(ACT_PIN, GPIO::OUT, GPIO::LOW);         // output pin, set to LOW level
+	GPIO::setup(OUTPUT2_PIN, GPIO::OUT, GPIO::LOW);     // output pin, set to LOW level
+	GPIO::setup(LED_CTL_PIN, GPIO::OUT, GPIO::LOW);     // output pin, set to LOW level
  
-
     scan3d_.init();
 
     scan3d_.getCameraResolution(camera_width_,camera_height_);
