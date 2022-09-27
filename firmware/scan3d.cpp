@@ -61,6 +61,11 @@ bool Scan3D::init()
 
     camera_->getImageSize(image_width_,image_height_);
 
+    float min_exposure = 0;
+    camera_->getMinExposure(min_exposure);
+    LOG(INFO)<<"scan3d min_exposure: "<<min_exposure; 
+    lc3010_.set_camera_min_exposure(min_exposure);
+
     buff_brightness_ = new unsigned char[image_width_*image_height_];
     buff_depth_ = new float[image_width_*image_height_];
     buff_pointcloud_ = new float[3*image_width_*image_height_];

@@ -7,8 +7,7 @@ Camera::Camera()
   
     image_width_= 0;
     image_height_= 0;
-
-    
+    min_camera_exposure_ = 0;
 }
 
 Camera::~Camera()
@@ -16,6 +15,10 @@ Camera::~Camera()
 
 }
 
+bool Camera::getMinExposure(float &val)
+{
+    val = min_camera_exposure_;
+}
 
 bool Camera::getImageSize(int &width,int &height)
 {
