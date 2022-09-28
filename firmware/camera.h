@@ -27,6 +27,8 @@ public:
     virtual bool grap(unsigned char* buf){};
 
 	bool getImageSize(int &width,int &height);
+	
+	bool getMinExposure(float &val);
 
 protected:
  
@@ -35,6 +37,8 @@ protected:
 
 	long int image_width_;
 	long int image_height_;
+
+	float min_camera_exposure_;
  
 };
 

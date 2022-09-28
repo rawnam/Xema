@@ -31,6 +31,9 @@ LightCrafter3010::LightCrafter3010()
     _MCP3221.addr = 0x4f;               //MCP3221A7T-E/OT 
     _MCP3221.page_bytes = 256;
     _MCP3221.iaddr_bytes = 1;  
+
+    dlp_min_exposure_ = 1700;
+    camera_min_exposure_ = 6000;
 }
 
 size_t LightCrafter3010::read(char inner_addr, void* buffer, size_t buffer_size)
@@ -118,6 +121,11 @@ void LightCrafter3010::read_dmd_device_id(int& version)
     {
         version = 1800;
     }
+}
+
+void LightCrafter3010::set_camera_min_exposure(float min)
+{
+    camera_min_exposure_ = min;
 }
 
 void LightCrafter3010::enable_solid_field()
@@ -338,9 +346,9 @@ void LightCrafter3010::write_pattern_table(unsigned char* pattern_index, int len
     // Illumination Time = 11000us
     int illumination_time = camera_exposure - 1000;
   
-    if(camera_exposure< 6000)
+    if(camera_exposure< camera_min_exposure_)
     {
-        int low_val = 5000 - camera_exposure;
+        int low_val = (camera_min_exposure_ - 1000) - camera_exposure;
         pre_illumination_dark_time  += low_val;
         illumination_time = camera_exposure;
         LOG(INFO)<<"pre_illumination_dark_time: "<<pre_illumination_dark_time;
@@ -379,7 +387,7 @@ void LightCrafter3010::write_pattern_table(unsigned char* pattern_index, int len
     buffer[17] = dark_remainder_list[3]*16+dark_remainder_list[2];
     buffer[18] = dark_remainder_list[5]*16+dark_remainder_list[4];
     buffer[19] = dark_remainder_list[7]*16+dark_remainder_list[6];
-
+ 
 
     int pose_illumination_dark_time= 3000;
     std::vector<int> pose_dark_remainder_list;

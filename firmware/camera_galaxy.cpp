@@ -177,6 +177,15 @@ bool CameraGalaxy::openCamera()
 
         status = GXGetInt(hDevice_, GX_INT_WIDTH, &image_width_);
         status = GXGetInt(hDevice_, GX_INT_HEIGHT, &image_height_);
+
+        double max_frame = 0;
+        status = GXGetFloat(hDevice_, GX_FLOAT_ACQUISITION_FRAME_RATE, &max_frame);
+
+        LOG(INFO) << "max frame: " << max_frame;
+        min_camera_exposure_ = 1000000/((int)max_frame);
+        LOG(INFO) << "min_camera_exposure_: " << min_camera_exposure_;
+
+
     }
 
     return true;
@@ -299,9 +308,9 @@ bool CameraGalaxy::setExposure(double val)
     //     LOG(INFO) << "setExposure --";
     // }
 
-    if(val< 6000)
+    if(val< min_camera_exposure_)
     {
-        val = 6000;
+        val = min_camera_exposure_;
     }
 
     GX_STATUS status = GX_STATUS_SUCCESS;
