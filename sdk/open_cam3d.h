@@ -651,3 +651,10 @@ DF_SDK_API int DfSetParamReflectFilter(int use);
 //输出参数：use(开关：1开、0关)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetParamReflectFilter(int& use);
+
+//函数名： DfSetBoardInspect
+//功能： 设置标定板检测
+//输入参数：enable(开关) 
+//输出参数： 无
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfSetBoardInspect(bool enable);

@@ -3048,6 +3048,60 @@ DF_SDK_API int DfSetParamReflectFilter(int use)
 	close_socket(g_sock);
 	return DF_SUCCESS;
 }
+//函数名： DfSetBoardInspect
+//功能： 设置标定板检测
+//输入参数：enable(开关) 
+//输出参数： 无
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfSetBoardInspect(bool enable)
+{
+
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_SET_INSPECT_MODEL_FIND_BOARD, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (command == DF_CMD_OK)
+	{
+		int use = 1;
+
+		if (enable)
+		{
+			use = 1;
+		}
+		else
+		{
+			use = 0;
+		}
+
+		ret = send_buffer((char*)(&use), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
 
 //函数名： DfGetParamReflectFilter
 //功能： 设置点云平滑参数

@@ -26,7 +26,11 @@
 #include "scan3d.h"
 
 INITIALIZE_EASYLOGGINGPP
-#define OUTPUT_PIN     12       // BOARD pin 32, BCM pin 12
+#define INPUT_PIN           5           // BOARD pin 29, BCM pin 5
+#define OUTPUT1_PIN         6           // BOARD pin 31, BCM pin 6
+#define ACT_PIN             12          // BOARD pin 32, BCM pin 12
+#define OUTPUT2_PIN         13          // BOARD pin 33, BCM pin 13
+#define LED_CTL_PIN         19          // BOARD pin 35, BCM pin 19
 
 
 Scan3D scan3d_;
@@ -510,7 +514,67 @@ int handle_cmd_disconnect(int client_sock)
     return DF_SUCCESS;
 }
 
+bool inspect_board()
+{
+     
+    int brightness_buf_size = camera_width_*camera_height_*1;
+    unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
+
+    scan3d_.captureFrame04(); 
+    scan3d_.copyBrightnessData(brightness); 
+ 
+    std::vector<cv::Point2f> points;
+    cv::Mat img(camera_height_,camera_width_,CV_8U,brightness);
+
+    ConfigureStandardPlane plane_machine; 
+    bool found = plane_machine.findCircleBoardFeature(img,points);
+
+    delete []brightness;
+
+    GPIO::output(OUTPUT1_PIN, GPIO::HIGH);
+
+    if (found) {
+	    GPIO::output(OUTPUT2_PIN, GPIO::HIGH);
+    } else {
+	    GPIO::output(OUTPUT2_PIN, GPIO::LOW);
+    }
+
+    return found;
+}
+
+int handle_cmd_set_board_inspect(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;	
+    }
+ 
+    int use =1;
+
+    int ret = recv_buffer(client_sock, (char*)(&use), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+        LOG(INFO)<<"set board inspect: "<<use;
+    
+    if(1 == use)
+    {
+        //注册板检测中断函数
+        GPIO::add_event_detect(INPUT_PIN, GPIO::Edge::RISING, inspect_board, 1);
+        LOG(INFO)<<"Regist Interrupt Callback\n";
+    }
+    else
+    {
+        //注消板检测中断函数
+        GPIO::add_event_detect(INPUT_PIN, GPIO::Edge::RISING);
+        LOG(INFO)<<"Cancle Interrupt Callback\n";
+    }
+
+    return DF_SUCCESS;
+}
 
 int handle_cmd_set_auto_exposure_base_board(int client_sock)
 {
@@ -4437,7 +4501,7 @@ int handle_commands(int client_sock)
     }
 
     // set led indicator
-	GPIO::output(OUTPUT_PIN, GPIO::HIGH); 
+	GPIO::output(ACT_PIN, GPIO::HIGH); 
 
     switch(command)
     {
@@ -4763,6 +4827,11 @@ int handle_commands(int client_sock)
         LOG(INFO)<<"DF_CMD_GET_CAMERA_RESOLUTION"; 
         handle_cmd_get_param_camera_resolution(client_sock);
         break;
+    case DF_CMD_SET_INSPECT_MODEL_FIND_BOARD:
+        LOG(INFO)<<"DF_CMD_SET_INSPECT_MODEL_FIND_BOARD"; 
+        handle_cmd_set_board_inspect(client_sock);
+        break;
+        
 	default:
 	    LOG(INFO)<<"DF_CMD_UNKNOWN";
         handle_cmd_unknown(client_sock);
@@ -4770,7 +4839,7 @@ int handle_commands(int client_sock)
     }
 
     // close led indicator
-	GPIO::output(OUTPUT_PIN, GPIO::LOW); 
+	GPIO::output(ACT_PIN, GPIO::LOW); 
 
     close(client_sock);
     return DF_SUCCESS;
@@ -4779,10 +4848,13 @@ int handle_commands(int client_sock)
 int init()
 {  
     // init led indicator
-	GPIO::setmode(GPIO::BCM);                       // BCM mode
-	GPIO::setup(OUTPUT_PIN, GPIO::OUT, GPIO::LOW); // output pin, set to HIGH level
+	GPIO::setmode(GPIO::BCM);                           // BCM mode
+	GPIO::setup(INPUT_PIN, GPIO::IN);                   // inutput pin, set to HIGH level
+	GPIO::setup(OUTPUT1_PIN, GPIO::OUT, GPIO::LOW);     // output pin, set to LOW level
+ 	GPIO::setup(ACT_PIN, GPIO::OUT, GPIO::LOW);         // output pin, set to LOW level
+	GPIO::setup(OUTPUT2_PIN, GPIO::OUT, GPIO::LOW);     // output pin, set to LOW level
+	GPIO::setup(LED_CTL_PIN, GPIO::OUT, GPIO::LOW);     // output pin, set to LOW level
  
-
     scan3d_.init();
 
     scan3d_.getCameraResolution(camera_width_,camera_height_);

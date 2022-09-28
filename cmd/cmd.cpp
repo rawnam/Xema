@@ -128,6 +128,9 @@ open_cam3d.exe --get-repetition-phase-02 --count 3 --ip 192.168.x.x --path  ./ph
 34.Enable Focusing: \n\
 open_cam3d.exe --enable-focusing --ip 192.168.x.x \n\
 \n\
+35.Set Board Inspect: \n\
+open_cam3d.exe --set-board-inspect --switch enable --ip 192.168.x.x \n\
+\n\
 ";
 
 void help_with_version(const char* help);
@@ -176,6 +179,7 @@ int self_test(const char* ip);
 int get_projector_temperature(const char* ip);
 int get_repetition_phase_02(const char* ip, int count, const char* phase_image_dir);
 int configure_focusing(const char* ip);
+int set_board_inspect(const char* ip,bool enable);
 
 extern int optind, opterr, optopt;
 extern char* optarg;
@@ -225,7 +229,9 @@ enum opt_set
 	SELF_TEST,
 	GET_PROJECTOR_TEMPERATURE,
 	GET_REPETITION_PHASE_02,
-	ENABLE_FOCUSING
+	ENABLE_FOCUSING,
+	SWITCH,
+	SET_BOARD_INSPECT,
 };
 
 static struct option long_options[] =
@@ -237,6 +243,7 @@ static struct option long_options[] =
 	{"model", required_argument, NULL, MODEL},
 	{"exposure", required_argument, NULL, EXPOSURE},
 	{"offset", required_argument, NULL, OFFSET},
+	{"switch", required_argument, NULL, SWITCH},
 	{"get-temperature",no_argument,NULL,GET_TEMPERATURE},
 	{"get-calib-param",no_argument,NULL,GET_CALIB_PARAM},
 	{"set-calib-param",no_argument,NULL,SET_CALIB_PARAM},
@@ -274,16 +281,18 @@ static struct option long_options[] =
 	{"self-test",no_argument,NULL,SELF_TEST},
 	{"get-projector-temperature",no_argument,NULL,GET_PROJECTOR_TEMPERATURE},
 	{"enable-focusing",no_argument,NULL,ENABLE_FOCUSING},
+	{"set-board-inspect",no_argument,NULL,SET_BOARD_INSPECT},
 };
 
 
-const char* camera_id;
-const char* path;
-const char* repetition_count;
-const char* use_command;
-const char* c_model;
-const char* c_exposure;
-const char* c_offset;
+const char* camera_id = NULL;
+const char* path = NULL;
+const char* repetition_count = NULL;
+const char* use_command = NULL;
+const char* c_model = NULL;
+const char* c_exposure = NULL;
+const char* c_offset = NULL;
+const char* c_switch = NULL;
 int command = HELP;
 
 struct CameraCalibParam calibration_param_;
@@ -319,6 +328,9 @@ int main(int argc, char* argv[])
 			break;
 		case OFFSET:
 			c_offset = optarg;
+			break;
+		case SWITCH:
+			c_switch = optarg;
 			break;
 		case '?':
 			printf("unknow option:%c\n", optopt);
@@ -473,6 +485,19 @@ int main(int argc, char* argv[])
 		break;
 	case ENABLE_FOCUSING:
 		configure_focusing(camera_id);
+		break;
+	case SET_BOARD_INSPECT:
+	{
+		std::string switch_str(c_switch);
+		if ("enable" == switch_str)
+		{
+			set_board_inspect(camera_id,true);
+		}
+		else if ("disable" == switch_str)
+		{ 
+			set_board_inspect(camera_id, false);
+		}
+	}
 		break;
 	default:
 		break;
@@ -1808,6 +1833,24 @@ int get_temperature(const char* ip)
 
 	DfDisconnectNet();
 	return 1;
+}
+
+int set_board_inspect(const char* ip, bool enable)
+{
+
+	/*********************************************************************************************/
+	DfRegisterOnDropped(on_dropped);
+
+	int ret = DfConnectNet(ip);
+	if (ret == DF_FAILED)
+	{
+		return 0;
+	}
+ 
+	DfSetBoardInspect(enable);
+
+	DfDisconnectNet();
+
 }
 
 int configure_focusing(const char* ip)
