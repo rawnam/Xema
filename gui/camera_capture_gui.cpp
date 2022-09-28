@@ -154,8 +154,8 @@ bool CameraCaptureGui::initializeFunction()
 	/*******************************************************************************************************************/
 
 	connect(ui.spinBox_exposure_num, SIGNAL(valueChanged(int)), this, SLOT(do_spin_exposure_num_changed(int)));
-	connect(ui.spinBox_min_z, SIGNAL(valueChanged(int)), this, SLOT(do_spin_min_z_changed(int)));
-	connect(ui.spinBox_max_z, SIGNAL(valueChanged(int)), this, SLOT(do_spin_max_z_changed(int)));
+	connect(ui.doubleSpinBox_min_z, SIGNAL(valueChanged(double)), this, SLOT(do_spin_min_z_changed(double)));
+	connect(ui.doubleSpinBox_max_z, SIGNAL(valueChanged(double)), this, SLOT(do_spin_max_z_changed(double)));
 	connect(ui.doubleSpinBox_confidence, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_confidence(double)));
 	connect(ui.doubleSpinBox_fisher, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_fisher(double)));
 	connect(ui.doubleSpinBox_gain, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_gain(double)));
@@ -348,8 +348,8 @@ bool CameraCaptureGui::renderHeightImage(cv::Mat height)
 		return false;
 	}
 
-	int low_z = processing_gui_settings_data_.Instance().low_z_value;
-	int high_z = processing_gui_settings_data_.Instance().high_z_value;
+	float low_z = processing_gui_settings_data_.Instance().low_z_value;
+	float high_z = processing_gui_settings_data_.Instance().high_z_value;
 
 	FileIoFunction io_machine;
 
@@ -450,8 +450,8 @@ void CameraCaptureGui::undateSystemConfigUiData()
 
 void CameraCaptureGui::setUiData()
 {
-	ui.spinBox_min_z->setValue(processing_gui_settings_data_.Instance().low_z_value);
-	ui.spinBox_max_z->setValue(processing_gui_settings_data_.Instance().high_z_value);
+	ui.doubleSpinBox_min_z->setValue(processing_gui_settings_data_.Instance().low_z_value);
+	ui.doubleSpinBox_max_z->setValue(processing_gui_settings_data_.Instance().high_z_value);
 	ui.lineEdit_ip->setText(processing_gui_settings_data_.Instance().ip);
 	ui.spinBox_repetition_count->setValue(processing_gui_settings_data_.Instance().repetition_count);
 
@@ -534,7 +534,7 @@ void CameraCaptureGui::add_exposure_item(int row, int exposure, int led)
 
 }
 
-void CameraCaptureGui::do_spin_min_z_changed(int val)
+void CameraCaptureGui::do_spin_min_z_changed(double val)
 {
 	processing_gui_settings_data_.Instance().low_z_value = val;
 
@@ -655,7 +655,7 @@ void CameraCaptureGui::do_spin_led_current_changed(int val)
 	camera_setting_flag_ = false;
 }
 
-void CameraCaptureGui::do_spin_max_z_changed(int val)
+void CameraCaptureGui::do_spin_max_z_changed(double val)
 {
 
 	processing_gui_settings_data_.Instance().high_z_value = val;
@@ -1801,8 +1801,8 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 		renderHeightImage(height_map);
 		showImage();
 
-		ui.spinBox_min_z->setValue(-10);
-		ui.spinBox_max_z->setValue(10);
+		ui.doubleSpinBox_min_z->setValue(-10);
+		ui.doubleSpinBox_max_z->setValue(10);
 
 		for (int i = 0; i < 9; i++)
 		{
