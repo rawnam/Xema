@@ -35,7 +35,7 @@
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
-    <QtInstall>$(DefaultQtVersion)</QtInstall>
+    <QtInstall>msvc2017_64</QtInstall>
     <QtModules>core;gui;printsupport;widgets;xml</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
@@ -88,6 +88,9 @@ copy $(ProjectDir)..\3rdparty\opencv420\bin\opencv_features2d420.dll $(TargetDir
 copy $(ProjectDir)..\3rdparty\opencv420\bin\opencv_flann420.dll $(TargetDir)</Command>
     </PostBuildEvent>
     <ClCompile />
+    <ClCompile>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
@@ -122,7 +125,9 @@ copy $(ProjectDir)..\3rdparty\opencv420\bin\opencv_flann420.dll $(TargetDir)</Co
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\calibration\calibrate_function.cpp" />
+    <ClCompile Include="..\firmware\easylogging++.cc" />
     <ClCompile Include="..\firmware\system_config_settings.cpp" />
+    <ClCompile Include="..\sdk\socket_tcp.cpp" />
     <ClCompile Include="calibration_param_gui.cpp" />
     <ClCompile Include="camera_capture_gui.cpp" />
     <ClCompile Include="camera_gui.cpp" />
@@ -132,6 +137,8 @@ copy $(ProjectDir)..\3rdparty\opencv420\bin\opencv_flann420.dll $(TargetDir)</Co
     <ClCompile Include="PrecisionTest.cpp" />
     <ClCompile Include="select_calibration_board_gui.cpp" />
     <ClCompile Include="settings_file_function.cpp" />
+    <ClCompile Include="update_firmware_gui.cpp" />
+    <ClCompile Include="update_opencam3d.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="calibration_param_gui.ui" />
@@ -139,11 +146,16 @@ copy $(ProjectDir)..\3rdparty\opencv420\bin\opencv_flann420.dll $(TargetDir)</Co
     <QtUic Include="camera_gui.ui" />
     <QtUic Include="outlier_removal_gui.ui" />
     <QtUic Include="select_calibration_board_gui.ui" />
+    <QtUic Include="update_firmware_gui.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="camera_gui.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\firmware\easylogging++.h" />
+    <ClInclude Include="update_opencam3d.h" />
+    <ClInclude Include="x64\Release\uic\ui_update_firmware_gui.h" />
+    <QtMoc Include="update_firmware_gui.h" />
     <QtMoc Include="select_calibration_board_gui.h" />
     <QtMoc Include="calibration_param_gui.h" />
     <QtMoc Include="outlier_removal_gui.h" />

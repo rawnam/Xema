@@ -71,6 +71,12 @@ void CameraCaptureGui::setOnDrop(int (*p_function)(void*))
 	m_p_OnDropped_ = p_function;
 }
 
+
+void CameraCaptureGui::getCameraIp(QString& ip)
+{
+	ip = ui.lineEdit_ip->text();
+}
+
 void CameraCaptureGui::setCalibrationBoard(int flag)
 {
 

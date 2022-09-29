@@ -13,6 +13,7 @@
 #include "../firmware/version.h"
 #include "select_calibration_board_gui.h"
 #include "outlier_removal_gui.h"
+#include "update_firmware_gui.h"
 
 camera_gui::camera_gui(QWidget* parent)
 	: QMainWindow(parent)
@@ -22,7 +23,6 @@ camera_gui::camera_gui(QWidget* parent)
 	connect(ui.actionAbout, &QAction::triggered, []() {
 		QMessageBox::about(NULL, "About", _VERSION_);
 		});
-
 
 	default_config_path_ = "../camera_config.json";
 	last_config_path_ = "../dfx802_config.json";
@@ -38,6 +38,8 @@ camera_gui::camera_gui(QWidget* parent)
 	connect(ui.action_select_calibration_board, SIGNAL(triggered()), this, SLOT(do_action_select_calibration_board()));
 	connect(ui.action_outlier_removal, SIGNAL(triggered()), this, SLOT(do_action_outlier_removal_settings()));
 	connect(this, SIGNAL(send_network_drop()), this, SLOT(do_slot_handle_network()));
+
+	connect(ui.action_update_firmware, SIGNAL(triggered()), this, SLOT(do_action_update_firmware()));
 }
 
 camera_gui::~camera_gui()
@@ -153,9 +155,6 @@ void camera_gui::do_action_select_calibration_board()
 
 		ui.tab_capture->setCalibrationBoard(flag);
 	}
-
-
-
 }
 
 void camera_gui::do_action_show_calibration_param()
@@ -174,8 +173,19 @@ void camera_gui::do_action_show_calibration_param()
 	{
 		ui.tab_capture->addLogMessage(u8"请连接相机");
 	}
+}
 
+void camera_gui::do_action_update_firmware()
+{
+	UpdateFirmwareGui update_firmware_gui;
+	QString ip;
+	ui.tab_capture->getCameraIp(ip);
+	update_firmware_gui.setCameraIp(ip);
 
+	if (QDialog::Accepted == update_firmware_gui.exec())
+	{
+		qDebug() << "update firmware: ";
+	}
 }
 
 void camera_gui::do_action_exit()

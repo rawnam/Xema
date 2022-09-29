@@ -131,5 +131,14 @@
 #define DF_FAILED 1
 #define DF_UNKNOWN 2
 
+// ----------- update server -------------
+#define UPDATE_PORT 9090
+#define UPDATE_CLIENT 9091
+#define UPDATE_SERVER 9092
+
+#define DF_CMD_KILL_CAMERA_SERVER 14000001
+#define DF_CMD_GET_CAMERA_SERVER 14000002
+#define DF_CMD_CHMOD_CAMERA_SERVER 14000003
+#define DF_CMD_REBOOT_DEVICE 14000004
 
 #endif
