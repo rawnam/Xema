@@ -83,6 +83,7 @@ public:
 
 	void setCalibrationBoard(int flag);
 
+	void getCameraIp(QString& ip);
 private:
 	bool showImage();
 

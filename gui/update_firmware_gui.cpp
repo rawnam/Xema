@@ -22,6 +22,12 @@ UpdateFirmwareGui::~UpdateFirmwareGui()
 {
 }
 
+
+void UpdateFirmwareGui::setCameraIp(QString ip)
+{
+	camera_ip = ip;
+}
+
 void UpdateFirmwareGui::do_pushButton_select()
 {
 	fileName = QFileDialog::getOpenFileName(this, u8"固件升级", u8".", u8"camera_server");
@@ -40,9 +46,10 @@ void UpdateFirmwareGui::do_pushButton_update()
 	UpdateOnDropped(on_dropped);
 
 	char ip[50] = "192.168.4.193";
-	int ret = UpdateConnect(ip);
+	int ret = UpdateConnect(camera_ip.toStdString().c_str());
 	if (ret == DF_FAILED)
 	{
+		print_log(u8"Ip: "+ camera_ip);
 		print_log(u8"UpdateConnect failed");
 		return;
 	}

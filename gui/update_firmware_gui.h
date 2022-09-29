@@ -11,6 +11,8 @@ public:
 	UpdateFirmwareGui(QWidget* parent = Q_NULLPTR);
 	~UpdateFirmwareGui();
 
+	void setCameraIp(QString ip);
+
 
 private slots:
 	void do_pushButton_select();
@@ -21,4 +23,5 @@ private:
 	Ui::UpdateFirmwareGui ui;
 
 	QString fileName;
+	QString camera_ip;
 };

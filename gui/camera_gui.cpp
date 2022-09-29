@@ -178,6 +178,9 @@ void camera_gui::do_action_show_calibration_param()
 void camera_gui::do_action_update_firmware()
 {
 	UpdateFirmwareGui update_firmware_gui;
+	QString ip;
+	ui.tab_capture->getCameraIp(ip);
+	update_firmware_gui.setCameraIp(ip);
 
 	if (QDialog::Accepted == update_firmware_gui.exec())
 	{
