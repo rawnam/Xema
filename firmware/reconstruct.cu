@@ -10,7 +10,7 @@ __device__ int d_dlp_height_ = 0;
 __device__ float d_max_phase_ = 2* CV_PI; 
 
 __device__ float d_min_z_ = 10; 
-__device__ float d_max_z_ = 3000;
+__device__ float d_max_z_ = 4500;
 
 
  #define CHECK(call)\

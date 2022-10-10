@@ -4903,6 +4903,8 @@ int main()
     while(server_sock == DF_FAILED);
     std::cout<<"listening"<<std::endl;
     
+    lc3010.disable_solid_field();
+
     while(true)
     {
         int client_sock = accept_new_connection(server_sock);

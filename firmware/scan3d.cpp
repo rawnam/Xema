@@ -31,6 +31,12 @@ Scan3D::~Scan3D()
 
 bool Scan3D::init()
 {
+        //光机初始化
+    lc3010_.init();  
+    lc3010_.SetLedCurrent(255,255,255);
+    lc3010_.enable_solid_field();
+    LOG(INFO)<<"lc3010 init";
+
     //相机初始化
     camera_ = new CameraGalaxy(); 
     if(!camera_->openCamera())
@@ -72,11 +78,7 @@ bool Scan3D::init()
  
     /*****************************************************************************************/
     
-    //光机初始化
-    lc3010_.init();  
-    lc3010_.SetLedCurrent(1023,1023,1023);
 
-    LOG(INFO)<<"lc3010 init";
     lc3010_.read_dmd_device_id(camera_version_);
     
     if(!setCameraVersion(camera_version_))
