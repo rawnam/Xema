@@ -93,8 +93,8 @@ int main()
 	float* height_map_data = (float*)malloc(sizeof(float) * width * height);
 	memset(height_map_data, 0, sizeof(float) * width * height);
 
-	unsigned short* depth_data = (unsigned short*)malloc(sizeof(unsigned short) * width * height);
-	memset(depth_data, 0, sizeof(unsigned short) * width * height);
+	float* depth_data = (float*)malloc(sizeof(float) * width * height);
+	memset(depth_data, 0, sizeof(float) * width * height);
 
 	char* timestamp_data = (char*)malloc(sizeof(char) * 30);
 	memset(timestamp_data, 0, sizeof(char) * 30);
@@ -178,7 +178,7 @@ int main()
 			}
 
 			//获取深度图数据
-			ret_code = DfGetDepthData(depth_data);
+			ret_code = DfGetDepthDataFloat(depth_data);
 
 			if (0 == ret_code)
 			{

@@ -7,8 +7,8 @@ struct  GuiConfigDataStruct
 {
 	GuiConfigDataStruct();
 
-	int low_z_value;
-	int high_z_value;
+	float low_z_value;
+	float high_z_value;
 
 	QString ip;
 	bool use_hdr_model;

@@ -653,6 +653,41 @@ DF_SDK_API int DfGetDepthData(unsigned short* depth)
 	return 0;
 }
 
+//函数名： DfGetDepthDataFloat
+//功能： 获取深度图
+//输入参数：无
+//输出参数： depth(深度图)
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfGetDepthDataFloat(float* depth)
+{
+	if (!connected_flag_)
+	{
+		return -1;
+	}
+
+
+	LOG(INFO) << "Trans Depth:";
+	int point_num = camera_height_ * camera_width_;
+
+	int nr = camera_height_;
+	int nc = camera_width_;
+
+	#pragma omp parallel for
+	for (int r = 0; r < nr; r++)
+	{ 
+		for (int c = 0; c < nc; c++)
+		{
+			int offset = r * camera_width_ + c; 
+			depth[offset] = depth_buf_[offset]; 
+
+		} 
+
+	}
+
+	LOG(INFO) << "Get Depth!";
+
+	return 0;
+}
 
 //函数名： DfGetBrightnessData
 //功能： 采集点云数据并阻塞至返回结果
