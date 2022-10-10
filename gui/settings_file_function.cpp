@@ -26,8 +26,8 @@ bool GuiConfigDataStruct::loadFromSettings(const QString& f)
 	//{
 	QSettings settings(f, QSettings::IniFormat);
 
-	instance_.low_z_value = settings.value("low_z_value", 400.0).toInt();
-	instance_.high_z_value = settings.value("high_z_value", 600.0).toInt();
+	instance_.low_z_value = settings.value("low_z_value", 400.0).toFloat();
+	instance_.high_z_value = settings.value("high_z_value", 600.0).toFloat();
 	instance_.ip = settings.value("ip", "").toString();
 
 	return true;
@@ -224,12 +224,12 @@ bool SettingsFileFunction::loadProcessingSettingsFile(QString path)
 
 		if (gui_Obj.contains("low_z_value") && gui_Obj["low_z_value"].isDouble())
 		{
-			gui_config_.Instance().low_z_value = gui_Obj.value("low_z_value").toInt();
+			gui_config_.Instance().low_z_value = gui_Obj.value("low_z_value").toDouble();
 		}
 
 		if (gui_Obj.contains("high_z_value") && gui_Obj["high_z_value"].isDouble())
 		{
-			gui_config_.Instance().high_z_value = gui_Obj.value("high_z_value").toInt();
+			gui_config_.Instance().high_z_value = gui_Obj.value("high_z_value").toDouble();
 		}
 
 		if (gui_Obj.contains("ip") && gui_Obj["ip"].isString())

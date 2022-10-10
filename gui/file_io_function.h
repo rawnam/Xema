@@ -56,7 +56,7 @@ public:
 	int percentile(cv::Mat& image, int percent);
 
 	//Éî¶ÈÍ¼×ªz-mapÍ¼
-	bool depthToColor(cv::Mat depth_map, cv::Mat& color_map, cv::Mat& grey_map, int low_z, int high_z);
+	bool depthToColor(cv::Mat depth_map, cv::Mat& color_map, cv::Mat& grey_map, float low_z, float high_z);
 
 	bool cutDeepMapBaseZ(cv::Mat &deep_map,cv::Mat &mask, int low_z, int high_z);
 
