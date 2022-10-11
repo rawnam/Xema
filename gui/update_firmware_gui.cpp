@@ -1,4 +1,11 @@
-﻿#include <fstream>
+﻿#ifdef _WIN32  
+#include <windows.h>
+#elif __linux 
+#include <cstring>
+#include <stdio.h> 
+#define fopen_s(pFile,filename,mode) ((*(pFile))=fopen((filename),  (mode)))==NULL
+#endif 
+#include <fstream>
 #include <QMessageBox>
 #include <QLabel>
 #include <QFileDialog>
@@ -91,7 +98,11 @@ void UpdateFirmwareGui::do_pushButton_update()
 	char* pOrg = new char[file_size];
 
 	fseek(fw, 0, SEEK_SET);						// point to file head
+#ifdef _WIN32  
 	fread_s(pOrg, file_size, 1, file_size, fw);
+#elif __linux
+	fread(pOrg, file_size, file_size, fw);
+#endif 
 	fclose(fw);
 
 	ret = GetCameraServer(pOrg, file_size);

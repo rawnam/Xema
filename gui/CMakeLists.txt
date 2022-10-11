@@ -24,6 +24,8 @@ set(HEADERS
     calibration_param_gui.h
     select_calibration_board_gui.h
     outlier_removal_gui.h
+    update_firmware_gui.h
+    update_opencam3d.h
 )
 
 set(SOURCES 
@@ -33,6 +35,8 @@ set(SOURCES
     calibration_param_gui.cpp 
     select_calibration_board_gui.cpp
     outlier_removal_gui.cpp
+    update_firmware_gui.cpp
+    update_opencam3d.cpp
 )
 
 set(RESOURCES 
