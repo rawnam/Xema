@@ -351,12 +351,15 @@ DF_SDK_API int DfConnect(const char* camera_id)
 	conf.setGlobally(el::ConfigurationType::Format, "[%datetime{%H:%m:%s} | %level] %msg");
 
 #ifdef _WIN32 
-	conf.setGlobally(el::ConfigurationType::Filename, "log\\log_%datetime{%Y%M%d}.log");
+	//conf.setGlobally(el::ConfigurationType::Filename, "log\\log_%datetime{%Y%M%d}.log");
+	conf.setGlobally(el::ConfigurationType::Filename, "sdk_myeasylog.log");
 #elif __linux 
-	conf.setGlobally(el::ConfigurationType::Filename, "log/log_%datetime{%Y%M%d}.log");
+	//conf.setGlobally(el::ConfigurationType::Filename, "log/log_%datetime{%Y%M%d}.log");
+	conf.setGlobally(el::ConfigurationType::Filename, "sdk_myeasylog.log");
 #endif 
 	conf.setGlobally(el::ConfigurationType::Enabled, "true");
 	conf.setGlobally(el::ConfigurationType::ToFile, "true");
+	conf.setGlobally(el::ConfigurationType::MaxLogFileSize, "1073741824");//1024*1024*1024=1073741824
 	el::Loggers::reconfigureAllLoggers(conf);
 	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
 
@@ -660,6 +663,7 @@ DF_SDK_API int DfGetDepthData(unsigned short* depth)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetDepthDataFloat(float* depth)
 {
+	LOG(INFO) << "DfGetDepthDataFloat:";
 	if (!connected_flag_)
 	{
 		return -1;
