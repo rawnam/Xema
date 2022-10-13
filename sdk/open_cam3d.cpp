@@ -348,7 +348,7 @@ DF_SDK_API int DfConnect(const char* camera_id)
 	//关闭log输出
 	el::Configurations conf;
 	conf.setToDefault();
-	conf.setGlobally(el::ConfigurationType::Format, "[%datetime{%H:%m:%s} | %level] %msg");
+	//conf.setGlobally(el::ConfigurationType::Format, "[%datetime{%H:%m:%s} | %level] %msg");
 
 #ifdef _WIN32 
 	//conf.setGlobally(el::ConfigurationType::Filename, "log\\log_%datetime{%Y%M%d}.log");
