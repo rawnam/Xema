@@ -162,7 +162,13 @@ int recv_buffer(char* buffer, int buffer_size, SOCKET& sock)
 {
 	int size = 0;
 	int ret = recv(sock, (char*)&size, sizeof(size), 0);
-	assert(buffer_size >= size);
+	if (buffer_size < size)
+	{
+		LOG(ERROR) << "recv err buffer_size < size: ";
+		LOG(INFO) << "buffer_size: " << buffer_size;
+		LOG(INFO) << "size: " << size;
+	}
+	//assert(buffer_size >= size);
 	int n_recv = 0;
 	ret = DF_SUCCESS;
 
@@ -191,7 +197,13 @@ int recv_buffer(char* buffer, int buffer_size, SOCKET& sock)
 
 		if (buffer_size == 0)
 		{
-			assert(n_recv == size);
+			//assert(n_recv == size);
+			if (n_recv != size)
+			{
+				LOG(ERROR) << "recv err: n_recv != size ";
+				return DF_FAILED; 
+			}
+
 			return DF_SUCCESS;
 		}
 	}
