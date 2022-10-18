@@ -35,11 +35,10 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 
 
 
-	radio_button_flag_ = SELECT_BRIGHTNESS_FLAG_;
-	showImage();
 
-	setUiData();
+
 	initializeFunction();
+	setUiData();
 	undateSystemConfigUiData();
 
 	last_path_ = "../TestData";
@@ -52,13 +51,9 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 		bool res = dir.mkpath(path);
 	}
 
-	//ui.tableWidget_more_exposure->hide();
-	//ui.spinBox_exposure_num->hide();
-	//ui.label_exposure_num->hide();
-
-	//ui.radioButton_depth_grey->hide();
-
-
+  
+	radio_button_flag_ = SELECT_BRIGHTNESS_FLAG_;
+	showImage();
 }
 
 CameraCaptureGui::~CameraCaptureGui()
@@ -148,7 +143,7 @@ void CameraCaptureGui::setCalibrationBoard(int flag)
 		break;
 	}
 
-
+ 
 }
 
 
@@ -217,8 +212,7 @@ bool CameraCaptureGui::initializeFunction()
 	board_message_.cols = 7;
 	board_message_.width = 20;
 	board_message_.height = 10;
-	//board_size_.width = 20.0;
-	//board_size_.height = 10.0;
+ 
 
 	camera_version_ = 800;
 	/**********************************************************************************************************************/
@@ -1758,7 +1752,8 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 		bool found = calib_function.findCircleBoardFeature(brightness_map_, circle_points);
 
 		if (!found)
-		{
+		{ 
+			addLogMessage(u8"无法识别标定板！");
 			return;
 		}
 
@@ -1795,6 +1790,23 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 		cv::Mat t(3, 3, CV_64F, cv::Scalar(0));
 
 		precision_machine.svdIcp(pc1, pc2, r, t);
+
+		/******************************************************************************************/
+
+		std::vector<cv::Point3f> transform_points;
+
+		precision_machine.transformPoints(point_3d, transform_points, r, t);
+
+		double diff = precision_machine.computeTwoPointSetDistance(world_points, transform_points);
+		addLogMessage(u8"映射精度: "+QString::number(diff,'f',3));
+		if (diff > 10)
+		{
+			addLogMessage(u8"映射基准平面失败，请检查标定板型号！");
+			return;
+		}
+		/******************************************************************************************/
+
+
 		r.convertTo(r, CV_32F);
 		t.convertTo(t, CV_32F);
 		transformPointcloud((float*)points_map.data, (float*)points_map.data, (float*)r.data, (float*)t.data);
@@ -1830,7 +1842,7 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 				qDebug() << "Get Param Error;";
 				return;
 			}
-			QString str = u8"保存高度映射基准平面";
+			QString str = u8"保存高度映射基准平面参数";
 			addLogMessage(str);
 
 		}
@@ -1911,6 +1923,10 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 			render_image_brightness_ = color_img.clone();
 			showImage();
 		}
+		else
+		{
+			addLogMessage(u8"无法识别标定板！"); 
+		}
 
 
 		/*************************************************************************************/
@@ -1928,7 +1944,8 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 		bool found = calib_function.findCircleBoardFeature(undist_img, circle_points);
 
 		if (!found)
-		{
+		{  
+			addLogMessage(u8"无法识别标定板！"); 
 			return;
 		}
 		cv::Mat points_map(brightness_map_.size(), CV_32FC3, cv::Scalar(0., 0., 0.));
@@ -2005,7 +2022,8 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 		bool found = calib_function.findCircleBoardFeature(brightness_map_, circle_points);
 
 		if (!found)
-		{
+		{ 
+			addLogMessage(u8"无法识别标定板！"); 
 			return;
 		}
 
@@ -2059,6 +2077,13 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 
 		double diff = precision_machine.computeTwoPointSetDistance(world_points, transform_points);
 
+		addLogMessage(u8"标定精度: " + QString::number(diff, 'f', 3));
+
+		if (diff > 10)
+		{
+			addLogMessage(u8"请检查标定板型号！");
+		}
+
 		//addLogMessage(u8"平均点偏差: ") + QString::number(diff) +
 		//	u8" 距离: ") + QString::number(0));
 
@@ -2084,13 +2109,12 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 
 			//addLogMessage(u8"标定精度: " + QString::number(diff) +
 			//	u8"	距离: " + QString::number(dist));
-			addLogMessage(u8"标定精度: " + QString::number(diff, 'f', 3));
+			 
 		}
 		else
 		{
 			//addLogMessage(u8"标定精度: " + QString::number(diff) +
-			//	u8"	距离: " + QString::number(0));
-			addLogMessage(u8"标定精度: " + QString::number(diff, 'f', 3));
+			//	u8"	距离: " + QString::number(0)); 
 		}
 
 
@@ -2105,7 +2129,8 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 		bool found = calib_function.findCircleBoardFeature(undist_img, circle_points);
 
 		if (!found)
-		{
+		{ 
+			addLogMessage(u8"无法识别标定板！");
 			return;
 		}
 		cv::Mat points_map(brightness_map_.size(), CV_32FC3, cv::Scalar(0., 0., 0.));
