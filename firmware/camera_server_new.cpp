@@ -1,13 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/tcp.h>
 #include <iostream>
-#include <errno.h> 
 // #include "camera_dh.h"
 #include <cassert>
 #include "protocol.h"
@@ -24,6 +18,7 @@
 #include "configure_auto_exposure.h"
 #include <JetsonGPIO.h>
 #include "scan3d.h"
+#include "socket_tcp.h"
 
 INITIALIZE_EASYLOGGINGPP
 #define INPUT_PIN           5           // BOARD pin 29, BCM pin 5
@@ -159,23 +154,23 @@ bool set_camera_version(int version)
 
 int heartbeat_check()
 {
-    while(connected)
+    while (connected)
     {
-	std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-	time_t current_time;
-	time(&current_time);
+        time_t current_time;
+        time(&current_time);
 
-	mtx_last_time.lock();
-	double seconds = difftime(current_time, last_time);
-	mtx_last_time.unlock();
-	
-	if(seconds>30)
-	{
-	    LOG(INFO)<<"HeartBeat stopped!";
-	    connected = false;
+        mtx_last_time.lock();
+        double seconds = difftime(current_time, last_time);
+        mtx_last_time.unlock();
+
+        if (seconds > 30)
+        {
+            LOG(INFO) << "HeartBeat stopped!";
+            connected = false;
             current_token = 0;
-	}
+        }
     }
 
     return 0;
@@ -187,95 +182,6 @@ long long generate_token()
     return token;
 }
 
-int send_buffer(int sock, const char* buffer, int buffer_size)
-{
-   /* 
-  struct tcp_info info; 
-  int len=sizeof(info); 
-  getsockopt(sock, IPPROTO_TCP, TCP_INFO, &info, (socklen_t *)&len); 
-  if((info.tcpi_state==TCP_ESTABLISHED))
-  {
-         LOG(INFO)<<"ok";
-  }
-  else
-  {
-	 return DF_FAILED; 
-  }
-
-  */
-
- 
-	
-	
-    int size = 0;
-    int ret = send(sock, (char*)&buffer_size, sizeof(buffer_size), MSG_NOSIGNAL);
-    LOG(INFO)<<"send buffer_size ret="<<ret;
-    if (ret == -1)
-    {
-        return DF_FAILED;
-    }
-
-    int sent_size = 0;
-    ret = send(sock, buffer, buffer_size, MSG_NOSIGNAL);
-    LOG(INFO)<<"send buffer ret="<<ret;
-    if (ret == -1)
-    {
-        return DF_FAILED;
-    }
-    sent_size += ret;
-    while(sent_size != buffer_size)
-    {
-	buffer += ret;
-	LOG(INFO)<<"sent_size="<<sent_size;
-	ret = send(sock, buffer, buffer_size-sent_size, MSG_NOSIGNAL);
-        LOG(INFO)<<"ret="<<ret;
-        if (ret == -1)
-        {
-            return DF_FAILED;
-        }
-	sent_size += ret;
-    }
-
-    return DF_SUCCESS;
-}
-
-int recv_buffer(int sock, char* buffer, int buffer_size)
-{
-    int size = 0;
-    int ret = recv(sock, (char*)&size, sizeof(size), 0);
-    assert(buffer_size >= size);
-    int n_recv = 0;
-    ret = DF_SUCCESS;
-
-    while (ret != -1)
-    {
-        ret = recv(sock, buffer, buffer_size, 0);
-        //std::cout << "ret="<<ret << std::endl;
-        if (ret > 0)
-        {
-            buffer_size -= ret;
-            n_recv += ret;
-            buffer += ret;
-        }
-
-        if (buffer_size == 0)
-        {
-            assert(n_recv == size);
-            return DF_SUCCESS;
-        }
-    }
-    return DF_FAILED;
-}
-
-int send_command(int sock, int command)
-{
-    return send_buffer(sock, (const char*)&command, sizeof(int));
-}
-
-int recv_command(int sock, int* command)
-{
-    return recv_buffer(sock, (char*)command, sizeof(int));
-}
 
 float read_temperature(int flag)
 {
@@ -327,107 +233,46 @@ float read_temperature(int flag)
     return val;
 }
 
-int setup_socket(int port)
-{
-    int server_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if(server_sock<0)
-    {
-        perror("ERROR: socket()");
-        exit(0);
-    }
 
-    int flags = 3;
-    setsockopt(server_sock, SOL_TCP, TCP_KEEPIDLE, (void*)&flags, sizeof(flags));
-    flags = 3;
-    setsockopt(server_sock, SOL_TCP, TCP_KEEPCNT, (void*)&flags, sizeof(flags));
-    flags = 1;
-    setsockopt(server_sock, SOL_TCP, TCP_KEEPINTVL, (void*)&flags, sizeof(flags));
-
-
-    //将套接字和IP、端口绑定
-    struct sockaddr_in serv_addr;
-    memset(&serv_addr, 0, sizeof(serv_addr));  //每个字节都用0填充
-    serv_addr.sin_family = AF_INET;  //使用IPv4地址
-    serv_addr.sin_addr.s_addr = INADDR_ANY;  //具体的IP地址
-    serv_addr.sin_port = htons(port);  //端口
-    int ret = bind(server_sock, (struct sockaddr*)&serv_addr, sizeof(serv_addr));
-    if(ret==-1)
-    {
-        printf("bind ret=%d, %s\n", ret, strerror(errno));
-        close(server_sock);
-        return DF_FAILED;
-    }
-
-    //进入监听状态，等待用户发起请求
-    ret = listen(server_sock, 1);
-    if(ret == -1)
-    {
-        printf("listen ret=%d, %s\n", ret, strerror(errno));
-        close(server_sock);
-        return DF_FAILED;
-    }
-    return server_sock;
-}
-
-int accept_new_connection(int server_sock)
-{
-    //std::cout<<"listening"<<std::endl;
-    //接收客户端请求
-    struct sockaddr_in clnt_addr;
-    socklen_t clnt_addr_size = sizeof(clnt_addr);
-    int client_sock = accept(server_sock, (struct sockaddr*)&clnt_addr, &clnt_addr_size);
-
-    //print address
-    char buffer[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &clnt_addr.sin_addr, buffer, sizeof(buffer));
-
-    struct timeval timeout = {1,0};
-    int ret = setsockopt(client_sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));
-    ret = setsockopt(client_sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&timeout, sizeof(timeout));
-    //int flags = 1;
-    //setsockopt(client_sock, SOL_SOCKET, SO_KEEPALIVE, (void*)&flags, sizeof(flags));
-
-    //std::cout<<"accepted connection from "<<buffer<<std::endl;
-    
-    return client_sock;
-}
 
 int handle_cmd_connect(int client_sock)
 {
     int ret;
     if (connected)
     {
-	std::cout<<"new connection rejected"<<std::endl;
-	return send_command(client_sock, DF_CMD_REJECT);
+        LOG(INFO) << "new connection rejected" << std::endl;
+        return send_command(client_sock, DF_CMD_REJECT);
     }
     else
     {
         ret = send_command(client_sock, DF_CMD_OK);
-	if(ret == DF_FAILED)
-	{
-	    return DF_FAILED;
-	}
-	long long token = generate_token();
-	ret = send_buffer(client_sock, (char*)&token, sizeof(token));
-	if(ret == DF_FAILED)
-	{
-	    return DF_FAILED;
-	}
-	connected = true;
-	current_token = token;
-	
-	mtx_last_time.lock();
-	time(&last_time);
-	mtx_last_time.unlock();
+        if (ret == DF_FAILED)
+        {
+          
+            LOG(INFO) << "send_command FAILED" ;
+            return DF_FAILED;
+        }
+        long long token = generate_token();
+        ret = send_buffer(client_sock, (char *)&token, sizeof(token));
+        if (ret == DF_FAILED)
+        {
+            return DF_FAILED;
+        }
+        connected = true;
+        current_token = token;
 
-	if(heartbeat_thread.joinable())
-	{
-	    heartbeat_thread.join();
-	}
-	heartbeat_thread = std::thread(heartbeat_check);
+        mtx_last_time.lock();
+        time(&last_time);
+        mtx_last_time.unlock();
 
-	//std::cout<<"connection established, current token is: "<<current_token<<std::endl;
-	return DF_SUCCESS;
+        if (heartbeat_thread.joinable())
+        {
+            heartbeat_thread.join();
+        }
+        heartbeat_thread = std::thread(heartbeat_check);
+
+        LOG(INFO)<<"connection established, current token is: "<<current_token;
+        return DF_SUCCESS;
     }
 }
 
@@ -444,15 +289,31 @@ int handle_cmd_unknown(int client_sock)
 
     if(token == current_token)
     {
-	//std::cout<<"ok"<<std::endl;
         ret = send_command(client_sock, DF_CMD_UNKNOWN);
-        return DF_SUCCESS;
+
+        if (ret == DF_FAILED)
+        {
+            LOG(INFO) << "send_command FAILED";
+            return DF_FAILED;
+        }
+        else
+        {
+            return DF_SUCCESS;
+        }
     }
     else
     {
-        std::cout<<"reject"<<std::endl;
+        LOG(INFO)<<"reject"<<std::endl;
         ret = send_command(client_sock, DF_CMD_REJECT);
-        return DF_FAILED;
+        if (ret == DF_FAILED)
+        {
+            LOG(INFO) << "send_command FAILED" ;
+            return DF_FAILED;
+        }
+        else
+        {
+            return DF_SUCCESS;
+        }
     }
 }
 
@@ -468,48 +329,60 @@ int check_token(int client_sock)
     }
 
     if(token == current_token)
-    {
-	//std::cout<<"ok"<<std::endl;
+    { 
 	ret = send_command(client_sock, DF_CMD_OK);
-	return DF_SUCCESS;
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send_command FAILED";
+         return DF_FAILED;
+    }
+    return DF_SUCCESS;
     }
     else
     {
-	std::cout<<"reject"<<std::endl;
+	LOG(INFO)<<"reject"<<std::endl;
 	ret = send_command(client_sock, DF_CMD_REJECT);
-	return DF_FAILED;
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send_command FAILED";
+         return DF_FAILED;
+    }
+    return DF_FAILED;
     }
 }
 
 int handle_cmd_disconnect(int client_sock)
 {
-    std::cout<<"handle_cmd_disconnect"<<std::endl;
+    LOG(INFO) << "handle_cmd_disconnect";
     long long token = 0;
-    int ret = recv_buffer(client_sock, (char*)&token, sizeof(token));
-    std::cout<<"token "<<token<<" trying to disconnect"<<std::endl;
-    if(ret == DF_FAILED)
+    int ret = recv_buffer(client_sock, (char *)&token, sizeof(token));
+    LOG(INFO) << "token " << token << " trying to disconnect" ;
+    if (ret == DF_FAILED)
     {
-	return DF_FAILED;
+        return DF_FAILED;
     }
-    if(token == current_token)
+    if (token == current_token)
     {
-	connected = false;
-	current_token = 0;
-	std::cout<<"client token="<<token<<" disconnected"<<std::endl;
-	ret = send_command(client_sock, DF_CMD_OK);
-	if(ret == DF_FAILED)
-	{
-	    return DF_FAILED;
-	}
+        connected = false;
+        current_token = 0;
+        LOG(INFO) << "client token=" << token << " disconnected";
+        ret = send_command(client_sock, DF_CMD_OK);
+        if (ret == DF_FAILED)
+        {
+            LOG(INFO)<<"send_command FAILED";
+            return DF_FAILED;
+        }
     }
     else
     {
-	std::cout<<"disconnect rejected"<<std::endl;
-	ret = send_command(client_sock, DF_CMD_REJECT);
-	if(ret == DF_FAILED)
-	{
-	    return DF_FAILED;
-	}
+        LOG(INFO)<< "disconnect rejected" << std::endl;
+        ret = send_command(client_sock, DF_CMD_REJECT);
+        if (ret == DF_FAILED)
+        {
+            LOG(INFO) << "send_command FAILED";
+        }
+
+        return DF_FAILED;
     }
     return DF_SUCCESS;
 }
@@ -1487,7 +1360,7 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
 
     LOG(INFO) << "Send Frame04";
 
-    float temperature = read_temperature(0);
+    float temperature = lc3010.get_projector_temperature();
 
     LOG(INFO) << "temperature: " << temperature << " deg";
 
@@ -1511,201 +1384,7 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
 
 
 /********************************************************************************************************************/
-
-/*******************************************************************************************************************/
-
-// int handle_cmd_get_frame_04_hdr_parallel(int client_sock)
-// {
-//     if(check_token(client_sock) == DF_FAILED)
-//     {
-//         return DF_FAILED;	
-//     }
-
-//     LOG(INFO)<<"HDR Exposure:"; 
-  
-//     std::vector<int> led_current_list; 
-//     for(int i= 0;i< system_config_settings_machine_.Instance().config_param_.exposure_num;i++)
-//     {
-//         led_current_list.push_back(system_config_settings_machine_.Instance().config_param_.exposure_param[i]);
-//     }
-
-//     int depth_buf_size = camera_width_*camera_height_*4;  
-//     int brightness_buf_size = camera_width_*camera_height_*1;
-
-//     float* depth_map = new float[depth_buf_size]; 
-//     unsigned char* brightness = new unsigned char[brightness_buf_size];
-
  
-
-// //    std::sort(led_current_list.begin(),led_current_list.end(),std::greater<int>());
-//     //关闭额外拍摄亮度图
-//     camera.setGenerateBrightnessParam(1,generate_brightness_exposure_time);
-//     for(int i= 0;i< led_current_list.size();i++)
-//     {
-//         int led_current = led_current_list[i];
-//         lc3010.SetLedCurrent(led_current,led_current,led_current);	
-        
-//         std::cout << "set led: " << led_current << std::endl;
-
-//         lc3010.pattern_mode04();
-    
-//         camera.captureFrame04ToGpu();   
-//         parallel_cuda_copy_result_to_hdr(i,18); 
-//     }
-
-    
-//     camera.setGenerateBrightnessParam(generate_brightness_model,generate_brightness_exposure_time);
-//     lc3010.SetLedCurrent(brightness_current,brightness_current,brightness_current);
- 
-// 	cudaDeviceSynchronize();
-//     parallel_cuda_merge_hdr_data(led_current_list.size(), depth_map, brightness); 
-
-//     /************************************************************************************/
-
-//     if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
-//     { 
-//         cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
-//         cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
-//         cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
-//         memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
-//         LOG(INFO) << "Bilateral";
-//     }
-
-//     /******************************************************************************/
-//     //send data
-//     printf("start send depth, buffer_size=%d\n", depth_buf_size);
-//     int ret = send_buffer(client_sock, (const char*)depth_map, depth_buf_size);
-//     printf("depth ret=%d\n", ret);
-
-//     if(ret == DF_FAILED)
-//     {
-//         printf("send error, close this connection!\n");
-//         delete[] depth_map;
-//         delete[] brightness;
-
-//         return DF_FAILED;
-//     }
-    
-//     printf("start send brightness, buffer_size=%d\n", brightness_buf_size);
-//     ret = send_buffer(client_sock, (const char*)brightness, brightness_buf_size);
-//     printf("brightness ret=%d\n", ret);
-
-//     LOG(INFO)<<"Send Frame03";
-
-//     float temperature = read_temperature(0);
-    
-//     LOG(INFO)<<"temperature: "<<temperature<<" deg";
-
-//     if(ret == DF_FAILED)
-//     {
-//         printf("send error, close this connection!\n");
-        
-// 	delete [] depth_map;
-// 	delete [] brightness;
-	
-// 	return DF_FAILED;
-//     }
-//     printf("frame sent!\n");
-    
-//     delete [] depth_map;
-//     delete [] brightness;
-    
-
-
-//     return DF_SUCCESS;
-
-// }
-
-
-/********************************************************************************************************************/
-// int handle_cmd_get_frame_03_hdr_parallel(int client_sock)
-// {
-//     if(check_token(client_sock) == DF_FAILED)
-//     {
-//         return DF_FAILED;	
-//     }
-
-//     LOG(INFO)<<"HDR Exposure:"; 
-  
-//     std::vector<int> led_current_list; 
-//     for(int i= 0;i< system_config_settings_machine_.Instance().config_param_.exposure_num;i++)
-//     {
-//         led_current_list.push_back(system_config_settings_machine_.Instance().config_param_.exposure_param[i]);
-//     }
-
-//     int depth_buf_size = camera_width_*camera_height_*4;  
-//     int brightness_buf_size = camera_width_*camera_height_*1;
-
-//     float* depth_map = new float[depth_buf_size]; 
-//     unsigned char* brightness = new unsigned char[brightness_buf_size];
-
-
-//    std::sort(led_current_list.begin(),led_current_list.end(),std::greater<int>());
-
-//     for(int i= 0;i< led_current_list.size();i++)
-//     {
-//         int led_current = led_current_list[i];
-//         lc3010.SetLedCurrent(led_current,led_current,led_current);	
-        
-//         std::cout << "set led: " << led_current << std::endl;
-
-//         lc3010.pattern_mode03();
-    
-//         camera.captureFrame03ToGpu();   
-//         parallel_cuda_copy_result_to_hdr(i,30); 
-//     }
-
-    
-//     lc3010.SetLedCurrent(brightness_current,brightness_current,brightness_current);
- 
-// 	cudaDeviceSynchronize();
-//     parallel_cuda_merge_hdr_data(led_current_list.size(), depth_map, brightness); 
-
-    
-//     /******************************************************************************/
-//     //send data
-//     printf("start send depth, buffer_size=%d\n", depth_buf_size);
-//     int ret = send_buffer(client_sock, (const char*)depth_map, depth_buf_size);
-//     printf("depth ret=%d\n", ret);
-
-//     if(ret == DF_FAILED)
-//     {
-//         printf("send error, close this connection!\n");
-//         delete[] depth_map;
-//         delete[] brightness;
-
-//         return DF_FAILED;
-//     }
-    
-//     printf("start send brightness, buffer_size=%d\n", brightness_buf_size);
-//     ret = send_buffer(client_sock, (const char*)brightness, brightness_buf_size);
-//     printf("brightness ret=%d\n", ret);
-
-//     LOG(INFO)<<"Send Frame03";
-
-//     float temperature = read_temperature(0);
-    
-//     LOG(INFO)<<"temperature: "<<temperature<<" deg";
-
-//     if(ret == DF_FAILED)
-//     {
-//         printf("send error, close this connection!\n");
-        
-// 	delete [] depth_map;
-// 	delete [] brightness;
-	
-// 	return DF_FAILED;
-//     }
-//     printf("frame sent!\n");
-    
-//     delete [] depth_map;
-//     delete [] brightness;
-    
-
-
-//     return DF_SUCCESS;
-
-// }
 
 int handle_cmd_get_phase_02_repetition_02_parallel(int client_sock)
 {
@@ -1785,7 +1464,7 @@ int handle_cmd_get_phase_02_repetition_02_parallel(int client_sock)
 
     LOG(INFO) << "Send Phase 02";
 
-    float temperature = read_temperature(0); 
+    float temperature = lc3010.get_projector_temperature();
     LOG(INFO) << "temperature: " << temperature << " deg";
 
     if (ret == DF_FAILED)
@@ -1885,7 +1564,7 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
 
     LOG(INFO) << "Send Frame04";
 
-    float temperature = read_temperature(0);
+    float temperature = lc3010.get_projector_temperature();
 
     LOG(INFO) << "temperature: " << temperature << " deg";
 
@@ -1991,7 +1670,7 @@ int handle_cmd_get_frame_04_repetition_01_parallel(int client_sock)
 
     LOG(INFO) << "Send Frame04";
 
-    float temperature = read_temperature(0);
+    float temperature = lc3010.get_projector_temperature();
 
     LOG(INFO) << "temperature: " << temperature << " deg";
 
@@ -2013,94 +1692,7 @@ int handle_cmd_get_frame_04_repetition_01_parallel(int client_sock)
  
 }
 
-
-
-// int handle_cmd_get_frame_03_repetition_parallel(int client_sock)
-// {
-//     /**************************************************************************************/
-
-//     if(check_token(client_sock) == DF_FAILED)
-//     {
-// 	return DF_FAILED;
-//     }
-	
-    
-//     int repetition_count = 1;
-
-//     int ret = recv_buffer(client_sock, (char*)(&repetition_count), sizeof(int));
-//     if(ret == DF_FAILED)
-//     {
-//         LOG(INFO)<<"send error, close this connection!\n";
-//     	return DF_FAILED;
-//     }
-//     LOG(INFO)<<"repetition_count: "<<repetition_count<<"\n";
-//     /***************************************************************************************/
-
-
-//     int depth_buf_size = camera_width_*camera_height_*4;
-//     float* depth_map = new float[depth_buf_size];
-
-//     int brightness_buf_size = camera_width_*camera_height_*1;
-//     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
-
-//     if(repetition_count< 1)
-//     {
-//       repetition_count = 1;
-//     }
-    
-//     if(repetition_count> 10)
-//     {
-//       repetition_count = 10;
-//     }
-
-//     lc3010.pattern_mode03_repetition(repetition_count); 
-//     camera.captureFrame03RepetitionToGpu(repetition_count);
-  
-//     ret= parallel_cuda_copy_result_from_gpu((float*)depth_map,brightness);
-
-    
-//     printf("start send depth, buffer_size=%d\n", depth_buf_size);
-//     ret = send_buffer(client_sock, (const char*)depth_map, depth_buf_size);
-//     printf("depth ret=%d\n", ret);
-
-//     if(ret == DF_FAILED)
-//     {
-//         printf("send error, close this connection!\n");
-// 	// delete [] buffer;
-// 	delete [] depth_map;
-// 	delete [] brightness;
-	
-// 	return DF_FAILED;
-//     }
-    
-//     printf("start send brightness, buffer_size=%d\n", brightness_buf_size);
-//     ret = send_buffer(client_sock, (const char*)brightness, brightness_buf_size);
-//     printf("brightness ret=%d\n", ret);
-
-//     LOG(INFO)<<"Send Frame03 Repetition";
-
-//     float temperature = read_temperature(0);
-    
-//     LOG(INFO)<<"temperature: "<<temperature<<" deg";
-
-//     if(ret == DF_FAILED)
-//     {
-//         printf("send error, close this connection!\n");
-// 	// delete [] buffer;
-// 	delete [] depth_map;
-// 	delete [] brightness;
-	
-// 	return DF_FAILED;
-//     }
-//     printf("frame sent!\n");
-//     // delete [] buffer;
-//     delete [] depth_map;
-//     delete [] brightness;
-//     return DF_SUCCESS;
-    
-
-// }
-
+ 
 
 int handle_cmd_get_standard_plane_param_parallel(int client_sock)
 {
@@ -2186,8 +1778,7 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
  
 
-    LOG(INFO)<<"captureFrame04";
-    //scan3d_.captureFrame04();
+    LOG(INFO)<<"captureFrame04"; 
     scan3d_.captureFrame04BaseConfidence();
     scan3d_.removeOutlierBaseRadiusFilter();
      
@@ -2228,7 +1819,7 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
 
     LOG(INFO) << "Send Frame04";
 
-    float temperature = read_temperature(0);
+    float temperature = lc3010.get_projector_temperature();
 
     LOG(INFO) << "temperature: " << temperature << " deg";
 
@@ -2304,7 +1895,7 @@ int handle_cmd_get_frame_05_parallel(int client_sock)
 
     LOG(INFO) << "Send Frame04";
 
-    float temperature = read_temperature(0);
+    float temperature = lc3010.get_projector_temperature();
 
     LOG(INFO) << "temperature: " << temperature << " deg";
 
@@ -2381,7 +1972,7 @@ int handle_cmd_get_frame_03_parallel(int client_sock)
 
     LOG(INFO) << "Send Frame03";
 
-    float temperature = read_temperature(0);
+    float temperature = lc3010.get_projector_temperature();
 
     LOG(INFO) << "temperature: " << temperature << " deg";
 
@@ -2402,76 +1993,7 @@ int handle_cmd_get_frame_03_parallel(int client_sock)
     
 
 }
-   
-// int handle_cmd_get_frame_03(int client_sock)
-// {
-//     lc3010.pattern_mode03();
-
-//     if(check_token(client_sock) == DF_FAILED)
-//     {
-//         return DF_FAILED;	
-//     }
-
-
-//     int image_count = 31;
-
-//     int buffer_size = camera_width_*camera_height_*image_count;
-//     char* buffer = new char[buffer_size];
-//     camera.captureRawTest(image_count,buffer);
-//     std::vector<unsigned char*> patterns_ptr_list;
-//     for(int i=0; i<image_count; i++)
-//     {
-// 	patterns_ptr_list.push_back(((unsigned char*)(buffer+i*camera_width_*camera_height_)));
-//     }
-
-//     int depth_buf_size = camera_width_*camera_height_*4;
-//     float* depth_map = new float[depth_buf_size];
-
-//     int brightness_buf_size = camera_width_*camera_height_*1;
-//     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
-
-//     int ret= cuda_get_frame_03(patterns_ptr_list, (float*)depth_map,brightness);
-
-//     printf("start send depth, buffer_size=%d\n", depth_buf_size);
-//     ret = send_buffer(client_sock, (const char*)depth_map, depth_buf_size);
-//     printf("depth ret=%d\n", ret);
-
-//     if(ret == DF_FAILED)
-//     {
-//         printf("send error, close this connection!\n");
-// 	delete [] buffer;
-// 	delete [] depth_map;
-// 	delete [] brightness;
-	
-// 	return DF_FAILED;
-//     }
     
-//     printf("start send brightness, buffer_size=%d\n", brightness_buf_size);
-//     ret = send_buffer(client_sock, (const char*)brightness, brightness_buf_size);
-//     printf("brightness ret=%d\n", ret);
-
-//     LOG(INFO)<<"Send Frame03";
-
-//     float temperature = read_temperature(0);
-    
-//     LOG(INFO)<<"temperature: "<<temperature<<" deg";
-
-//     if(ret == DF_FAILED)
-//     {
-//         printf("send error, close this connection!\n");
-// 	delete [] buffer;
-// 	delete [] depth_map;
-// 	delete [] brightness;
-	
-// 	return DF_FAILED;
-//     }
-//     printf("frame sent!\n");
-//     delete [] buffer;
-//     delete [] depth_map;
-//     delete [] brightness;
-//     return DF_SUCCESS;
-// }
-
 
 
 int handle_cmd_test_get_frame_01(int client_sock)
@@ -2552,7 +2074,7 @@ int handle_cmd_test_get_frame_01(int client_sock)
 
     LOG(INFO) << "Send Frame01";
 
-    float temperature = read_temperature(0);
+    float temperature = lc3010.get_projector_temperature();
 
     LOG(INFO) << "temperature: " << temperature << " deg";
 
@@ -2629,7 +2151,7 @@ int handle_cmd_get_frame_01(int client_sock)
 
     LOG(INFO) << "Send Frame01";
 
-    float temperature = read_temperature(0);
+    float temperature = lc3010.get_projector_temperature();
 
     LOG(INFO) << "temperature: " << temperature << " deg";
 
@@ -2699,21 +2221,19 @@ int handle_heartbeat(int client_sock)
     
 int handle_get_temperature(int client_sock)
 {
-    if(check_token(client_sock) == DF_FAILED)
+    if (check_token(client_sock) == DF_FAILED)
     {
-	return DF_FAILED;
+        return DF_FAILED;
     }
-    // float temperature = lc3010.get_temperature();
     float temperature = read_temperature(0);
-    LOG(INFO)<<"temperature:"<<temperature;
-    int ret = send_buffer(client_sock, (char*)(&temperature), sizeof(temperature));
-    if(ret == DF_FAILED)
+    LOG(INFO) << "temperature:" << temperature;
+    int ret = send_buffer(client_sock, (char *)(&temperature), sizeof(temperature));
+    if (ret == DF_FAILED)
     {
-        LOG(INFO)<<"send error, close this connection!\n";
-	return DF_FAILED;
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
     }
     return DF_SUCCESS;
-
 }
     
 int read_calib_param()
@@ -2918,66 +2438,7 @@ int handle_cmd_get_param_camera_exposure(int client_sock)
     return DF_SUCCESS;
   
 }
-
-//设置补偿参数
-int handle_cmd_set_param_offset(int client_sock)
-{
-    // if(check_token(client_sock) == DF_FAILED)
-    // {
-	//     return DF_FAILED;
-    // }
-	  
-
-    // float offset = 0;
-
-    // int ret = recv_buffer(client_sock, (char*)(&offset), sizeof(float));
-    // if(ret == DF_FAILED)
-    // {
-    //     LOG(INFO)<<"send error, close this connection!\n";
-    // 	return DF_FAILED;
-    // }
  
-
-    // if(offset>= 0)
-    // {    
-    //     camera.setOffsetParam(offset);
-    //     LOG(INFO)<<"Set Offset: "<<offset<<"\n";
-    // }
-    // else
-    // {
-    //     LOG(INFO)<<"Set Camera Exposure Time Error!"<<"\n";
-    // }
- 
-  
-    // return DF_SUCCESS;
-
-    return DF_FAILED;
-}
-
-
-//获取补偿参数
-int handle_cmd_get_param_offset(int client_sock)
-{
-    // if(check_token(client_sock) == DF_FAILED)
-    // {
-	//     return DF_FAILED;
-    // }
-	
-    // float offset = 0;
- 
-    // camera.getOffsetParam(offset);
-
-    // int ret = send_buffer(client_sock, (char*)(&offset), sizeof(float));
-    // if(ret == DF_FAILED)
-    // {
-    //     LOG(INFO)<<"send error, close this connection!\n";
-	//     return DF_FAILED;
-    // } 
-  
-    // return DF_SUCCESS;
-    return DF_FAILED;
-}
-
 
 //设置相机增益参数
 int handle_cmd_set_param_camera_gain(int client_sock)
@@ -3784,16 +3245,7 @@ int handle_set_camera_looktable(int client_sock)
     }
     LOG(INFO) << "recv pattern_minimapping\n";
 
-    // cv::Mat R1_t = rectify_R1.t();
-
-    // LOG(INFO) << "start copy table:";
-    // reconstruct_copy_talbe_to_cuda_memory((float *)pattern_mapping.data, (float *)xL_rotate_x.data, (float *)xL_rotate_y.data, (float *)R1_t.data);
-    // LOG(INFO) << "copy finished!";
-
-    // float b = sqrt(pow(param.translation_matrix[0], 2) + pow(param.translation_matrix[1], 2) + pow(param.translation_matrix[2], 2));
-    // reconstruct_set_baseline(b);
-
-    // LOG(INFO) << "copy looktable\n";
+ 
 
     write_calib_param();
 
@@ -3950,7 +3402,7 @@ int handle_enable_checkerboard(int client_sock)
     LOG(INFO)<<"enable checkerboard!";
     config_checkerboard(true);
 
-    float temperature = read_temperature(1);
+    float temperature = lc3010.get_projector_temperature();
     int ret = send_buffer(client_sock, (char*)(&temperature), sizeof(temperature));
     if(ret == DF_FAILED)
     {
@@ -3971,7 +3423,7 @@ int handle_disable_checkerboard(int client_sock)
     LOG(INFO)<<"disable checkerboard!";
     config_checkerboard(false);
 
-    float temperature = read_temperature(2);
+    float temperature = lc3010.get_projector_temperature();
     int ret = send_buffer(client_sock, (char*)(&temperature), sizeof(temperature));
     if(ret == DF_FAILED)
     {
@@ -4560,8 +4012,7 @@ int handle_commands(int client_sock)
             }
   
             scan3d_.setParamHdr(system_config_settings_machine_.Instance().config_param_.exposure_num,led_list,exposure_list);
-
-            // handle_cmd_get_frame_04_hdr_parallel(client_sock);
+ 
             handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(client_sock);
         }
         else if (2 == system_config_settings_machine_.Instance().firwmare_param_.hdr_model)
@@ -4584,10 +4035,6 @@ int handle_commands(int client_sock)
 	    LOG(INFO)<<"DF_CMD_GET_FRAME_03";   
     	handle_cmd_get_frame_03_parallel(client_sock); 
 	    break;
-	// case DF_CMD_GET_REPETITION_FRAME_03:
-	//     LOG(INFO)<<"DF_CMD_GET_REPETITION_FRAME_03";   
-    //     handle_cmd_get_frame_03_repetition_parallel(client_sock);
-	//     break; 
     case DF_CMD_GET_REPETITION_FRAME_04:
 	    LOG(INFO)<<"DF_CMD_GET_REPETITION_FRAME_04";   
         handle_cmd_get_frame_04_repetition_02_parallel(client_sock);
@@ -4620,34 +4067,16 @@ int handle_commands(int client_sock)
 	    LOG(INFO)<<"DF_CMD_SET_CAMERA_PARAMETERS";
 	    handle_set_camera_parameters(client_sock);
         read_calib_param();
-            // cuda_copy_calib_data(param.camera_intrinsic, 
-		    //      param.projector_intrinsic, 
-			//  param.camera_distortion,
-	        //          param.projector_distortion, 
-			//  param.rotation_matrix, 
-			//  param.translation_matrix);
 	    break;
 	case DF_CMD_SET_CAMERA_LOOKTABLE:
 	    LOG(INFO)<<"DF_CMD_SET_CAMERA_LOOKTABLE";
 	    handle_set_camera_looktable(client_sock);
         read_calib_param();
-        // cuda_copy_calib_data(param.camera_intrinsic, 
-		//          param.projector_intrinsic, 
-		// 	 param.camera_distortion,
-	    //              param.projector_distortion, 
-		// 	 param.rotation_matrix, 
-		// 	 param.translation_matrix);
 	    break;
 	case DF_CMD_SET_CAMERA_MINILOOKTABLE:
 	    LOG(INFO)<<"DF_CMD_SET_CAMERA_MINILOOKTABLE";
 	    handle_set_camera_minilooktable(client_sock);
         read_calib_param();
-        // cuda_copy_calib_data(param.camera_intrinsic, 
-		//          param.projector_intrinsic, 
-		// 	 param.camera_distortion,
-	    //              param.projector_distortion, 
-		// 	 param.rotation_matrix, 
-		// 	 param.translation_matrix);
 	    break;
 	case DF_CMD_ENABLE_CHECKER_BOARD:
 	    LOG(INFO)<<"DF_CMD_ENABLE_CHECKER_BOARD";
@@ -4855,7 +4284,10 @@ int init()
 	GPIO::setup(OUTPUT2_PIN, GPIO::OUT, GPIO::LOW);     // output pin, set to LOW level
 	GPIO::setup(LED_CTL_PIN, GPIO::OUT, GPIO::LOW);     // output pin, set to LOW level
  
-    scan3d_.init();
+    if(!scan3d_.init())
+    {
+        return DF_FAILED;
+    }
 
     scan3d_.getCameraResolution(camera_width_,camera_height_);
     //set default param 
@@ -4891,7 +4323,14 @@ int init()
 int main()
 {
     LOG(INFO)<<"server started";
-    init();
+    int ret = init();
+    if(DF_SUCCESS!= ret)
+    {
+        
+        lc3010.disable_solid_field();
+        LOG(INFO)<<"init FAILED";
+        return -1;
+    }
     LOG(INFO)<<"inited";
 
     int server_sock;
@@ -4901,9 +4340,11 @@ int main()
         sleep(1);
     }
     while(server_sock == DF_FAILED);
-    std::cout<<"listening"<<std::endl;
+    
+    LOG(INFO)<<"listening"; 
     
     lc3010.disable_solid_field();
+ 
 
     while(true)
     {

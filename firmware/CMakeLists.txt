@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.1)
 
 set(CMAKE_BUILD_TYPE "Release")
+ 
 
 project(DF8 CXX CUDA)
 find_package(Threads)
@@ -69,6 +70,9 @@ add_executable(camera_server
                     camera_basler.cpp
                     camera.cpp
                     filter_module.cu
+                    socket_tcp.cpp
                     )
 target_sources(camera_server PUBLIC "../test/LookupTableFunction.cpp") 
 target_link_libraries(camera_server PRIVATE Threads::Threads)
+
+ 
