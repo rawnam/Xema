@@ -482,7 +482,14 @@ DF_SDK_API int DfGetCameraResolution(int* width, int* height)
 	ret = send_command(DF_CMD_GET_CAMERA_RESOLUTION, g_sock);
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
-	ret = recv_command(&command, g_sock); 
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -741,7 +748,14 @@ DF_SDK_API int DfGetStandardPlaneParam(float* R, float* T)
 	ret = send_command(DF_CMD_GET_STANDARD_PLANE_PARAM, g_sock);
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
-	ret = recv_command(&command, g_sock); 
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		LOG(INFO) << "token checked ok";
@@ -1030,7 +1044,7 @@ int HeartBeat()
 	ret = recv_command(&command, g_sock_heartbeat); 
 	if (ret == DF_FAILED)
 	{
-		LOG(ERROR) << "Failed to recv token return";
+		LOG(ERROR) << "Failed to recv command";
 		close_socket(g_sock_heartbeat);
 		return DF_FAILED;
 	}
@@ -1114,6 +1128,12 @@ DF_SDK_API int DfConnectNet(const char* ip)
 	}
 	int command;
 	ret = recv_command(&command, g_sock); 
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
 	if (ret == DF_SUCCESS)
 	{
 		if (command == DF_CMD_OK)
@@ -1174,8 +1194,13 @@ DF_SDK_API int DfDisconnectNet()
 		return DF_FAILED;
 	}
 	int command;
-	ret = recv_command(&command, g_sock);
-
+	ret = recv_command(&command, g_sock); 
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
 	connected = false;
 	token = 0;
 
@@ -1208,7 +1233,13 @@ DF_SDK_API int DfGetFocusingImage(unsigned char* image, int image_buf_size)
 	//std::cout << "send token " << token<< std::endl;
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
-	ret = recv_command(&command, g_sock);
+	ret = recv_command(&command, g_sock); 
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
 	if (command == DF_CMD_OK)
 	{
 		LOG(INFO) << "token checked ok";
@@ -1247,6 +1278,12 @@ DF_SDK_API int GetBrightness(unsigned char* brightness, int brightness_buf_size)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
 	if (command == DF_CMD_OK)
 	{
 		LOG(INFO) << "token checked ok";
@@ -1330,6 +1367,13 @@ DF_SDK_API int DfGetFrameHdr(float* depth, int depth_buf_size,
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		LOG(INFO) << "token checked ok";
@@ -1388,6 +1432,13 @@ DF_SDK_API int DfGetRepetitionPhase02(int count, float* phase_x, float* phase_y,
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		LOG(INFO) << "token checked ok";
@@ -1471,6 +1522,13 @@ DF_SDK_API int DfGetRepetitionFrame04(int count, float* depth, int depth_buf_siz
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = send_buffer((char*)(&count), sizeof(int), g_sock);
@@ -1537,6 +1595,13 @@ DF_SDK_API int DfGetRepetitionFrame03(int count, float* depth, int depth_buf_siz
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = send_buffer((char*)(&count), sizeof(int), g_sock);
@@ -1602,6 +1667,13 @@ DF_SDK_API int DfGetFrame03(float* depth, int depth_buf_size,
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		LOG(INFO) << "token checked ok";
@@ -1656,6 +1728,13 @@ DF_SDK_API int DfGetFrame04(float* depth, int depth_buf_size,
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		LOG(INFO) << "token checked ok";
@@ -1709,6 +1788,13 @@ DF_SDK_API int DfGetFrame05(float* depth, int depth_buf_size,
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		LOG(INFO) << "token checked ok";
@@ -1760,6 +1846,13 @@ DF_SDK_API int DfGetFrame01(float* depth, int depth_buf_size,
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		LOG(INFO) << "token checked ok";
@@ -1811,6 +1904,13 @@ DF_SDK_API int DfGetPointCloud(float* point_cloud, int point_cloud_buf_size)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		LOG(INFO) << "token checked ok";
@@ -1856,6 +1956,13 @@ DF_SDK_API int DfGetCameraRawData04Repetition(unsigned char* raw, int raw_buf_si
 		ret = send_buffer((char*)&token, sizeof(token), g_sock);
 		int command;
 		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
 		if (command == DF_CMD_OK)
 		{
 			ret = send_buffer((char*)(&repetition_count), sizeof(int), g_sock);
@@ -1910,6 +2017,13 @@ DF_SDK_API int DfGetCameraRawData04(unsigned char* raw, int raw_buf_size)
 		ret = send_buffer((char*)&token, sizeof(token), g_sock);
 		int command;
 		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
 		if (command == DF_CMD_OK)
 		{
 			LOG(INFO) << "token checked ok";
@@ -1952,6 +2066,13 @@ DF_SDK_API int DfGetCameraRawData03(unsigned char* raw, int raw_buf_size)
 		ret = send_buffer((char*)&token, sizeof(token), g_sock);
 		int command;
 		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
 		if (command == DF_CMD_OK)
 		{
 			LOG(INFO) << "token checked ok";
@@ -1994,6 +2115,13 @@ DF_SDK_API int DfGetCameraRawData02(unsigned char* raw, int raw_buf_size)
 		ret = send_buffer((char*)&token, sizeof(token), g_sock);
 		int command;
 		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
 		if (command == DF_CMD_OK)
 		{
 			LOG(INFO) << "token checked ok";
@@ -2036,6 +2164,13 @@ DF_SDK_API int DfGetCameraRawDataTest(unsigned char* raw, int raw_buf_size)
 		ret = send_buffer((char*)&token, sizeof(token), g_sock);
 		int command;
 		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
 		if (command == DF_CMD_OK)
 		{
 			LOG(INFO) << "token checked ok";
@@ -2080,6 +2215,13 @@ DF_SDK_API int DfGetCameraRawData01(unsigned char* raw, int raw_buf_size)
 		ret = send_buffer((char*)&token, sizeof(token), g_sock);
 		int command;
 		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
 		if (command == DF_CMD_OK)
 		{
 			LOG(INFO) << "token checked ok";
@@ -2118,6 +2260,13 @@ DF_SDK_API int DfGetDeviceTemperature(float& temperature)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = recv_buffer((char*)(&temperature), sizeof(temperature), g_sock);
@@ -2151,6 +2300,13 @@ DF_SDK_API int DfEnableCheckerboard(float& temperature)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = recv_buffer((char*)(&temperature), sizeof(temperature), g_sock);
@@ -2182,6 +2338,13 @@ DF_SDK_API int DfDisableCheckerboard(float& temperature)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = recv_buffer((char*)(&temperature), sizeof(temperature), g_sock);
@@ -2213,6 +2376,13 @@ DF_SDK_API int DfLoadPatternData(int buildDataSize, char* LoadBuffer)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = send_buffer((char*)(&buildDataSize), sizeof(buildDataSize), g_sock);
@@ -2251,6 +2421,13 @@ DF_SDK_API int DfProgramPatternData(char* org_buffer, char* back_buffer, unsigne
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = send_buffer((char*)(&pattern_size), sizeof(pattern_size), g_sock);
@@ -2296,6 +2473,13 @@ DF_SDK_API int DfGetNetworkBandwidth(int& speed)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = recv_buffer((char*)(&speed), sizeof(speed), g_sock);
@@ -2328,6 +2512,13 @@ DF_SDK_API int DfSelfTest(char* pTest, int length)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = recv_buffer(pTest, length, g_sock);
@@ -2360,6 +2551,13 @@ DF_SDK_API int DfGetFirmwareVersion(char* pVersion, int length)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = recv_buffer(pVersion, length, g_sock);
@@ -2391,6 +2589,13 @@ DF_SDK_API int DfGetProjectorTemperature(float& temperature)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = recv_buffer((char*)(&temperature), sizeof(temperature), g_sock);
@@ -2423,6 +2628,13 @@ DF_SDK_API int DfGetSystemConfigParam(struct SystemConfigParam& config_param)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = recv_buffer((char*)(&config_param), sizeof(config_param), g_sock);
@@ -2454,6 +2666,13 @@ DF_SDK_API int DfSetSystemConfigParam(const struct SystemConfigParam& config_par
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = send_buffer((char*)(&config_param), sizeof(config_param), g_sock);
@@ -2485,6 +2704,13 @@ DF_SDK_API int DfGetCalibrationParam(struct CameraCalibParam& calibration_param)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = recv_buffer((char*)(&calibration_param), sizeof(calibration_param), g_sock);
@@ -2522,6 +2748,13 @@ DF_SDK_API int DfSetCalibrationLookTable(const struct CameraCalibParam& calibrat
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		LOG(INFO) << "start send_buffer: calibration_param";
@@ -2601,6 +2834,13 @@ DF_SDK_API int DfSetCalibrationMiniLookTable(const struct CameraCalibParam& cali
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		LOG(INFO) << "start send_buffer: calibration_param";
@@ -2666,6 +2906,13 @@ DF_SDK_API int DfSetCalibrationParam(const struct CameraCalibParam& calibration_
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = send_buffer((char*)(&calibration_param), sizeof(calibration_param), g_sock);
@@ -2719,6 +2966,13 @@ DF_SDK_API int DfSetAutoExposure(int flag, int& exposure, int& led)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = recv_buffer((char*)(&exposure), sizeof(int), g_sock);
@@ -2830,6 +3084,13 @@ DF_SDK_API int DfSetParamBilateralFilter(int use, int param_d)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -2879,6 +3140,13 @@ DF_SDK_API int DfGetParamBilateralFilter(int& use, int& param_d)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -2936,6 +3204,13 @@ DF_SDK_API int DfSetParamRadiusFilter(int use, float radius, int num)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -2994,6 +3269,13 @@ DF_SDK_API int DfGetParamRadiusFilter(int& use, float& radius, int& num)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -3057,6 +3339,13 @@ DF_SDK_API int DfSetParamReflectFilter(int use)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -3099,6 +3388,13 @@ DF_SDK_API int DfSetBoardInspect(bool enable)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		int use = 1;
@@ -3153,6 +3449,13 @@ DF_SDK_API int DfGetParamReflectFilter(int& use)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -3198,6 +3501,13 @@ DF_SDK_API int DfSetParamOutlierFilter(float threshold)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = send_buffer((char*)(&threshold), sizeof(float), g_sock);
@@ -3240,6 +3550,13 @@ DF_SDK_API int DfGetParamOutlierFilter(float& threshold)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -3282,6 +3599,13 @@ DF_SDK_API int DfGetParamOffset(float& offset)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -3331,6 +3655,13 @@ DF_SDK_API int DfSetParamOffset(float offset)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -3376,6 +3707,13 @@ DF_SDK_API int DfSetParamCameraConfidence(float confidence)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = send_buffer((char*)(&confidence), sizeof(float), g_sock);
@@ -3419,6 +3757,13 @@ DF_SDK_API int DfGetParamCameraConfidence(float& confidence)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -3463,6 +3808,13 @@ DF_SDK_API int DfSetParamCameraGain(float gain)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -3507,6 +3859,13 @@ DF_SDK_API int DfGetParamCameraGain(float& gain)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -3551,6 +3910,13 @@ DF_SDK_API int DfSetParamCameraExposure(float exposure)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -3595,6 +3961,13 @@ DF_SDK_API int DfGetParamCameraExposure(float& exposure)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -3645,6 +4018,13 @@ DF_SDK_API int DfSetParamGenerateBrightness(int model, float exposure)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = send_buffer((char*)(&model), sizeof(int), g_sock);
@@ -3695,6 +4075,13 @@ DF_SDK_API int DfGetParamGenerateBrightness(int& model, float& exposure)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -3747,7 +4134,13 @@ DF_SDK_API int DfSetParamStandardPlaneExternal(float* R, float* T)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
-	LOG(INFO) << "command: " << command;
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	 
 	if (command == DF_CMD_OK)
 	{
 
@@ -3800,7 +4193,13 @@ DF_SDK_API int DfGetParamStandardPlaneExternal(float* R, float* T)
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
-	LOG(INFO) << "command: " << command;
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 
@@ -3853,7 +4252,13 @@ DF_SDK_API int DfSetParamMixedHdr(int num, int exposure_param[6], int led_param[
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
-	LOG(INFO) << "command: " << command;
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		int param[13];
@@ -3903,7 +4308,13 @@ DF_SDK_API int DfGetParamMixedHdr(int& num, int exposure_param[6], int led_param
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
 	ret = recv_command(&command, g_sock);
-	LOG(INFO) << "command: " << command;
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		int param[13];
@@ -3953,7 +4364,14 @@ DF_SDK_API int DfSetParamHdr(int num, int exposure_param[6])
 	ret = send_command(DF_CMD_SET_PARAM_HDR, g_sock);
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
-	ret = recv_command(&command, g_sock); 
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		int param[7];
@@ -4000,7 +4418,14 @@ DF_SDK_API int DfGetParamHdr(int& num, int exposure_param[6])
 	ret = send_command(DF_CMD_GET_PARAM_HDR, g_sock);
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
-	ret = recv_command(&command, g_sock); 
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		int param[7];
@@ -4051,7 +4476,14 @@ DF_SDK_API int DfSetParamLedCurrent(int led)
 	ret = send_command(DF_CMD_SET_PARAM_LED_CURRENT, g_sock);
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
-	ret = recv_command(&command, g_sock); 
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = send_buffer((char*)(&led), sizeof(led), g_sock);
@@ -4095,7 +4527,14 @@ DF_SDK_API int DfGetParamLedCurrent(int& led)
 	ret = send_command(DF_CMD_GET_CAMERA_PARAMETERS, g_sock);
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
-	ret = recv_command(&command, g_sock); 
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = recv_buffer((char*)(&led), sizeof(led), g_sock);
@@ -4137,7 +4576,14 @@ DF_SDK_API int DfGetCameraVersion(int& version)
 	ret = send_command(DF_CMD_GET_PARAM_CAMERA_VERSION, g_sock);
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
-	ret = recv_command(&command, g_sock); 
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		ret = recv_buffer((char*)(&version), sizeof(version), g_sock);
@@ -4182,7 +4628,14 @@ DF_SDK_API int DfGetTestFrame01(unsigned char* raw, int raw_buf_size, float* dep
 	ret = send_command(DF_CMD_TEST_GET_FRAME_01, g_sock);
 	ret = send_buffer((char*)&token, sizeof(token), g_sock);
 	int command;
-	ret = recv_command(&command, g_sock); 
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
 	if (command == DF_CMD_OK)
 	{
 		LOG(INFO) << "token checked ok";
