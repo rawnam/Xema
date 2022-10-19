@@ -587,6 +587,13 @@ DF_SDK_API int DfSelfTest(char* pTest, int length);
 //返回值：  类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfGetCameraVersion(int& version);
 
+//函数名：  DfGetProjectVersion
+//功能：    获取相机型号
+//输入参数：无
+//输出参数：型号（3010、4710）
+//返回值：  类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetProjectorVersion(int& version);
+
 //函数名： DfSetParamOffset
 //功能： 设置补偿参数
 //输入参数：offset(补偿值)

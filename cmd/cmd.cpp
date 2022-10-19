@@ -1553,8 +1553,9 @@ int set_calib_looktable(const char* ip, const char* calib_param_path)
 	DfRegisterOnDropped(on_dropped);
 
 	int ret = DfConnectNet(ip);
-	if (ret == DF_FAILED)
+	if (ret != DF_SUCCESS)
 	{
+		std::cout << "Connect failed！" << std::endl;
 		return 0;
 	}
 
@@ -1562,15 +1563,29 @@ int set_calib_looktable(const char* ip, const char* calib_param_path)
 	int width = 0;
 	int height = 0;
 
-	DfGetCameraResolution(&width, &height);
-
+	ret = DfGetCameraResolution(&width, &height);
+	if (ret != DF_SUCCESS)
+	{
+		std::cout << "DfGetCameraResolution failed！" << std::endl;
+		return 0;
+	}
 	std::cout << "width: " << width << std::endl;
 	std::cout << "height: " << height << std::endl;
 
-	DfDisconnectNet();
+	int version = 0;
+	ret = DfGetProjectorVersion(version);
+	if (ret != DF_SUCCESS)
+	{
+		std::cout << "DfGetCameraVersion failed！" << std::endl;
+		return 0;
+	}
+
+	std::cout << "version: " << version << std::endl;
+	ret = DfDisconnectNet();
 
 	MiniLookupTableFunction minilooktable_machine;
 	minilooktable_machine.setCameraResolution(width, height);
+	minilooktable_machine.setProjectorVersion(version);
 	minilooktable_machine.setCalibData(calibration_param);
 	cv::Mat xL_rotate_x;
 	cv::Mat xL_rotate_y;

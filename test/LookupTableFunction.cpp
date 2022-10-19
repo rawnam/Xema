@@ -33,6 +33,37 @@ void LookupTableFunction::setImageResolution(int width, int height)
 	image_size_.height = height;
 }
 
+
+bool LookupTableFunction::setProjectorVersion(int version)
+{
+
+	switch (version)
+	{
+	case DF_PROJECTOR_3010:
+	{
+		dlp_width_ = 1280;
+		dlp_height_ = 720; 
+		return true;
+	}
+	break;
+
+	case DF_PROJECTOR_4710:
+	{ 
+		dlp_width_ = 1920;
+		dlp_height_ = 1080; 
+
+		return true;
+	}
+	break;
+
+	default:
+		break;
+	}
+
+	return false;
+
+}
+
 bool LookupTableFunction::setCameraVersion(int version)
 {
 
@@ -1297,9 +1328,9 @@ bool MiniLookupTableFunction::generateLookTable(cv::Mat& xL_rotate_x, cv::Mat& x
 
 	// 取四个点作为裁剪map的依据
 	projector_left_up_y = (xR_undistort_map_y.at<double>(5, 0) + 1) * 2000;
-	projector_right_up_y = (xR_undistort_map_y.at<double>(5, 1279) + 1) * 2000;
-	projector_left_down_y = (xR_undistort_map_y.at<double>(714, 0) + 1) * 2000;
-	projector_right_down_y = (xR_undistort_map_y.at<double>(714, 1279) + 1) * 2000;
+	projector_right_up_y = (xR_undistort_map_y.at<double>(5, (dlp_width_ -1)) + 1) * 2000;
+	projector_left_down_y = (xR_undistort_map_y.at<double>(dlp_height_ - 1, 0) + 1) * 2000;
+	projector_right_down_y = (xR_undistort_map_y.at<double>(dlp_height_ - 1, (dlp_width_ -1)) + 1) * 2000;
 
 	cv::Mat mapping, mini_mapping;
 	generateMiniGridMapping(mapping, mini_mapping);
@@ -1894,8 +1925,8 @@ bool MiniLookupTableFunction::generateMiniGridMapping(cv::Mat& _LookupTable, cv:
 	//将插值的数据存入theBigLookUpTable，以便使用
 	cv::Mat theBigLookUpTable(4000, 2000, CV_32F, cv::Scalar(-2));
 	// 斜率
-	double k_up = (projector_right_up_y - projector_left_up_y) / 1279;
-	double k_down = (projector_right_down_y - projector_left_down_y) / 1279;
+	double k_up = (projector_right_up_y - projector_left_up_y) / (dlp_width_ -1);
+	double k_down = (projector_right_down_y - projector_left_down_y) / (dlp_width_-1);
 
 	for (int row = 0; row < 4000; row += 1)
 	{

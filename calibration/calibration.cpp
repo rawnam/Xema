@@ -13,16 +13,16 @@ const char* help_info =
 "Examples:\n\
 \n\
 1.Calibrate:\n\
-calibration.exe --calibrate --use patterns --path ./capture/calib --version DFX800 --board 20 --calib ./param.txt \n\
+calibration.exe --calibrate --use patterns --path ./capture/calib --version 3010 --board 20 --calib ./param.txt \n\
 \n\
 2.Get Version:\n\
 calibration.exe --get-version \n\
 \n\
 3.Calibrate:\n\
-calibration.exe --calibrate --use phase --path ./capture/phase --version DFX800 --board 20 --calib ./param.txt \n\
+calibration.exe --calibrate --use phase --path ./capture/phase --version 3010 --board 20 --calib ./param.txt \n\
 \n\
 4.Calibrate:\n\
-calibration.exe --calibrate --use patterns-c --path ./capture/calib --version DFX800 --board 20 --calib ./param.txt \n\
+calibration.exe --calibrate --use patterns-c --path ./capture/calib --version 3010 --board 20 --calib ./param.txt \n\
 \n\
 ";
 
@@ -129,10 +129,10 @@ int main(int argc, char* argv[])
 
 		if (patterns_str.empty() || calib_str.empty() || version_str.empty())
 		{
-			printf("calibration.exe --calibrate --path ./capture/calib --version DFX800 --board 20 ./calib --calib ./param.txt \n");
+			printf("calibration.exe --calibrate --path ./capture/calib --version 3010 --board 20 ./calib --calib ./param.txt \n");
 		}
 
-		if ("800" == version_str || "DFX800" == version_str || "dfx800" == version_str)
+		if ("3010" == version_str)
 		{
 			dlp_width = 1280;
 			dlp_height = 720;
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
 			board_message.height = 10;
 
 		}
-		else if ("1800" == version_str || "DFX1800" == version_str || "dfx1800" == version_str)
+		else if ("4710" == version_str)
 		{
 			dlp_width = 1920;
 			dlp_height = 1080;
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			printf("calibration.exe --calibrate --use patterns --path ./capture/calib --version DFX800 --board 20 ./calib --calib ./param.txt \n");
+			printf("calibration.exe --calibrate --use patterns --path ./capture/calib --version 3010 --board 20 ./calib --calib ./param.txt \n");
 		}
 
 		if ("4" == board_str)
@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
 
 			if (!ok)
 			{
-				printf("calibration.exe --calibrate --use patterns --path ./capture/calib --version DFX800 --board 20 ./calib --calib ./param.txt \n");
+				printf("calibration.exe --calibrate --use patterns --path ./capture/calib --version 3010 --board 20 ./calib --calib ./param.txt \n");
 			}
 			else
 			{
@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
 
 			if (!ok)
 			{
-				printf("calibration.exe --calibrate --use patterns-c --path ./capture/calib --version DFX800 --board 20 ./calib --calib ./param.txt \n");
+				printf("calibration.exe --calibrate --use patterns-c --path ./capture/calib --version 3010 --board 20 ./calib --calib ./param.txt \n");
 			}
 			else
 			{
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
 
 			if (!ok)
 			{
-				printf("calibration.exe --calibrate --use phase --path ./capture/calib --version DFX800 --board 20 ./calib --calib ./param.txt \n");
+				printf("calibration.exe --calibrate --use phase --path ./capture/calib --version 3010 --board 20 ./calib --calib ./param.txt \n");
 			}
 			else
 			{

@@ -71,6 +71,8 @@ public:
 
 	bool setCameraVersion(int version);
 
+	bool setProjectorVersion(int version);
+
 	void setImageResolution(int width, int height);
 protected:
 	void normalizePoint(
