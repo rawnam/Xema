@@ -93,7 +93,7 @@ __device__ unsigned short* d_repetition_02_merge_patterns_list_[D_REPETITION_02_
 /**********************************************************************/
 void cuda_set_param_system_config(SystemConfigDataStruct param);
     
-bool cuda_set_camera_version(int version);
+bool cuda_set_projector_version(int version);
 
 bool cuda_set_camera_resolution(int width,int height);
 

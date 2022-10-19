@@ -4,8 +4,8 @@
 #include "camera_param.h"
 
 #define DF_PORT 8080
-#define DFX_800 800
-#define DFX_1800 1800
+// #define DFX_800 800
+// #define DFX_1800 1800
 #define DF_PROJECTOR_3010 3010
 #define DF_PROJECTOR_4710 4710
 

@@ -64,44 +64,44 @@ bool LookupTableFunction::setProjectorVersion(int version)
 
 }
 
-bool LookupTableFunction::setCameraVersion(int version)
-{
+// bool LookupTableFunction::setCameraVersion(int version)
+// {
 
-	switch (version)
-	{
-	case DFX_800:
-	{
-		dlp_width_ = 1280;
-		dlp_height_ = 720;
+// 	switch (version)
+// 	{
+// 	case DFX_800:
+// 	{
+// 		dlp_width_ = 1280;
+// 		dlp_height_ = 720;
 
-		min_low_z_ = 100;
-		max_max_z_ = 5000;
+// 		min_low_z_ = 100;
+// 		max_max_z_ = 5000;
 
-		return true;
-	}
-	break;
+// 		return true;
+// 	}
+// 	break;
 
-	case DFX_1800:
-	{
+// 	case DFX_1800:
+// 	{
 
-		dlp_width_ = 1920;
-		dlp_height_ = 1080;
+// 		dlp_width_ = 1920;
+// 		dlp_height_ = 1080;
 
-		min_low_z_ = 300;
-		max_max_z_ = 10000;
+// 		min_low_z_ = 300;
+// 		max_max_z_ = 10000;
 
-		return true;
-	}
-	break;
+// 		return true;
+// 	}
+// 	break;
 
-	default:
-		break;
-	}
+// 	default:
+// 		break;
+// 	}
 
-	return false;
+// 	return false;
 
 
-}
+// }
 
 /*******************************************************************************************************/
 

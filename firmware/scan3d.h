@@ -30,9 +30,9 @@ public:
     
     bool setParamGenerateBrightness(int model,int exposure);
 
-    bool setCameraVersion(int version);
+    bool setProjectorVersion(int version);
 
-    void getCameraVersion(int &version);
+    void getProjectorVersion(int &version);
     
     void setParamSystemConfig(SystemConfigDataStruct param);
 
@@ -97,7 +97,7 @@ private:
     Camera* camera_;
     LightCrafter3010 lc3010_;
 
-    int camera_version_;
+    int projector_version_;
     bool camera_opened_flag_;
     
 

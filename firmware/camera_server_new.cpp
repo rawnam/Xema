@@ -122,11 +122,11 @@ bool findMaskBaseConfidence(cv::Mat confidence_map, int threshold, cv::Mat& mask
 }
 
 
-bool set_camera_version(int version)
+bool set_projector_version(int version)
 {
     switch (version)
     {
-    case DFX_800:
+    case DF_PROJECTOR_3010:
     {
         // cuda_set_camera_version(DFX_800);
         max_camera_exposure_ = 60000;
@@ -135,7 +135,7 @@ bool set_camera_version(int version)
     }
     break;
 
-    case DFX_1800:
+    case DF_PROJECTOR_4710:
     {
 
         // cuda_set_camera_version(DFX_1800);
@@ -2951,6 +2951,33 @@ int handle_cmd_get_param_camera_resolution(int client_sock)
 }
 
 //获取相机版本参数
+int handle_cmd_get_param_projector_version(int client_sock)
+{
+    if (check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;
+    }
+
+    int version = 0;
+
+    scan3d_.getProjectorVersion(version);
+
+    // lc3010.read_dmd_device_id(version); 
+
+    int ret = send_buffer(client_sock, (char *)(&version), sizeof(int) * 1);
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
+    }
+
+    LOG(INFO)<<"camera version: "<<version << "\n";
+
+    return DF_SUCCESS;
+
+}
+
+//获取相机版本参数
 int handle_cmd_get_param_camera_version(int client_sock)
 {
     if (check_token(client_sock) == DF_FAILED)
@@ -2960,7 +2987,7 @@ int handle_cmd_get_param_camera_version(int client_sock)
 
     int version = 0;
 
-    scan3d_.getCameraVersion(version);
+    scan3d_.getProjectorVersion(version);
 
     // lc3010.read_dmd_device_id(version); 
 
@@ -4205,6 +4232,10 @@ int handle_commands(int client_sock)
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_VERSION";   
     	handle_cmd_get_param_camera_version(client_sock);
 	    break;
+	case DF_CMD_GET_PARAM_PROJECTOR_VERSION:
+	    LOG(INFO)<<"DF_CMD_GET_PARAM_PROJECTOR_VERSION";   
+    	handle_cmd_get_param_projector_version(client_sock);
+	    break;
 	case DF_CMD_SET_PARAM_REFLECT_FILTER:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_REFLECT_FILTER";   
     	handle_cmd_set_param_reflect_filter(client_sock);
@@ -4314,7 +4345,7 @@ int init()
 
     // cuda_set_config(system_config_settings_machine_);
 
-    set_camera_version(version);
+    set_projector_version(version);
     // LOG(INFO)<<"camera version: "<<DFX_800;
 
     return DF_SUCCESS;
@@ -4329,7 +4360,7 @@ int main()
         
         lc3010.disable_solid_field();
         LOG(INFO)<<"init FAILED";
-        return -1;
+        // return -1;
     }
     LOG(INFO)<<"inited";
 

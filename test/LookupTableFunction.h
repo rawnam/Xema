@@ -69,7 +69,7 @@ public:
 
 	bool readTableFloat(std::string dir_path, cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_mapping, cv::Mat& pattern_minimapping, int width, int height);
 
-	bool setCameraVersion(int version);
+	// bool setCameraVersion(int version);
 
 	bool setProjectorVersion(int version);
 

@@ -115,11 +115,11 @@ void LightCrafter3010::read_dmd_device_id(int& version)
 
     if(11 == value)
     {
-        version = 800;
+        version = 3010;
     }
     else if(12 == value)
     {
-        version = 1800;
+        version = 4710;
     }
 }
 
