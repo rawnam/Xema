@@ -1555,7 +1555,7 @@ int set_calib_looktable(const char* ip, const char* calib_param_path)
 	int ret = DfConnectNet(ip);
 	if (ret != DF_SUCCESS)
 	{
-		std::cout << "Connect failed！" << std::endl;
+		std::cout << "Connect failed!" << std::endl;
 		return 0;
 	}
 
@@ -1566,7 +1566,7 @@ int set_calib_looktable(const char* ip, const char* calib_param_path)
 	ret = DfGetCameraResolution(&width, &height);
 	if (ret != DF_SUCCESS)
 	{
-		std::cout << "DfGetCameraResolution failed！" << std::endl;
+		std::cout << "DfGetCameraResolution failed!" << std::endl;
 		return 0;
 	}
 	std::cout << "width: " << width << std::endl;
@@ -1576,8 +1576,8 @@ int set_calib_looktable(const char* ip, const char* calib_param_path)
 	ret = DfGetProjectorVersion(version);
 	if (ret != DF_SUCCESS)
 	{
-		std::cout << "DfGetCameraVersion failed！" << std::endl;
-		return 0;
+		std::cout << "DfGetProjectorVersion failed!" << std::endl;
+		return -1;
 	}
 
 	std::cout << "version: " << version << std::endl;
@@ -1585,7 +1585,15 @@ int set_calib_looktable(const char* ip, const char* calib_param_path)
 
 	MiniLookupTableFunction minilooktable_machine;
 	minilooktable_machine.setCameraResolution(width, height);
-	minilooktable_machine.setProjectorVersion(version);
+	
+	if (!minilooktable_machine.setProjectorVersion(version))
+	{
+		std::cout << "Set Projector Version failed!" << std::endl;
+		std::cout << "version: " << version<< std::endl;
+		return -1;
+	}
+
+
 	minilooktable_machine.setCalibData(calibration_param);
 	cv::Mat xL_rotate_x;
 	cv::Mat xL_rotate_y;
