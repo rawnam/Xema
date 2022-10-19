@@ -33,39 +33,29 @@ void cuda_set_param_system_config(SystemConfigDataStruct param)
 	cuda_system_config_settings_machine_ = param;
 }
 
-bool cuda_set_camera_version(int version)
+bool cuda_set_projector_version(int version)
 {
     switch (version)
     {
-    case DFX_800:
+    case DF_PROJECTOR_3010:
     {
 		int dlp_width = 1280;
 		int dlp_height = 720;
 		cuda_set_param_dlp_resolution(dlp_width,dlp_height);
-		// cudaMemcpyToSymbol(d_dlp_width_, &dlp_width, sizeof(int));
-		// cudaMemcpyToSymbol(d_dlp_height_, &dlp_height, sizeof(int));
-  
-		int camera_width = 1920;
-		int camera_height = 1200;
-		cudaMemcpyToSymbol(d_image_width_, &camera_width, sizeof(int));
-		cudaMemcpyToSymbol(d_image_height_, &camera_height, sizeof(int));
+ 
 
         return true;
     }
     break;
 
-    case DFX_1800:
+    case DF_PROJECTOR_4710:
     {
 		int dlp_width = 1920;
 		int dlp_height = 1080;
-		// cudaMemcpyToSymbol(d_dlp_width_, &dlp_width, sizeof(int));
-		// cudaMemcpyToSymbol(d_dlp_height_, &dlp_height, sizeof(int));
+ 
 		cuda_set_param_dlp_resolution(dlp_width,dlp_height);
 
-		int camera_width = 1920;
-		int camera_height = 1200;
-		cudaMemcpyToSymbol(d_image_width_, &camera_width, sizeof(int));
-		cudaMemcpyToSymbol(d_image_height_, &camera_height, sizeof(int));
+ 
         return true;
     }
     break;

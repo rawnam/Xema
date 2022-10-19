@@ -79,9 +79,9 @@ bool Scan3D::init()
     /*****************************************************************************************/
     
 
-    lc3010_.read_dmd_device_id(camera_version_);
-    
-    if(!setCameraVersion(camera_version_))
+    lc3010_.read_dmd_device_id(projector_version_);
+     
+    if(!setProjectorVersion(projector_version_))
     {
         LOG(INFO)<<"set Camera Version Failed!"; 
     }
@@ -219,23 +219,23 @@ bool Scan3D::setParamConfidence(float confidence)
     return cuda_set_param_confidence(confidence);  
 }
 
-bool Scan3D::setCameraVersion(int version)
+bool Scan3D::setProjectorVersion(int version)
 {
     switch (version)
     {
-    case DFX_800:
+    case DF_PROJECTOR_3010:
     {
-        cuda_set_camera_version(DFX_800);
+        cuda_set_projector_version(DF_PROJECTOR_3010);
         max_camera_exposure_ = 60000;
         min_camera_exposure_ = 1700;
         return true;
     }
     break;
 
-    case DFX_1800:
+    case DF_PROJECTOR_4710:
     {
 
-        cuda_set_camera_version(DFX_1800);
+        cuda_set_projector_version(DF_PROJECTOR_4710);
         max_camera_exposure_ = 28000; 
         min_camera_exposure_ = 1700;
         return true;
@@ -250,9 +250,9 @@ bool Scan3D::setCameraVersion(int version)
 }
 
 
-void Scan3D::getCameraVersion(int &version)
+void Scan3D::getProjectorVersion(int &version)
 {
-    version = camera_version_;
+    version = projector_version_;
 }
 
 bool Scan3D::setParamGenerateBrightness(int model, int exposure)
