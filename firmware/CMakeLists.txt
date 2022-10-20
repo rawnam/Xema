@@ -6,7 +6,7 @@ set(CMAKE_BUILD_TYPE "Release")
 project(DF8 CXX CUDA)
 find_package(Threads)
 find_package(CUDA REQUIRED) 
-set(OPENCV_DIR /home/dexforce/OpenCam3D/3rdparty)
+set(OPENCV_DIR /home/dexforce/xema/3rdparty)
 
 message(${PROJECT_SOURCE_DIR})
 
