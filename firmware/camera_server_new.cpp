@@ -4317,7 +4317,8 @@ int init()
  
     if(!scan3d_.init())
     {
-        return DF_FAILED;
+        LOG(INFO)<<"init Failed!";
+        // return DF_FAILED;
     }
 
     scan3d_.getCameraResolution(camera_width_,camera_height_);

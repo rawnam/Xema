@@ -99,6 +99,7 @@ bool Scan3D::init()
 
         if (!loadCalibData())
         {
+            LOG(INFO)<<"Load Calib Error!"; 
             return false;
         }
     }
