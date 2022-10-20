@@ -36,7 +36,7 @@ public:
 
 	bool pointError(cv::Mat point_cloud_0, cv::Mat point_cloud_1, cv::Mat& error_map);
 
-	bool setCameraVersion(int version);
+	bool setProjectorVersion(int version);
 
 private:
 

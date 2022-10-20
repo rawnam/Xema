@@ -29,7 +29,7 @@
 
 DfSolution::DfSolution()
 {
-	camera_version_ = 800;
+	projector_version_ = 3010;
 }
 
 DfSolution::~DfSolution()
@@ -38,19 +38,19 @@ DfSolution::~DfSolution()
 }
 
 
-bool DfSolution::setCameraVersion(int version)
+bool DfSolution::setProjectorVersion(int version)
 {
-	camera_version_ = version;
+	projector_version_ = version;
 
 	switch (version)
 	{
-	case DFX_800:
+	case DF_PROJECTOR_3010:
 	{
 		return true;
 	}
 	break;
 
-	case DFX_1800:
+	case DF_PROJECTOR_4710:
 	{
 		return true;
 	}
@@ -1062,9 +1062,9 @@ bool DfSolution::reconstructPatterns04Repetition01BaseTable(std::vector<cv::Mat>
 	//LookupTableFunction lookup_table_machine;
 	lookup_table_machine_.setCalibData(calib_param);
 	mini_lookup_table_machine_.setCalibData(calib_param);
-	lookup_table_machine_.setCameraVersion(camera_version_);
-	mini_lookup_table_machine_.setCameraVersion(camera_version_);
-
+	lookup_table_machine_.setProjectorVersion(projector_version_);
+	mini_lookup_table_machine_.setProjectorVersion(projector_version_);
+	 
 	cv::Mat xL_rotate_x;
 	cv::Mat xL_rotate_y;
 	cv::Mat R1;
@@ -1269,7 +1269,7 @@ bool DfSolution::reconstructPatterns04RepetitionBaseTable(std::vector<std::vecto
 
 	LookupTableFunction lookup_table_machine_;
 	lookup_table_machine_.setCalibData(calib_param);
-	lookup_table_machine_.setCameraVersion(camera_version_);
+	lookup_table_machine_.setProjectorVersion(projector_version_);
 
 	cv::Mat xL_rotate_x;
 	cv::Mat xL_rotate_y;
@@ -1615,7 +1615,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 	LookupTableFunction lookup_table_machine_;
 	//LookupTableFunction lookup_table_machine;
 	lookup_table_machine_.setCalibData(calib_param);
-	lookup_table_machine_.setCameraVersion(camera_version_);
+	lookup_table_machine_.setProjectorVersion(projector_version_);
 	lookup_table_machine_.setImageResolution(nc, nr);
 
 	cv::Mat xL_rotate_x;
@@ -1629,7 +1629,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 
 	//MiniLookupTableFunction minilooktable_machine;
 	//minilooktable_machine.setCameraResolution(nc, nr);
-	//minilooktable_machine.setCameraVersion(camera_version_);
+	//minilooktable_machine.setProjectorVersion(camera_version_);
 	//minilooktable_machine.setCalibData(calib_param);
 	cv::Mat xL_rotate_x_new;
 	cv::Mat xL_rotate_y_new;
@@ -1837,7 +1837,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTableAndConfiden
 	LookupTableFunction lookup_table_machine_;
 	//LookupTableFunction lookup_table_machine;
 	lookup_table_machine_.setCalibData(calib_param);
-	lookup_table_machine_.setCameraVersion(camera_version_);
+	lookup_table_machine_.setProjectorVersion(projector_version_);
 	lookup_table_machine_.setImageResolution(nc, nr);
 
 	cv::Mat xL_rotate_x;
@@ -1851,7 +1851,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTableAndConfiden
 
 	//MiniLookupTableFunction minilooktable_machine;
 	//minilooktable_machine.setCameraResolution(nc, nr);
-	//minilooktable_machine.setCameraVersion(camera_version_);
+	//minilooktable_machine.setProjectorVersion(camera_version_);
 	//minilooktable_machine.setCalibData(calib_param);
 	cv::Mat xL_rotate_x_new;
 	cv::Mat xL_rotate_y_new;
@@ -2070,7 +2070,7 @@ bool DfSolution::reconstructBasePhase02(cv::Mat phase_x, cv::Mat phase_y, cv::Ma
 
 	DF_Reconstruct reconstruct_machine_;
 	reconstruct_machine_.setCalibData(calib_param);
-	reconstruct_machine_.setCameraVersion(camera_version_);
+	reconstruct_machine_.setProjectorVersion(projector_version_);
 
 	cv::Mat err_map;
 
@@ -2308,7 +2308,7 @@ bool DfSolution::reconstructMixedVariableWavelengthPatternsBaseXYSR(std::vector<
 
 	DF_Reconstruct reconstruct_machine_;
 	reconstruct_machine_.setCalibData(calib_param);
-	reconstruct_machine_.setCameraVersion(camera_version_);
+	reconstruct_machine_.setProjectorVersion(projector_version_);
 
 	cv::Mat err_map;
 
