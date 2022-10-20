@@ -145,13 +145,13 @@ int main(int argc, char* argv[])
 
 			std::string version_str(char_version);
 
-			if ("DFX800" == version_str || "dfx800" == version_str || "800" == version_str)
+			if ("3010" == version_str)
 			{
-				version_number = 800;
+				version_number = 3010;
 			}
-			else if ("DFX1800" == version_str || "dfx1800" == version_str || "1800" == version_str)
+			else if ("4710" == version_str )
 			{
-				version_number = 1800;
+				version_number = 4710;
 			}
 		}
 		break;
@@ -301,7 +301,7 @@ void capture_04_repetition_01(int repetition)
 		std::cout << "Get Camera Calib Data Failure!";
 	}
 
-	ret = solution_machine_.setCameraVersion(version_number);
+	ret = solution_machine_.setProjectorVersion(version_number);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;
@@ -363,7 +363,7 @@ void capture_04_repetition_02(int repetition)
 		std::cout << "Get Camera Calib Data Failure!";
 	}
 
-	ret = solution_machine_.setCameraVersion(version_number);
+	ret = solution_machine_.setProjectorVersion(version_number);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;
@@ -409,7 +409,7 @@ void capture_04()
 		std::cout << "Get Camera Calib Data Failure!";
 	}
 
-	ret = solution_machine_.setCameraVersion(version_number);
+	ret = solution_machine_.setProjectorVersion(version_number);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;
@@ -454,7 +454,7 @@ void capture_03()
 		std::cout << "Get Camera Calib Data Failure!";
 	}
 
-	ret = solution_machine_.setCameraVersion(version_number);
+	ret = solution_machine_.setProjectorVersion(version_number);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;
@@ -484,7 +484,7 @@ void reconstruct_base_looktable()
 		std::cout << "Read Calib Param Error!" << std::endl;
 	}
 
-	ret = solution_machine_.setCameraVersion(version_number);
+	ret = solution_machine_.setProjectorVersion(version_number);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;
@@ -515,7 +515,7 @@ void reconstruct_base_looktable_and_confidence()
 		std::cout << "Read Calib Param Error!" << std::endl;
 	}
 
-	ret = solution_machine_.setCameraVersion(version_number);
+	ret = solution_machine_.setProjectorVersion(version_number);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;
@@ -550,7 +550,7 @@ void read_phase_02()
 		std::cout << "Read Calib Param Error!" << std::endl;
 	}
 
-	ret = solution_machine_.setCameraVersion(version_number);
+	ret = solution_machine_.setProjectorVersion(version_number);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;
@@ -581,7 +581,7 @@ void read_03()
 		std::cout << "Read Calib Param Error!" << std::endl;
 	}
 
-	ret = solution_machine_.setCameraVersion(version_number);
+	ret = solution_machine_.setProjectorVersion(version_number);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;
@@ -639,7 +639,7 @@ void read()
 		std::cout << "Read Calib Param Error!" << std::endl;
 	}
 
-	ret = solution_machine_.setCameraVersion(version_number);
+	ret = solution_machine_.setProjectorVersion(version_number);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;
@@ -670,7 +670,7 @@ void read_04_repetition_01()
 		std::cout << "Read Calib Param Error!" << std::endl;
 	}
 
-	ret = solution_machine_.setCameraVersion(version_number);
+	ret = solution_machine_.setProjectorVersion(version_number);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;
@@ -727,7 +727,7 @@ void read_06()
 		std::cout << "Read Calib Param Error!" << std::endl;
 	}
 
-	ret = solution_machine_.setCameraVersion(version_number);
+	ret = solution_machine_.setProjectorVersion(version_number);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;
@@ -759,7 +759,7 @@ void read_04_color()
 		std::cout << "Read Calib Param Error!" << std::endl;
 	}
 
-	ret = solution_machine_.setCameraVersion(version_number);
+	ret = solution_machine_.setProjectorVersion(version_number);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;
@@ -790,7 +790,7 @@ void read_04()
 		std::cout << "Read Calib Param Error!" << std::endl;
 	}
 
-	ret = solution_machine_.setCameraVersion(version_number);
+	ret = solution_machine_.setProjectorVersion(version_number);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;
