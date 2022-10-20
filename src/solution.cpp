@@ -28,7 +28,7 @@ int on_dropped_solution(void* param)
 
 Solution::Solution()
 {
-	camera_version_ = 800;
+	projector_version_ = 3010;
 }
 
 Solution::~Solution()
@@ -190,28 +190,10 @@ bool Solution::getCameraVersion(const char* ip, int& version)
 	return true;
 }
 
-bool Solution::setCameraVersion(int version)
+bool Solution::setProjectorVersion(int version)
 {
-	camera_version_ = version;
-
-	switch (version)
-	{
-	case DFX_800:
-	{
-		return true;
-	}
-	break;
-
-	case DFX_1800:
-	{
-		return true;
-	}
-	break;
-
-	default:
-		break;
-	}
-
+	projector_version_ = version;
+	 
 	return false;
 }
 
@@ -376,7 +358,7 @@ bool Solution::reconstructFrame01(std::vector<cv::Mat> patterns, cv::Mat& depth,
 
 	Reconstruct reconstruct;
 	reconstruct.setCalibData(calib_param_);
-	reconstruct.setCameraVersion(camera_version_);
+	reconstruct.setCameraVersion(projector_version_);
 
 	cv::Mat err_map;
 

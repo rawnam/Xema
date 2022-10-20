@@ -23,7 +23,7 @@ public:
 
 	bool getCameraVersion(const char* ip, int& version);
 
-	bool setCameraVersion(int version);
+	bool setProjectorVersion(int version);
 
 	bool captureRaw01(const char* ip, std::vector<cv::Mat>& patterns);
 
@@ -39,7 +39,7 @@ private:
 	void getFiles(std::string path, std::vector<std::string>& files);
 
 private:
-	int camera_version_;
+	int projector_version_;
 	struct CameraCalibParam calib_param_;
 
 };

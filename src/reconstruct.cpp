@@ -24,7 +24,7 @@ bool Reconstruct::setCameraVersion(int version)
 
 	switch (version)
 	{
-	case DFX_800:
+	case DF_PROJECTOR_3010:
 	{
 		dlp_width_ = 1280;
 		dlp_height_ = 720;
@@ -33,7 +33,7 @@ bool Reconstruct::setCameraVersion(int version)
 	}
 	break;
 
-	case DFX_1800:
+	case DF_PROJECTOR_4710:
 	{
 
 		dlp_width_ = 1920;
