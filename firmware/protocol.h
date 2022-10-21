@@ -1,6 +1,7 @@
 ﻿#ifndef DEXFORCE_PROTOCAL_H
 #define DEXFORCE_PROTOCAL_H
 
+#include "df_status.h"
 #include "camera_param.h"
 
 #define DF_PORT 8080
@@ -131,9 +132,7 @@
 
 #define DF_CMD_HEARTBEAT 30000001
 
-#define DF_SUCCESS 0
-#define DF_FAILED 1
-#define DF_UNKNOWN 2
+
 
 // ----------- update server -------------
 #define UPDATE_PORT 9090

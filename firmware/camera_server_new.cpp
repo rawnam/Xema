@@ -3986,43 +3986,43 @@ int handle_commands(int client_sock)
     {
 	case DF_CMD_CONNECT:
 	    LOG(INFO)<<"DF_CMD_CONNECT";
-	    handle_cmd_connect(client_sock);
+	    ret = handle_cmd_connect(client_sock);
 	    break;
 	case DF_CMD_DISCONNECT:
 	    LOG(INFO)<<"DF_CMD_DISCONNECT";
-	    handle_cmd_disconnect(client_sock);
+	    ret = handle_cmd_disconnect(client_sock);
 	    break;
 	case DF_CMD_GET_BRIGHTNESS:
 	    LOG(INFO)<<"DF_CMD_GET_BRIGHTNESS";
-	    handle_cmd_get_brightness(client_sock);
+	    ret = handle_cmd_get_brightness(client_sock);
 	    break;
 	case DF_CMD_GET_RAW:
 	    LOG(INFO)<<"DF_CMD_GET_RAW_01"; 
-	    handle_cmd_get_raw_01(client_sock);
+	    ret = handle_cmd_get_raw_01(client_sock);
 	    break;
 	case DF_CMD_GET_RAW_TEST:
 	    LOG(INFO)<<"DF_CMD_GET_RAW_02"; 
-	    handle_cmd_get_raw_02(client_sock);
+	    ret = handle_cmd_get_raw_02(client_sock);
 	    break;
 	case DF_CMD_GET_RAW_03:
 	    LOG(INFO)<<"DF_CMD_GET_RAW_03"; 
-	    handle_cmd_get_raw_03(client_sock);
+	    ret = handle_cmd_get_raw_03(client_sock);
 	    break;
     case DF_CMD_GET_RAW_04:
 	    LOG(INFO)<<"DF_CMD_GET_RAW_04"; 
-	    handle_cmd_get_raw_04(client_sock);
+	    ret = handle_cmd_get_raw_04(client_sock);
 	    break;
     case DF_CMD_GET_RAW_04_REPETITION:
 	    LOG(INFO)<<"DF_CMD_GET_RAW_04_REPETITION"; 
-	    handle_cmd_get_raw_04_repetition(client_sock);
+	    ret = handle_cmd_get_raw_04_repetition(client_sock);
 	    break; 
 	case DF_CMD_GET_FRAME_01:
 	    LOG(INFO)<<"DF_CMD_GET_FRAME_01"; 
-	    handle_cmd_get_frame_01(client_sock); 
+	    ret = handle_cmd_get_frame_01(client_sock); 
 	    break;
 	case DF_CMD_TEST_GET_FRAME_01:
 	    LOG(INFO)<<"DF_CMD_TEST_GET_FRAME_01"; 
-	    handle_cmd_test_get_frame_01(client_sock); 
+	    ret = handle_cmd_test_get_frame_01(client_sock); 
 	    break;
     case DF_CMD_GET_FRAME_HDR:
 	    LOG(INFO)<<"DF_CMD_GET_FRAME_HDR";  
@@ -4040,7 +4040,7 @@ int handle_commands(int client_sock)
   
             scan3d_.setParamHdr(system_config_settings_machine_.Instance().config_param_.exposure_num,led_list,exposure_list);
  
-            handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(client_sock);
+            ret = handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(client_sock);
         }
         else if (2 == system_config_settings_machine_.Instance().firwmare_param_.hdr_model)
         {
@@ -4054,147 +4054,147 @@ int handle_commands(int client_sock)
 
             scan3d_.setParamHdr(system_config_settings_machine_.Instance().firwmare_param_.mixed_exposure_num, led_current_list, camera_exposure_list);
 
-            handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(client_sock);
+            ret = handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(client_sock);
         } 
         break;
  
 	case DF_CMD_GET_FRAME_03:
 	    LOG(INFO)<<"DF_CMD_GET_FRAME_03";   
-    	handle_cmd_get_frame_03_parallel(client_sock); 
+    	ret = handle_cmd_get_frame_03_parallel(client_sock); 
 	    break;
     case DF_CMD_GET_REPETITION_FRAME_04:
 	    LOG(INFO)<<"DF_CMD_GET_REPETITION_FRAME_04";   
-        handle_cmd_get_frame_04_repetition_02_parallel(client_sock);
+        ret = handle_cmd_get_frame_04_repetition_02_parallel(client_sock);
 	    break; 
 	case DF_CMD_GET_FRAME_04:
 	    LOG(INFO)<<"DF_CMD_GET_FRAME_04";   
-    	handle_cmd_get_frame_04_parallel(client_sock); 
+    	ret = handle_cmd_get_frame_04_parallel(client_sock); 
 	    break;
     case DF_CMD_GET_FRAME_05:
         LOG(INFO) << "DF_CMD_GET_FRAME_05";
-        handle_cmd_get_frame_05_parallel(client_sock);
+        ret = handle_cmd_get_frame_05_parallel(client_sock);
         break;
 	case DF_CMD_GET_POINTCLOUD:
 	    LOG(INFO)<<"DF_CMD_GET_POINTCLOUD"; 
-	    handle_cmd_get_point_cloud(client_sock);
+	    ret = handle_cmd_get_point_cloud(client_sock);
 	    break;
 	case DF_CMD_HEARTBEAT:
 	    LOG(INFO)<<"DF_CMD_HEARTBEAT";
-	    handle_heartbeat(client_sock);
+	    ret = handle_heartbeat(client_sock);
 	    break;
 	case DF_CMD_GET_TEMPERATURE:
 	    LOG(INFO)<<"DF_CMD_GET_TEMPERATURE";
-	    handle_get_temperature(client_sock);
+	    ret = handle_get_temperature(client_sock);
 	    break;
 	case DF_CMD_GET_CAMERA_PARAMETERS:
 	    LOG(INFO)<<"DF_CMD_GET_CAMERA_PARAMETERS";
-	    handle_get_camera_parameters(client_sock);
+	    ret = handle_get_camera_parameters(client_sock);
 	    break;
 	case DF_CMD_SET_CAMERA_PARAMETERS:
 	    LOG(INFO)<<"DF_CMD_SET_CAMERA_PARAMETERS";
-	    handle_set_camera_parameters(client_sock);
+	    ret = handle_set_camera_parameters(client_sock);
         read_calib_param();
 	    break;
 	case DF_CMD_SET_CAMERA_LOOKTABLE:
 	    LOG(INFO)<<"DF_CMD_SET_CAMERA_LOOKTABLE";
-	    handle_set_camera_looktable(client_sock);
+	    ret = handle_set_camera_looktable(client_sock);
         read_calib_param();
 	    break;
 	case DF_CMD_SET_CAMERA_MINILOOKTABLE:
 	    LOG(INFO)<<"DF_CMD_SET_CAMERA_MINILOOKTABLE";
-	    handle_set_camera_minilooktable(client_sock);
+	    ret = handle_set_camera_minilooktable(client_sock);
         read_calib_param();
 	    break;
 	case DF_CMD_ENABLE_CHECKER_BOARD:
 	    LOG(INFO)<<"DF_CMD_ENABLE_CHECKER_BOARD";
-	    handle_enable_checkerboard(client_sock);
+	    ret = handle_enable_checkerboard(client_sock);
 	    break;
 
 	case DF_CMD_DISABLE_CHECKER_BOARD:
 	    LOG(INFO)<<"DF_CMD_DISABLE_CHECKER_BOARD";
-	    handle_disable_checkerboard(client_sock);
+	    ret = handle_disable_checkerboard(client_sock);
 	    break;
 
     case DF_CMD_LOAD_PATTERN_DATA:
 	    LOG(INFO)<<"DF_CMD_LOAD_PATTERN_DATA";
-	    handle_load_pattern_data(client_sock);
+	    ret = handle_load_pattern_data(client_sock);
         break;
 
     case DF_CMD_PROGRAM_PATTERN_DATA:
 	    LOG(INFO)<<"DF_CMD_PROGRAM_PATTERN_DATA";
-	    handle_program_pattern_data(client_sock);
+	    ret = handle_program_pattern_data(client_sock);
         break;
 
 	case DF_CMD_GET_NETWORK_BANDWIDTH:
 	    LOG(INFO)<<"DF_CMD_GET_NETWORK_BANDWIDTH";
-	    handle_get_network_bandwidth(client_sock);
+	    ret = handle_get_network_bandwidth(client_sock);
 	    break;
 
 	case DF_CMD_GET_FIRMWARE_VERSION:
 	    LOG(INFO)<<"DF_CMD_GET_FIRMWARE_VERSION";
-	    handle_get_firmware_version(client_sock);
+	    ret = handle_get_firmware_version(client_sock);
 	    break;
 
 	case DF_CMD_GET_SYSTEM_CONFIG_PARAMETERS:
 	    LOG(INFO)<<"DF_CMD_GET_SYSTEM_CONFIG_PARAMETERS";
-	    handle_get_system_config_parameters(client_sock);
+	    ret = handle_get_system_config_parameters(client_sock);
 	    break;
 	case DF_CMD_SET_SYSTEM_CONFIG_PARAMETERS:
 	    LOG(INFO)<<"DF_CMD_SET_SYSTEM_CONFIG_PARAMETERS";
-	    handle_set_system_config_parameters(client_sock);
+	    ret = handle_set_system_config_parameters(client_sock);
         saveSystemConfig();
 	    break;
 	case DF_CMD_GET_STANDARD_PLANE_PARAM:
 	    LOG(INFO)<<"DF_CMD_GET_STANDARD_PLANE_PARAM";   
-    	handle_cmd_get_standard_plane_param_parallel(client_sock); 
+    	ret = handle_cmd_get_standard_plane_param_parallel(client_sock); 
 	    break;
 	case DF_CMD_GET_PARAM_LED_CURRENT:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_LED_CURRENT";   
-    	handle_cmd_get_param_led_current(client_sock);  
+    	ret = handle_cmd_get_param_led_current(client_sock);  
 	    break;
 	case DF_CMD_SET_PARAM_LED_CURRENT:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_LED_CURRENT";   
-    	handle_cmd_set_param_led_current(client_sock);  
+    	ret = handle_cmd_set_param_led_current(client_sock);  
 	    break;
     case DF_CMD_GET_PARAM_HDR:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_HDR";   
-    	handle_cmd_get_param_hdr(client_sock);  
+    	ret = handle_cmd_get_param_hdr(client_sock);  
 	    break;
 	case DF_CMD_SET_PARAM_HDR:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_HDR";   
-    	handle_cmd_set_param_hdr(client_sock);  
+    	ret = handle_cmd_set_param_hdr(client_sock);  
 	    break;
     case DF_CMD_GET_PARAM_STANDARD_PLANE_EXTERNAL_PARAM:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_STANDARD_PLANE_EXTERNAL_PARAM";   
-    	handle_cmd_get_param_standard_param_external(client_sock);  
+    	ret = handle_cmd_get_param_standard_param_external(client_sock);  
 	    break;
 	case DF_CMD_SET_PARAM_STANDARD_PLANE_EXTERNAL_PARAM:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_STANDARD_PLANE_EXTERNAL_PARAM";   
-    	handle_cmd_set_param_standard_param_external(client_sock);  
+    	ret = handle_cmd_set_param_standard_param_external(client_sock);  
 	    break;
 	case DF_CMD_SET_PARAM_GENERATE_BRIGHTNESS:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_GENERATE_BRIGHTNESS";   
-    	handle_cmd_set_param_generate_brightness(client_sock);  
+    	ret = handle_cmd_set_param_generate_brightness(client_sock);  
 	    break;
     case DF_CMD_GET_PARAM_GENERATE_BRIGHTNESS:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_GENERATE_BRIGHTNESS";   
-    	handle_cmd_get_param_generate_brightness(client_sock);  
+    	ret = handle_cmd_get_param_generate_brightness(client_sock);  
 	    break;
 	case DF_CMD_SET_PARAM_CAMERA_EXPOSURE_TIME:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_CAMERA_EXPOSURE_TIME";   
-    	handle_cmd_set_param_camera_exposure(client_sock);
+    	ret = handle_cmd_set_param_camera_exposure(client_sock);
 	    break;
 	case DF_CMD_GET_PARAM_CAMERA_EXPOSURE_TIME:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_EXPOSURE_TIME";   
-    	handle_cmd_get_param_camera_exposure(client_sock);
+    	ret = handle_cmd_get_param_camera_exposure(client_sock);
 	    break;
     case DF_CMD_SET_PARAM_CAMERA_GAIN:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_CAMERA_GAIN";   
-    	handle_cmd_set_param_camera_gain(client_sock);
+    	ret = handle_cmd_set_param_camera_gain(client_sock);
 	    break; 
 	case DF_CMD_GET_PARAM_CAMERA_GAIN:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_GAIN";   
-    	handle_cmd_get_param_camera_gain(client_sock);
+    	ret = handle_cmd_get_param_camera_gain(client_sock);
 	    break;
 	// case DF_CMD_SET_PARAM_OFFSET:
 	//     LOG(INFO)<<"DF_CMD_SET_PARAM_OFFSET";   
@@ -4206,51 +4206,51 @@ int handle_commands(int client_sock)
 	//     break;
 	case DF_CMD_SET_PARAM_MIXED_HDR:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_MIXED_HDR";   
-    	handle_cmd_set_param_mixed_hdr(client_sock);
+    	ret = handle_cmd_set_param_mixed_hdr(client_sock);
 	    break;
 	case DF_CMD_GET_PARAM_MIXED_HDR:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_MIXED_HDR";   
-    	handle_cmd_get_param_mixed_hdr(client_sock);
+    	ret = handle_cmd_get_param_mixed_hdr(client_sock);
 	    break;
     case DF_CMD_GET_PARAM_CAMERA_CONFIDENCE:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_CONFIDENCE";   
-    	handle_cmd_get_param_confidence(client_sock); 
+    	ret = handle_cmd_get_param_confidence(client_sock); 
 	    break;
     case DF_CMD_SET_PARAM_CAMERA_CONFIDENCE:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_CAMERA_CONFIDENCE";   
-    	handle_cmd_set_param_confidence(client_sock); 
+    	ret = handle_cmd_set_param_confidence(client_sock); 
 	    break;
     case DF_CMD_GET_PARAM_FISHER_FILTER:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_CONFIDENCE";    
-        handle_cmd_get_param_fisher_filter(client_sock);
+        ret = handle_cmd_get_param_fisher_filter(client_sock);
 	    break;
     case DF_CMD_SET_PARAM_FISHER_FILTER:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_FISHER_FILTER";  
-        handle_cmd_set_param_fisher_filter(client_sock);
+        ret = handle_cmd_set_param_fisher_filter(client_sock);
 	    break;
 	case DF_CMD_GET_PARAM_CAMERA_VERSION:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_CAMERA_VERSION";   
-    	handle_cmd_get_param_camera_version(client_sock);
+    	ret = handle_cmd_get_param_camera_version(client_sock);
 	    break;
 	case DF_CMD_GET_PARAM_PROJECTOR_VERSION:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_PROJECTOR_VERSION";   
-    	handle_cmd_get_param_projector_version(client_sock);
+    	ret = handle_cmd_get_param_projector_version(client_sock);
 	    break;
 	case DF_CMD_SET_PARAM_REFLECT_FILTER:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_REFLECT_FILTER";   
-    	handle_cmd_set_param_reflect_filter(client_sock);
+    	ret = handle_cmd_set_param_reflect_filter(client_sock);
 	    break;
 	case DF_CMD_GET_PARAM_REFLECT_FILTER:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_REFLECT_FILTER";   
-    	handle_cmd_get_param_reflect_filter(client_sock);
+    	ret = handle_cmd_get_param_reflect_filter(client_sock);
 	    break;
 	case DF_CMD_SET_PARAM_RADIUS_FILTER:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_RADIUS_FILTER";   
-    	handle_cmd_set_param_radius_filter(client_sock);
+    	ret = handle_cmd_set_param_radius_filter(client_sock);
 	    break;
 	case DF_CMD_GET_PARAM_RADIUS_FILTER:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_RADIUS_FILTER";   
-    	handle_cmd_get_param_radius_filter(client_sock);
+    	ret = handle_cmd_get_param_radius_filter(client_sock);
 	    break;
 	case DF_CMD_SET_PARAM_BILATERAL_FILTER:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_BILATERAL_FILTER";   
@@ -4258,43 +4258,43 @@ int handle_commands(int client_sock)
 	    break;
 	case DF_CMD_GET_PARAM_BILATERAL_FILTER:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_BILATERAL_FILTER";   
-    	handle_cmd_get_param_bilateral_filter(client_sock);
+    	ret = handle_cmd_get_param_bilateral_filter(client_sock);
 	    break;
 	case DF_CMD_SET_AUTO_EXPOSURE_BASE_ROI:
 	    LOG(INFO)<<"DF_CMD_SET_AUTO_EXPOSURE_BASE_ROI";   
-    	handle_cmd_set_auto_exposure_base_roi_half(client_sock);
+    	ret = handle_cmd_set_auto_exposure_base_roi_half(client_sock);
 	    break;
 	case DF_CMD_SET_AUTO_EXPOSURE_BASE_BOARD:
 	    LOG(INFO)<<"DF_CMD_SET_AUTO_EXPOSURE_BASE_BOARD";   
-    	handle_cmd_set_auto_exposure_base_board(client_sock);
+    	ret = handle_cmd_set_auto_exposure_base_board(client_sock);
 	case DF_CMD_SELF_TEST:
 	    LOG(INFO)<<"DF_CMD_SELF_TEST";   
-    	handle_cmd_self_test(client_sock);
+    	ret = handle_cmd_self_test(client_sock);
 	    break;
 	case DF_CMD_GET_PROJECTOR_TEMPERATURE:
 	    LOG(INFO)<<"DF_CMD_GET_PROJECTOR_TEMPERATURE";
-	    handle_get_projector_temperature(client_sock);
+	    ret = handle_get_projector_temperature(client_sock);
 	    break;
     case DF_CMD_GET_PHASE_02_REPETITION:
     	LOG(INFO)<<"DF_CMD_GET_PHASE_02_REPETITION";
-	    handle_cmd_get_phase_02_repetition_02_parallel(client_sock);
+	    ret = handle_cmd_get_phase_02_repetition_02_parallel(client_sock);
 	    break;
     case DF_CMD_GET_FOCUSING_IMAGE:
         LOG(INFO)<<"DF_CMD_CONFIGURE_FOCUSING"; 
-        handle_cmd_get_focusing_image(client_sock);
+        ret = handle_cmd_get_focusing_image(client_sock);
         break;
     case DF_CMD_GET_CAMERA_RESOLUTION:
         LOG(INFO)<<"DF_CMD_GET_CAMERA_RESOLUTION"; 
-        handle_cmd_get_param_camera_resolution(client_sock);
+        ret = handle_cmd_get_param_camera_resolution(client_sock);
         break;
     case DF_CMD_SET_INSPECT_MODEL_FIND_BOARD:
         LOG(INFO)<<"DF_CMD_SET_INSPECT_MODEL_FIND_BOARD"; 
-        handle_cmd_set_board_inspect(client_sock);
+        ret = handle_cmd_set_board_inspect(client_sock);
         break;
         
 	default:
 	    LOG(INFO)<<"DF_CMD_UNKNOWN";
-        handle_cmd_unknown(client_sock);
+        ret = handle_cmd_unknown(client_sock);
 	    break;
     }
 
@@ -4302,6 +4302,8 @@ int handle_commands(int client_sock)
 	GPIO::output(ACT_PIN, GPIO::LOW); 
 
     close(client_sock);
+    
+	LOG(INFO)<<"handle_commands ret: "<<ret;
     return DF_SUCCESS;
 }
 
