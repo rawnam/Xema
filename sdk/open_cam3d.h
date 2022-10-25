@@ -7,7 +7,7 @@
 #define DF_SDK_API 
 #endif
 
-
+#include "camera_status.h"
 
 /***************************************************************************************/
 
@@ -389,7 +389,7 @@ DF_SDK_API int DfGetCameraRawData04Repetition(unsigned char* raw, int raw_buf_si
 //输入参数：depth_map（深度图）
 //输出参数：point_cloud_map（点云）
 //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
-DF_SDK_API bool depthTransformPointcloud(float* depth_map, float* point_cloud_map);
+DF_SDK_API int depthTransformPointcloud(float* depth_map, float* point_cloud_map);
 
 //函数名： transformPointcloud
 //功能： 点云坐标系转换接口

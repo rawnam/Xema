@@ -220,12 +220,12 @@ bool transformPointcloud(float* org_point_cloud_map, float* transform_point_clou
 	return true;
 }
 
-bool depthTransformPointcloud(float* depth_map, float* point_cloud_map)
+int depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 {
 
 	if (!connected_flag_)
 	{
-		return false;
+		return DF_NOT_CONNECT;
 	}
 
 	float camera_fx = calibration_param_.camera_intrinsic[0];
@@ -284,7 +284,7 @@ bool depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 	}
 
 
-	return true;
+	return DF_SUCCESS;
 }
 
 
@@ -371,7 +371,7 @@ DF_SDK_API int DfConnect(const char* camera_id)
 	int ret = DfConnectNet(camera_id);
 	if (ret != DF_SUCCESS)
 	{
-		return -1;
+		return ret;
 	}
 
 	ret = DfGetCalibrationParam(calibration_param_);
@@ -379,17 +379,21 @@ DF_SDK_API int DfConnect(const char* camera_id)
 	if (ret != DF_SUCCESS)
 	{
 		DfDisconnectNet();
-		return -1;
+		return ret;
 	}
 	 
 	int width, height;
 	ret = DfGetCameraResolution(&width, &height);
-	 
+	if (ret != DF_SUCCESS)
+	{
+		DfDisconnectNet();
+		return ret;
+	}
 
 	if (width <= 0 || height <= 0)
 	{
 		DfDisconnectNet();
-		return -1;
+		return DF_ERROR_2D_CAMERA;
 	} 
 
 	camera_width_ = width;
@@ -510,7 +514,7 @@ DF_SDK_API int DfGetCameraResolution(int* width, int* height)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -626,7 +630,7 @@ DF_SDK_API int DfGetDepthData(unsigned short* depth)
 	LOG(INFO) << "DfGetDepthData:";
 	if (!connected_flag_)
 	{
-		return -1;
+		return DF_NOT_CONNECT;
 	}
 
 
@@ -673,7 +677,7 @@ DF_SDK_API int DfGetDepthDataFloat(float* depth)
 	LOG(INFO) << "DfGetDepthDataFloat:";
 	if (!connected_flag_)
 	{
-		return -1;
+		return DF_NOT_CONNECT;
 	}
 
 
@@ -710,7 +714,7 @@ DF_SDK_API int DfGetBrightnessData(unsigned char* brightness)
 	LOG(INFO) << "DfGetBrightnessData:";
 	if (!connected_flag_)
 	{
-		return -1;
+		return DF_NOT_CONNECT;
 	}
 
 
@@ -772,7 +776,7 @@ DF_SDK_API int DfGetStandardPlaneParam(float* R, float* T)
 	{
 		LOG(INFO) << "Get frame rejected";
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -798,7 +802,7 @@ DF_SDK_API int DfGetHeightMapDataBaseParam(float* R, float* T, float* height_map
 	LOG(INFO) << "DfGetHeightMapDataBaseParam:";
 	if (!connected_flag_)
 	{
-		return -1;
+		return DF_NOT_CONNECT;
 	}
  
 
@@ -851,7 +855,7 @@ DF_SDK_API int DfGetHeightMapData(float* height_map)
 	LOG(INFO) << "DfGetHeightMapData:";
 	if (!connected_flag_)
 	{
-		return -1;
+		return DF_NOT_CONNECT;
 	}
 
 
@@ -913,7 +917,7 @@ DF_SDK_API int DfGetPointcloudData(float* point_cloud)
 	LOG(INFO) << "DfGetPointcloudData:";
 	if (!connected_flag_)
 	{
-		return -1;
+		return DF_NOT_CONNECT;
 	}
 
 
@@ -942,7 +946,7 @@ DF_SDK_API int DfDisconnect(const char* camera_id)
 	LOG(INFO) << "DfDisconnect:";
 	if (!connected_flag_)
 	{
-		return DF_FAILED;
+		return DF_NOT_CONNECT;
 	}
 
 
@@ -976,7 +980,7 @@ DF_SDK_API int DfGetCalibrationParam(struct CalibrationParam* calibration_param)
 	LOG(INFO) << "DfGetCalibrationParam:";
 	if (!connected_flag_)
 	{
-		return -1;
+		return DF_NOT_CONNECT;
 	}
 
 	//calibration_param = &calibration_param_;
@@ -1054,7 +1058,7 @@ int HeartBeat()
 	}
 	else if (command == DF_CMD_REJECT)
 	{
-		ret = DF_FAILED;
+		ret = DF_BUSY;
 	}
 	else
 	{
@@ -1157,7 +1161,7 @@ DF_SDK_API int DfConnectNet(const char* ip)
 		{
 			LOG(INFO) << "connection rejected";
 			close_socket(g_sock);
-			return DF_FAILED;
+			return DF_BUSY;
 		}
 	}
 	else
@@ -1254,7 +1258,7 @@ DF_SDK_API int DfGetFocusingImage(unsigned char* image, int image_buf_size)
 	{
 		LOG(INFO) << "Get Focusing Image rejected";
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	LOG(INFO) << "Get  Focusing Image success";
@@ -1298,7 +1302,7 @@ DF_SDK_API int GetBrightness(unsigned char* brightness, int brightness_buf_size)
 	{
 		LOG(INFO) << "Get brightness rejected";
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	LOG(INFO) << "Get brightness success";
@@ -1403,7 +1407,7 @@ DF_SDK_API int DfGetFrameHdr(float* depth, int depth_buf_size,
 	{
 		LOG(INFO) << "Get frame rejected";
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	LOG(INFO) << "Get frame success";
@@ -1485,7 +1489,7 @@ DF_SDK_API int DfGetRepetitionPhase02(int count, float* phase_x, float* phase_y,
 	{
 		LOG(INFO) << "Get frame rejected";
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -1564,7 +1568,7 @@ DF_SDK_API int DfGetRepetitionFrame04(int count, float* depth, int depth_buf_siz
 	{
 		LOG(INFO) << "Get frame rejected";
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -1636,7 +1640,7 @@ DF_SDK_API int DfGetRepetitionFrame03(int count, float* depth, int depth_buf_siz
 	{
 		LOG(INFO) << "Get frame rejected";
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -1701,7 +1705,7 @@ DF_SDK_API int DfGetFrame03(float* depth, int depth_buf_size,
 	{
 		LOG(INFO) << "Get frame rejected";
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	LOG(INFO) << "Get frame success";
@@ -1762,7 +1766,7 @@ DF_SDK_API int DfGetFrame04(float* depth, int depth_buf_size,
 	{
 		LOG(INFO) << "Get frame rejected";
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	LOG(INFO) << "Get frame04 success";
@@ -1822,7 +1826,7 @@ DF_SDK_API int DfGetFrame05(float* depth, int depth_buf_size,
 	{
 		LOG(INFO) << "Get frame rejected";
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	LOG(INFO) << "Get frame success";
@@ -1882,7 +1886,7 @@ DF_SDK_API int DfGetFrame01(float* depth, int depth_buf_size,
 	{
 		LOG(INFO) << "Get frame rejected";
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	LOG(INFO) << "Get frame success";
@@ -1927,7 +1931,7 @@ DF_SDK_API int DfGetPointCloud(float* point_cloud, int point_cloud_buf_size)
 	{
 		LOG(INFO) << "Get point_cloud rejected";
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	LOG(INFO) << "Get point_cloud success";
@@ -1986,7 +1990,7 @@ DF_SDK_API int DfGetCameraRawData04Repetition(unsigned char* raw, int raw_buf_si
 		{
 			LOG(INFO) << "Get raw rejected";
 			close_socket(g_sock);
-			return DF_FAILED;
+			return DF_BUSY;
 		}
 
 		LOG(INFO) << "Get raw success";
@@ -2040,7 +2044,7 @@ DF_SDK_API int DfGetCameraRawData04(unsigned char* raw, int raw_buf_size)
 		{
 			LOG(INFO) << "Get raw rejected";
 			close_socket(g_sock);
-			return DF_FAILED;
+			return DF_BUSY;
 		}
 
 		LOG(INFO) << "Get raw success";
@@ -2089,7 +2093,7 @@ DF_SDK_API int DfGetCameraRawData03(unsigned char* raw, int raw_buf_size)
 		{
 			LOG(INFO) << "Get raw rejected";
 			close_socket(g_sock);
-			return DF_FAILED;
+			return DF_BUSY;
 		}
 
 		LOG(INFO) << "Get raw success";
@@ -2138,7 +2142,7 @@ DF_SDK_API int DfGetCameraRawData02(unsigned char* raw, int raw_buf_size)
 		{
 			LOG(INFO) << "Get raw rejected";
 			close_socket(g_sock);
-			return DF_FAILED;
+			return DF_BUSY;
 		}
 
 		LOG(INFO) << "Get raw success";
@@ -2187,7 +2191,7 @@ DF_SDK_API int DfGetCameraRawDataTest(unsigned char* raw, int raw_buf_size)
 		{
 			LOG(INFO) << "Get raw rejected";
 			close_socket(g_sock);
-			return DF_FAILED;
+			return DF_BUSY;
 		}
 
 		LOG(INFO) << "Get raw success";
@@ -2238,7 +2242,7 @@ DF_SDK_API int DfGetCameraRawData01(unsigned char* raw, int raw_buf_size)
 		{
 			LOG(INFO) << "Get raw rejected";
 			close_socket(g_sock);
-			return DF_FAILED;
+			return DF_BUSY;
 		}
 
 		LOG(INFO) << "Get raw success";
@@ -2279,7 +2283,7 @@ DF_SDK_API int DfGetDeviceTemperature(float& temperature)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2319,7 +2323,7 @@ DF_SDK_API int DfEnableCheckerboard(float& temperature)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2357,7 +2361,7 @@ DF_SDK_API int DfDisableCheckerboard(float& temperature)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2402,7 +2406,7 @@ DF_SDK_API int DfLoadPatternData(int buildDataSize, char* LoadBuffer)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2454,7 +2458,7 @@ DF_SDK_API int DfProgramPatternData(char* org_buffer, char* back_buffer, unsigne
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2492,7 +2496,7 @@ DF_SDK_API int DfGetNetworkBandwidth(int& speed)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2531,7 +2535,7 @@ DF_SDK_API int DfSelfTest(char* pTest, int length)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2570,7 +2574,7 @@ DF_SDK_API int DfGetFirmwareVersion(char* pVersion, int length)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2608,7 +2612,7 @@ DF_SDK_API int DfGetProjectorTemperature(float& temperature)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2647,7 +2651,7 @@ DF_SDK_API int DfGetSystemConfigParam(struct SystemConfigParam& config_param)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2685,7 +2689,7 @@ DF_SDK_API int DfSetSystemConfigParam(const struct SystemConfigParam& config_par
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2723,7 +2727,7 @@ DF_SDK_API int DfGetCalibrationParam(struct CameraCalibParam& calibration_param)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2808,7 +2812,7 @@ DF_SDK_API int DfSetCalibrationLookTable(const struct CameraCalibParam& calibrat
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2886,7 +2890,7 @@ DF_SDK_API int DfSetCalibrationMiniLookTable(const struct CameraCalibParam& cali
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2925,7 +2929,7 @@ DF_SDK_API int DfSetCalibrationParam(const struct CameraCalibParam& calibration_
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	close_socket(g_sock);
@@ -2994,7 +2998,7 @@ DF_SDK_API int DfSetAutoExposure(int flag, int& exposure, int& led)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3111,7 +3115,7 @@ DF_SDK_API int DfSetParamBilateralFilter(int use, int param_d)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3167,7 +3171,7 @@ DF_SDK_API int DfGetParamBilateralFilter(int& use, int& param_d)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3238,7 +3242,7 @@ DF_SDK_API int DfSetParamRadiusFilter(int use, float radius, int num)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3303,7 +3307,7 @@ DF_SDK_API int DfGetParamRadiusFilter(int& use, float& radius, int& num)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3359,7 +3363,7 @@ DF_SDK_API int DfSetParamReflectFilter(int use)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3419,7 +3423,7 @@ DF_SDK_API int DfSetBoardInspect(bool enable)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3470,7 +3474,7 @@ DF_SDK_API int DfGetParamReflectFilter(int& use)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3520,7 +3524,7 @@ DF_SDK_API int DfSetParamOutlierFilter(float threshold)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3570,7 +3574,7 @@ DF_SDK_API int DfGetParamOutlierFilter(float& threshold)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3619,7 +3623,7 @@ DF_SDK_API int DfGetParamOffset(float& offset)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3675,7 +3679,7 @@ DF_SDK_API int DfSetParamOffset(float offset)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3726,7 +3730,7 @@ DF_SDK_API int DfSetParamCameraConfidence(float confidence)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3777,7 +3781,7 @@ DF_SDK_API int DfGetParamCameraConfidence(float& confidence)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3828,7 +3832,7 @@ DF_SDK_API int DfSetParamCameraGain(float gain)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3879,7 +3883,7 @@ DF_SDK_API int DfGetParamCameraGain(float& gain)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3930,7 +3934,7 @@ DF_SDK_API int DfSetParamCameraExposure(float exposure)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -3981,7 +3985,7 @@ DF_SDK_API int DfGetParamCameraExposure(float& exposure)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -4044,7 +4048,7 @@ DF_SDK_API int DfSetParamGenerateBrightness(int model, float exposure)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -4103,7 +4107,7 @@ DF_SDK_API int DfGetParamGenerateBrightness(int& model, float& exposure)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -4161,7 +4165,7 @@ DF_SDK_API int DfSetParamStandardPlaneExternal(float* R, float* T)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -4221,7 +4225,7 @@ DF_SDK_API int DfGetParamStandardPlaneExternal(float* R, float* T)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -4277,7 +4281,7 @@ DF_SDK_API int DfSetParamMixedHdr(int num, int exposure_param[6], int led_param[
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -4335,7 +4339,7 @@ DF_SDK_API int DfGetParamMixedHdr(int& num, int exposure_param[6], int led_param
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -4389,7 +4393,7 @@ DF_SDK_API int DfSetParamHdr(int num, int exposure_param[6])
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -4445,7 +4449,7 @@ DF_SDK_API int DfGetParamHdr(int& num, int exposure_param[6])
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -4496,7 +4500,7 @@ DF_SDK_API int DfSetParamLedCurrent(int led)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -4547,7 +4551,7 @@ DF_SDK_API int DfGetParamLedCurrent(int& led)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -4596,7 +4600,7 @@ DF_SDK_API int DfGetProjectorVersion(int& version)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -4644,7 +4648,7 @@ DF_SDK_API int DfGetCameraVersion(int& version)
 	else if (command == DF_CMD_REJECT)
 	{
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 	else if (command == DF_CMD_UNKNOWN)
 	{
@@ -4720,7 +4724,7 @@ DF_SDK_API int DfGetTestFrame01(unsigned char* raw, int raw_buf_size, float* dep
 	{
 		LOG(INFO) << "Get frame rejected";
 		close_socket(g_sock);
-		return DF_FAILED;
+		return DF_BUSY;
 	}
 
 	LOG(INFO) << "Get frame success";

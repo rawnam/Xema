@@ -22,10 +22,11 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	ui.tableWidget_more_exposure->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
 	ui.tableWidget_more_exposure->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
 	ui.tableWidget_more_exposure->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+	ui.tableWidget_more_exposure->horizontalHeader()->setSortIndicatorShown(false);
 	//ui.tableWidget_more_exposure->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
 	ui.tableWidget_more_exposure->setEditTriggers(QAbstractItemView::NoEditTriggers); //设置不可编辑
 	ui.tableWidget_more_exposure->setFrameShape(QFrame::Box);
-
+	 
 
 
 	config_system_param_machine_.loadProcessingSettingsFile("../camera_config.json");
@@ -1317,6 +1318,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 	}
 	capturing_flag_ = true;
 
+
 	int width = camera_width_;
 	int height = camera_height_;
 
@@ -1529,7 +1531,7 @@ void  CameraCaptureGui::do_pushButton_connect()
 		DfRegisterOnDropped(m_p_OnDropped_);
 
 		 
-		if (0 == ret_code)
+		if (DF_SUCCESS == ret_code)
 		{
 			//必须连接相机成功后，才可获取相机分辨率
 			ret_code = DfGetCameraResolution(&camera_width_, &camera_height_);
@@ -1611,15 +1613,26 @@ void  CameraCaptureGui::do_pushButton_connect()
 			}
 
 		}
-		else
+		else if (DF_BUSY == ret_code)
+		{
+			addLogMessage(u8"相机忙！");
+			return;
+		}
+		else if (DF_ERROR_2D_CAMERA == ret_code)
+		{
+			addLogMessage(u8"2D相机故障！");
+			return;
+		}
+		else 
 		{
 			std::cout << "Connect Camera Error!";
-			addLogMessage(u8"连接相机失败！");
+			addLogMessage(u8"连接相机失败，请确认相机IP！");
 			return;
 		}
 
 
 		connected_flag_ = true;
+		ui.lineEdit_ip->setDisabled(true);
 
 		CalibrationParam calib_param;
 		ret_code = DfGetCalibrationParam(&calib_param);
@@ -1686,13 +1699,14 @@ void  CameraCaptureGui::do_pushButton_disconnect()
 		}
 
 		int ret = DfDisconnect(camera_ip_.toStdString().c_str());
-		if (DF_SUCCESS != ret)
-		{
-			return;
-		}
+		//if (DF_SUCCESS != ret)
+		//{
+		//	return;
+		//}
 
 		addLogMessage(u8"断开相机！");
-		connected_flag_ = false;
+		connected_flag_ = false; 
+		ui.lineEdit_ip->setDisabled(false);
 
 		ui.pushButton_connect->setIcon(QIcon(":/dexforce_camera_gui/image/connect.png"));
 	}
@@ -2341,7 +2355,7 @@ void  CameraCaptureGui::do_timeout_capture_slot()
 		//{
 		//	capture_timer_.start();
 		//}
-
+		 
 		std::thread t_s(&CameraCaptureGui::captureOneFrameBaseThread, this, ui.checkBox_hdr->isChecked());
 		t_s.detach();
 		capture_timer_.start();

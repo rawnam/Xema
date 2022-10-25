@@ -1,7 +1,7 @@
 ﻿#ifndef DEXFORCE_PROTOCAL_H
 #define DEXFORCE_PROTOCAL_H
 
-#include "df_status.h"
+#include "../sdk/camera_status.h"
 #include "camera_param.h"
 
 #define DF_PORT 8080

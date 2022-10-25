@@ -419,6 +419,8 @@ bool DfSolution::readFolderImages(std::string dir, std::vector<std::vector<cv::M
 
 		patterns_list.push_back(patterns);
 	}
+
+	return true;
 }
 
 
