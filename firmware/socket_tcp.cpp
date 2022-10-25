@@ -91,8 +91,8 @@ int send_buffer(int sock, const char* buffer, int buffer_size)
 	
 	
     int size = 0;
-    int ret = send(sock, (char*)&buffer_size, sizeof(buffer_size), MSG_NOSIGNAL);
-    LOG(INFO)<<"send buffer_size ret="<<ret;
+    int ret = send(sock, (char *)&buffer_size, sizeof(buffer_size), MSG_NOSIGNAL);
+    LOG(INFO) << "send buffer_size ret=" << ret;
     if (ret == -1)
     {
         return DF_FAILED;
@@ -100,23 +100,23 @@ int send_buffer(int sock, const char* buffer, int buffer_size)
 
     int sent_size = 0;
     ret = send(sock, buffer, buffer_size, MSG_NOSIGNAL);
-    LOG(INFO)<<"send buffer ret="<<ret;
+    LOG(INFO) << "send buffer ret=" << ret;
     if (ret == -1)
     {
         return DF_FAILED;
     }
     sent_size += ret;
-    while(sent_size != buffer_size)
+    while (sent_size != buffer_size)
     {
-	buffer += ret;
-	LOG(INFO)<<"sent_size="<<sent_size;
-	ret = send(sock, buffer, buffer_size-sent_size, MSG_NOSIGNAL);
-        LOG(INFO)<<"ret="<<ret;
+        buffer += ret;
+        LOG(INFO) << "sent_size=" << sent_size;
+        ret = send(sock, buffer, buffer_size - sent_size, MSG_NOSIGNAL);
+        LOG(INFO) << "ret=" << ret;
         if (ret == -1)
         {
             return DF_FAILED;
         }
-	sent_size += ret;
+        sent_size += ret;
     }
 
     return DF_SUCCESS;
@@ -126,6 +126,7 @@ int recv_buffer(int sock, char* buffer, int buffer_size)
 {
     int size = 0;
     int ret = recv(sock, (char*)&size, sizeof(size), 0);
+  
     if(buffer_size < size)
     {
         LOG(ERROR)<<"buffer_size < size";
@@ -135,9 +136,9 @@ int recv_buffer(int sock, char* buffer, int buffer_size)
     }
     //assert(buffer_size >= size);
     int n_recv = 0;
-    ret = DF_SUCCESS;
+    // ret = DF_SUCCESS;
 
-    while (ret != -1)
+    while (ret > 0)
     {
         ret = recv(sock, buffer, buffer_size, 0);
         //std::cout << "ret="<<ret << std::endl;
@@ -159,6 +160,8 @@ int recv_buffer(int sock, char* buffer, int buffer_size)
             return DF_SUCCESS;
         }
     }
+
+    LOG(INFO) << "recv err,ret= " << ret;
     return DF_FAILED;
 }
 

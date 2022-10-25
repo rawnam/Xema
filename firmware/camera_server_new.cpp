@@ -320,34 +320,35 @@ int handle_cmd_unknown(int client_sock)
 int check_token(int client_sock)
 {
     long long token = 0;
-    int ret = recv_buffer(client_sock, (char*)&token, sizeof(token));
-    //std::cout<<"token ret = "<<ret<<std::endl;
-    //std::cout<<"checking token:"<<token<<std::endl;
-    if(ret == DF_FAILED)
-    {
-	return DF_FAILED;
-    }
-
-    if(token == current_token)
-    { 
-	ret = send_command(client_sock, DF_CMD_OK);
+    int ret = recv_buffer(client_sock, (char *)&token, sizeof(token));
+    // std::cout<<"token ret = "<<ret<<std::endl;
+    // std::cout<<"checking token:"<<token<<std::endl;
     if (ret == DF_FAILED)
     {
-        LOG(INFO) << "send_command FAILED";
-         return DF_FAILED;
+        LOG(INFO) << "recv_buffer token FAILED";
+        return DF_FAILED;
     }
-    return DF_SUCCESS;
+
+    if (token == current_token)
+    {
+        ret = send_command(client_sock, DF_CMD_OK);
+        if (ret == DF_FAILED)
+        {
+            LOG(INFO) << "send_command FAILED";
+            return DF_FAILED;
+        }
+        return DF_SUCCESS;
     }
     else
     {
-	LOG(INFO)<<"reject"<<std::endl;
-	ret = send_command(client_sock, DF_CMD_REJECT);
-    if (ret == DF_FAILED)
-    {
-        LOG(INFO) << "send_command FAILED";
-         return DF_FAILED;
-    }
-    return DF_FAILED;
+        LOG(INFO) << "reject" << std::endl;
+        ret = send_command(client_sock, DF_CMD_REJECT);
+        if (ret == DF_FAILED)
+        {
+            LOG(INFO) << "send_command FAILED";
+            return DF_FAILED;
+        }
+        return DF_FAILED;
     }
 }
 
@@ -2861,7 +2862,7 @@ int handle_cmd_set_param_mixed_hdr(int client_sock)
     {
 	    return DF_FAILED;
     }
-	  
+	LOG(INFO)<<"check_token finished!";
     int param[13]; 
 
     int ret = recv_buffer(client_sock, (char*)(&param), sizeof(int)*13);
@@ -2870,6 +2871,9 @@ int handle_cmd_set_param_mixed_hdr(int client_sock)
         LOG(INFO)<<"send error, close this connection!\n";
     	return DF_FAILED;
     }
+
+    
+	LOG(INFO)<<"recv_buffer param finished!";
 
     int num = param[0];  
       //set led current
