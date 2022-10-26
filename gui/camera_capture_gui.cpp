@@ -10,7 +10,7 @@
 #include <qheaderview.h>
 #include "PrecisionTest.h"
 #include <qdesktopservices.h>
-#include <thread>
+#include <thread> 
 
 CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	: QWidget(parent)
@@ -55,6 +55,9 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
   
 	radio_button_flag_ = SELECT_BRIGHTNESS_FLAG_;
 	showImage();
+
+	ui.comboBox_ip->hide();
+	ui.pushButton_refresh->hide();
 }
 
 CameraCaptureGui::~CameraCaptureGui()
@@ -1513,178 +1516,190 @@ void CameraCaptureGui::do_pushButton_refresh()
 
 void  CameraCaptureGui::do_pushButton_connect()
 {
+	ui.pushButton_connect->setDisabled(true);    
 
-	if (!connected_flag_)
-	{
+	do {
 
-		camera_ip_ = ui.lineEdit_ip->text();
-		if (camera_ip_.isEmpty())
+		if (!connected_flag_)
 		{
-			addLogMessage(u8"请设置IP！");
-			return;
-		}
 
-		 
-		addLogMessage(u8"连接相机：");
-		int ret_code = DfConnect(camera_ip_.toStdString().c_str());
-
-		DfRegisterOnDropped(m_p_OnDropped_);
-
-		 
-		if (DF_SUCCESS == ret_code)
-		{
-			//必须连接相机成功后，才可获取相机分辨率
-			ret_code = DfGetCameraResolution(&camera_width_, &camera_height_);
-			std::cout << "Width: " << camera_width_ << "    Height: " << camera_height_ << std::endl;
-
-			//获取相机标定参数
-			ret_code = DfGetCalibrationParam(camera_calibration_param_);
-			if (0 != ret_code)
+			camera_ip_ = ui.lineEdit_ip->text();
+			if (camera_ip_.isEmpty())
 			{
-				qDebug() << "Get Calibration Param Error!;";
-				return;
+				addLogMessage(u8"请设置IP！");
+				break;
 			}
 
-			//获取相机型号参数
-			//ret_code = DfGetCameraVersion(camera_version_);
-			//if (0 != ret_code)
-			//{
-			//	qDebug() << "Get Calibration Param Error!;";
-			//	return;
-			//}
 
-			//switch (camera_version_)
-			//{
-			//case 800:
-			//{
-			//	addLogMessage(u8"连接DFX800成功！");
-			//}
-			//break;
-			//case 1800:
-			//{
-			//	addLogMessage(u8"连接DFX1800成功！");
-			//}
-			//break;
-			//default:
-			//	break;
-			//}
+			addLogMessage(u8"连接相机：");
+			int ret_code = DfConnect(camera_ip_.toStdString().c_str());
+  
+  
+			DfRegisterOnDropped(m_p_OnDropped_);
 
 
-			addLogMessage(u8"连接相机成功！");
-			//保存ip配置
-			processing_gui_settings_data_.Instance().ip = camera_ip_;
-
-			//ret_code = DfGetSystemConfigParam(system_config_param_);
-			//if (0 != ret_code)
-			//{
-			//	qDebug() << "Get Param Error;";
-			//	//return;
-			//}
-
-			//设置配置参数
-			ret_code = DfSetSystemConfigParam(system_config_param_);
-			if (0 != ret_code)
+			if (DF_SUCCESS == ret_code)
 			{
-				qDebug() << "Set Param Error;";
-				//return;
+				//必须连接相机成功后，才可获取相机分辨率
+				ret_code = DfGetCameraResolution(&camera_width_, &camera_height_);
+				std::cout << "Width: " << camera_width_ << "    Height: " << camera_height_ << std::endl;
+
+				//获取相机标定参数
+				ret_code = DfGetCalibrationParam(camera_calibration_param_);
+				if (DF_SUCCESS != ret_code)
+				{
+					qDebug() << "Get Calibration Param Error!;";
+					 
+					break;
+				}
+
+				//获取相机型号参数
+				//ret_code = DfGetCameraVersion(camera_version_);
+				//if (0 != ret_code)
+				//{
+				//	qDebug() << "Get Calibration Param Error!;";
+				//	return;
+				//}
+
+				//switch (camera_version_)
+				//{
+				//case 800:
+				//{
+				//	addLogMessage(u8"连接DFX800成功！");
+				//}
+				//break;
+				//case 1800:
+				//{
+				//	addLogMessage(u8"连接DFX1800成功！");
+				//}
+				//break;
+				//default:
+				//	break;
+				//}
+
+
+				addLogMessage(u8"连接相机成功！");
+				//保存ip配置
+				processing_gui_settings_data_.Instance().ip = camera_ip_;
+
+				//ret_code = DfGetSystemConfigParam(system_config_param_);
+				//if (0 != ret_code)
+				//{
+				//	qDebug() << "Get Param Error;";
+				//	//return;
+				//}
+
+				//设置配置参数
+				ret_code = DfSetSystemConfigParam(system_config_param_);
+				if (DF_SUCCESS != ret_code)
+				{
+					qDebug() << "Set Param Error;";
+					//return;
+				}
+
+				if (!setCameraConfigParam())
+				{
+					qDebug() << "Set Signal Param Error;";
+				}
+
+				undateSystemConfigUiData();
+
+				int network_speed = 0;
+				ret_code = DfGetNetworkBandwidth(network_speed);
+				if (DF_SUCCESS != ret_code)
+				{
+					qDebug() << "Get Network Speed Error;";
+					//return;
+				}
+				else
+				{
+					if (1000 != network_speed)
+					{
+						addLogMessage(u8"请注意网络带宽:" + QString::number(network_speed) + "M");
+
+					}
+				}
+
 			}
-
-			if (!setCameraConfigParam())
+			else if (DF_BUSY == ret_code)
 			{
-				qDebug() << "Set Signal Param Error;";
+				addLogMessage(u8"相机忙！");
+				 
+				break;
 			}
-
-			undateSystemConfigUiData();
-
-			int network_speed = 0;
-			ret_code = DfGetNetworkBandwidth(network_speed);
-			if (0 != ret_code)
+			else if (DF_ERROR_2D_CAMERA == ret_code)
 			{
-				qDebug() << "Get Network Speed Error;";
-				//return;
+				addLogMessage(u8"2D相机故障！");
+				 
+				break;
 			}
 			else
 			{
-				if (1000 != network_speed)
-				{
-					addLogMessage(u8"请注意网络带宽:" + QString::number(network_speed) + "M");
-
-				}
+				std::cout << "Connect Camera Error!";
+				addLogMessage(u8"连接相机失败，请确认相机IP！");
+				 
+				break;
 			}
 
-		}
-		else if (DF_BUSY == ret_code)
-		{
-			addLogMessage(u8"相机忙！");
-			return;
-		}
-		else if (DF_ERROR_2D_CAMERA == ret_code)
-		{
-			addLogMessage(u8"2D相机故障！");
-			return;
-		}
-		else 
-		{
-			std::cout << "Connect Camera Error!";
-			addLogMessage(u8"连接相机失败，请确认相机IP！");
-			return;
-		}
 
+			connected_flag_ = true;
+			ui.lineEdit_ip->setDisabled(true);
 
-		connected_flag_ = true;
-		ui.lineEdit_ip->setDisabled(true);
+			CalibrationParam calib_param;
+			ret_code = DfGetCalibrationParam(&calib_param);
 
-		CalibrationParam calib_param;
-		ret_code = DfGetCalibrationParam(&calib_param);
-
-		if (0 == ret_code)
-		{
-			std::cout << "intrinsic: " << std::endl;
-			for (int r = 0; r < 3; r++)
+			if (0 == ret_code)
 			{
-				for (int c = 0; c < 3; c++)
+				std::cout << "intrinsic: " << std::endl;
+				for (int r = 0; r < 3; r++)
 				{
-					std::cout << calib_param.intrinsic[3 * r + c] << "\t";
+					for (int c = 0; c < 3; c++)
+					{
+						std::cout << calib_param.intrinsic[3 * r + c] << "\t";
+					}
+					std::cout << std::endl;
 				}
-				std::cout << std::endl;
+
+				std::cout << "extrinsic: " << std::endl;
+				for (int r = 0; r < 4; r++)
+				{
+					for (int c = 0; c < 4; c++)
+					{
+						std::cout << calib_param.extrinsic[4 * r + c] << "\t";
+					}
+					std::cout << std::endl;
+				}
+
+				std::cout << "distortion: " << std::endl;
+				for (int r = 0; r < 1; r++)
+				{
+					for (int c = 0; c < 12; c++)
+					{
+						std::cout << calib_param.distortion[1 * r + c] << "\t";
+					}
+					std::cout << std::endl;
+				}
+			}
+			else
+			{
+				std::cout << "Get Calibration Data Error!"; 
+				break;
 			}
 
-			std::cout << "extrinsic: " << std::endl;
-			for (int r = 0; r < 4; r++)
-			{
-				for (int c = 0; c < 4; c++)
-				{
-					std::cout << calib_param.extrinsic[4 * r + c] << "\t";
-				}
-				std::cout << std::endl;
-			}
-
-			std::cout << "distortion: " << std::endl;
-			for (int r = 0; r < 1; r++)
-			{
-				for (int c = 0; c < 12; c++)
-				{
-					std::cout << calib_param.distortion[1 * r + c] << "\t";
-				}
-				std::cout << std::endl;
-			}
+			ui.pushButton_connect->setIcon(QIcon(":/dexforce_camera_gui/image/disconnect.png"));
 		}
 		else
 		{
-			std::cout << "Get Calibration Data Error!";
-			return;
+			//断开相机
+			do_pushButton_disconnect();
+
 		}
+		 
 
-		ui.pushButton_connect->setIcon(QIcon(":/dexforce_camera_gui/image/disconnect.png"));
-	}
-	else
-	{
-		//断开相机
-		do_pushButton_disconnect();
+	} while (0);
 
-	}
-
-
+	 
+	ui.pushButton_connect->setEnabled(true); 
 
 }
 
