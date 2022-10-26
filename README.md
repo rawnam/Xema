@@ -80,7 +80,10 @@
 </table>
 
 
-
+<br> <a href='https://github.com/Open3DV/xema_hardware/tree/main/step'>XEMA-S structural design files</a>
+<br> <a href='https://evercraft.co/share?key=4CFED0'>XEMA-S assembly.stp (view online) </a>
+<br> <a href='https://evercraft.co/share?key=92E956'>XEMA-S structural components.stp (view online) </a>
+<br> <a href='https://github.com/Open3DV/xema_hardware/tree/main/pcb'>XEMA Jetson Nano Carrier Board design files</a>
 
 
 <img src='images/logo/dexforce.png' width=150>
