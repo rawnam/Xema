@@ -2993,7 +2993,16 @@ int handle_cmd_get_param_camera_version(int client_sock)
 
     scan3d_.getProjectorVersion(version);
 
-    // lc3010.read_dmd_device_id(version); 
+    lc3010.read_dmd_device_id(version); 
+
+    if(3010 == version)
+    {
+        version = 800;
+    }
+    else if(4710 == version)
+    { 
+        version = 1800;
+    }
 
     int ret = send_buffer(client_sock, (char *)(&version), sizeof(int) * 1);
     if (ret == DF_FAILED)
