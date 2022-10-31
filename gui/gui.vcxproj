@@ -35,9 +35,9 @@
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
-    <QtInstall>msvc2015_64</QtInstall>
-    <QtModules>core;xml;gui;widgets;printsupport</QtModules>
+    <QtModules>core;xml;gui;widgets;printsupport;concurrent</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
+    <QtInstall>msvc2017_64</QtInstall>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -139,6 +139,7 @@ copy $(ProjectDir)..\3rdparty\opencv420\bin\opencv_flann420.dll $(TargetDir)</Co
     <ClCompile Include="settings_file_function.cpp" />
     <ClCompile Include="update_firmware_gui.cpp" />
     <ClCompile Include="update_opencam3d.cpp" />
+    <ClCompile Include="waiting_gui.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="calibration_param_gui.ui" />
@@ -147,6 +148,7 @@ copy $(ProjectDir)..\3rdparty\opencv420\bin\opencv_flann420.dll $(TargetDir)</Co
     <QtUic Include="outlier_removal_gui.ui" />
     <QtUic Include="select_calibration_board_gui.ui" />
     <QtUic Include="update_firmware_gui.ui" />
+    <QtUic Include="waiting_gui.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="camera_gui.h" />
@@ -154,6 +156,7 @@ copy $(ProjectDir)..\3rdparty\opencv420\bin\opencv_flann420.dll $(TargetDir)</Co
   <ItemGroup>
     <ClInclude Include="..\firmware\easylogging++.h" />
     <ClInclude Include="update_opencam3d.h" />
+    <QtMoc Include="waiting_gui.h" />
     <ClInclude Include="x64\Release\uic\ui_update_firmware_gui.h" />
     <QtMoc Include="update_firmware_gui.h" />
     <QtMoc Include="select_calibration_board_gui.h" />

@@ -57,7 +57,7 @@ public:
 	bool saveOneFrameData(QString path_name);
 
 	void addLogMessage(QString str);
-
+	 
 	//更新多曝光参数
 	void updateManyExposureParam();
 
@@ -85,6 +85,10 @@ public:
 	void setCalibrationBoard(int flag);
 
 	void getCameraIp(QString& ip);
+
+	void hideLoadingForm();
+
+	void showLoadingForm();
 private:
 	bool showImage();
 
@@ -108,6 +112,8 @@ signals:
 
 	void send_images_update();
 
+	void send_log_update(QString str);
+
 public slots:
 
 	void do_timeout_capture_slot();
@@ -116,9 +122,13 @@ public slots:
 
 	void do_pushButton_connect();
 
+	void do_pushButton_connect_async();
+
 	void do_pushButton_disconnect();
 
 	void do_pushButton_refresh();
+
+	void do_handleLogMessage(QString str);
 
 private slots:
 	void do_QRadioButton_toggled_brightness(bool state);
@@ -183,11 +193,14 @@ private slots:
 	void do_pushButton_save_as();
 
 	void do_pushButton_open_folder();
-
-
-
+	
+protected:
+		virtual void resizeEvent(QResizeEvent* event) override;
+		 
 private:
 	Ui::CameraCaptureGui ui;
+
+	QWidget* m_pMaskLayer = nullptr;
 
 	bool capture_show_flag_;
 

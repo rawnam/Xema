@@ -11,6 +11,9 @@
 #include "PrecisionTest.h"
 #include <qdesktopservices.h>
 #include <thread> 
+#include <QFuture>
+#include <QtConcurrent>
+#include "waiting_gui.h"
 
 CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	: QWidget(parent)
@@ -58,6 +61,13 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 
 	ui.comboBox_ip->hide();
 	ui.pushButton_refresh->hide();
+
+	m_pMaskLayer = new WaitingGui(this);
+	m_pMaskLayer->setFixedSize(this->size());//设置窗口大小
+	m_pMaskLayer->setVisible(false);//初始状态下隐藏，待需要显示时使用
+	this->stackUnder(m_pMaskLayer);//其中pWrapper为当前窗口的QWidget
+ 
+	
 }
 
 CameraCaptureGui::~CameraCaptureGui()
@@ -65,9 +75,42 @@ CameraCaptureGui::~CameraCaptureGui()
 }
 
 
+
 void CameraCaptureGui::setOnDrop(int (*p_function)(void*))
 {
 	m_p_OnDropped_ = p_function;
+}
+
+
+void CameraCaptureGui::resizeEvent(QResizeEvent* event)
+{
+	//if (event) {}//消除警告提示
+
+	if (m_pMaskLayer != nullptr)
+	{
+		m_pMaskLayer->setAutoFillBackground(true); //这个很重要，否则不会显示遮罩层
+		QPalette pal = m_pMaskLayer->palette();
+		pal.setColor(QPalette::Background, QColor(0x00, 0x00, 0x00, 0x20));
+		m_pMaskLayer->setPalette(pal);
+		m_pMaskLayer->setFixedSize(this->size());
+	}
+}
+ 
+//显示
+void CameraCaptureGui::showLoadingForm()
+{
+	if (m_pMaskLayer != nullptr)
+	{
+		m_pMaskLayer->setVisible(true);
+	}
+}
+//隐藏
+void CameraCaptureGui::hideLoadingForm()
+{
+	if (m_pMaskLayer != nullptr)
+	{
+		m_pMaskLayer->setVisible(false);
+	}
 }
 
 
@@ -156,6 +199,7 @@ bool CameraCaptureGui::initializeFunction()
 	/********************************************************************************************************************/
 
 
+	connect(this, SIGNAL(send_log_update(QString)), this, SLOT(do_handleLogMessage(QString)));
 	/*******************************************************************************************************************/
 
 	connect(ui.spinBox_exposure_num, SIGNAL(valueChanged(int)), this, SLOT(do_spin_exposure_num_changed(int)));
@@ -178,7 +222,7 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.checkBox_hdr, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_hdr(bool)));
 	connect(ui.checkBox_over_exposure, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_over_exposure(bool)));
 
-	connect(ui.pushButton_connect, SIGNAL(clicked()), this, SLOT(do_pushButton_connect()));
+	connect(ui.pushButton_connect, SIGNAL(clicked()), this, SLOT(do_pushButton_connect_async()));
 	connect(ui.pushButton_refresh, SIGNAL(clicked()), this, SLOT(do_pushButton_refresh()));
 	connect(ui.pushButton_capture_one_frame, SIGNAL(clicked()), this, SLOT(do_pushButton_capture_one_frame()));
 	connect(ui.pushButton_capture_continuous, SIGNAL(clicked()), this, SLOT(do_pushButton_capture_continuous()));
@@ -228,10 +272,8 @@ bool CameraCaptureGui::initializeFunction()
 }
 
 
-
-void CameraCaptureGui::addLogMessage(QString str)
+void CameraCaptureGui::do_handleLogMessage(QString str)
 {
-
 	QString StrCurrentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
 
 	QString log = StrCurrentTime + " " + str;
@@ -239,6 +281,18 @@ void CameraCaptureGui::addLogMessage(QString str)
 	ui.textBrowser_log->append(log);
 
 	ui.textBrowser_log->repaint();
+}
+
+void CameraCaptureGui::addLogMessage(QString str)
+{
+	send_log_update(str);
+	//QString StrCurrentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
+
+	//QString log = StrCurrentTime + " " + str;
+
+	//ui.textBrowser_log->append(log);
+
+	//ui.textBrowser_log->repaint();
 }
 
 
@@ -1030,25 +1084,41 @@ void CameraCaptureGui::sleep(int sectime)
 
 void CameraCaptureGui::updateOutlierRemovalConfigParam(struct FirmwareConfigParam param)
 {
-	if (param.use_reflect_filter != firmware_config_param_.use_reflect_filter)
-	{
-		if (DF_SUCCESS == DfSetParamReflectFilter(param.use_reflect_filter))
-		{
-			firmware_config_param_.use_reflect_filter = param.use_reflect_filter;
-			QString str = u8"设置反射点滤除： "+QString::number(param.use_reflect_filter);
-			addLogMessage(str);
-		}
-	}
+	//if (param.use_reflect_filter != firmware_config_param_.use_reflect_filter)
+	//{
+	//	if (DF_SUCCESS == DfSetParamReflectFilter(param.use_reflect_filter))
+	//	{
+	//		firmware_config_param_.use_reflect_filter = param.use_reflect_filter;
+	//		QString str = u8"设置反射点滤除： "+QString::number(param.use_reflect_filter);
+	//		addLogMessage(str);
+	//	}
+	//}
 
-	if (param.use_radius_filter != firmware_config_param_.use_radius_filter)
-	{
+	//if (param.use_radius_filter != firmware_config_param_.use_radius_filter)
+	//{
 		if (DF_SUCCESS == DfSetParamRadiusFilter(param.use_radius_filter, param.radius_filter_r, param.radius_filter_threshold_num));
 		{
 			firmware_config_param_.use_radius_filter = param.use_radius_filter;
-			QString str = u8"设置半径滤波： " + QString::number(param.use_radius_filter);
+			firmware_config_param_.radius_filter_r = param.radius_filter_r;
+			firmware_config_param_.radius_filter_threshold_num = param.radius_filter_threshold_num;
+
+			QString cmd = (param.use_radius_filter ? u8"打开" : u8"关闭");
+			QString str = cmd + u8"半径滤波";
+			if (param.use_radius_filter)
+			{
+				str += u8"，";
+				str += u8"半径： " + QString::number(param.radius_filter_r, 'f', 1) + "mm";
+				str += u8"，";
+				str += u8"点数： " + QString::number(param.radius_filter_threshold_num);
+			}
+			else
+			{
+				str += u8"！";
+
+			}
 			addLogMessage(str);
 		}
-	}
+	//}
 	 
 }
 
@@ -1321,6 +1391,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 	}
 	capturing_flag_ = true;
 
+	addLogMessage(u8"采集数据：");
 
 	int width = camera_width_;
 	int height = camera_height_;
@@ -1373,6 +1444,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 		capture_show_flag_ = true;
 
 
+		addLogMessage(u8"采集完成！");
 		emit send_images_update();
 
 
@@ -1380,6 +1452,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 	else
 	{
 		start_timer_flag_ = false;
+		addLogMessage(u8"采集失败！");
 	}
 
 	capturing_flag_ = false;
@@ -1514,6 +1587,22 @@ void CameraCaptureGui::do_pushButton_refresh()
 
 }
 
+
+void CameraCaptureGui::do_pushButton_connect_async()
+{
+	showLoadingForm();
+	QFuture<void> fut = QtConcurrent::run(this, &CameraCaptureGui::do_pushButton_connect);
+	while (!fut.isFinished())
+	{
+		QApplication::processEvents(QEventLoop::AllEvents, 100);
+		qDebug() << "timeout";
+ 
+	}
+
+	hideLoadingForm();
+
+}
+
 void  CameraCaptureGui::do_pushButton_connect()
 {
 	ui.pushButton_connect->setDisabled(true);    
@@ -1533,7 +1622,14 @@ void  CameraCaptureGui::do_pushButton_connect()
 
 			addLogMessage(u8"连接相机：");
 			int ret_code = DfConnect(camera_ip_.toStdString().c_str());
-  
+			//int ret_code = -1;
+			//QFuture<int> fut = QtConcurrent::run(DfConnect, camera_ip_.toStdString().c_str());
+			//while (!fut.isFinished())
+			//{
+			//	QApplication::processEvents(QEventLoop::AllEvents, 100);
+			//	qDebug() << "timeout";
+			//}
+			//ret_code = fut.result();
   
 			DfRegisterOnDropped(m_p_OnDropped_);
 
