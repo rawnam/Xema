@@ -1655,6 +1655,11 @@ void Scan3D::removeOutlierBaseRadiusFilter()
     {
         float r = system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r;
         int num = system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num;
+        LOG(INFO)<<"radius_filter_r: "<<r;
+        LOG(INFO)<<"num: "<<num;
+
         cuda_remove_points_base_radius_filter(0.5,r,num);
+
+        cuda_copy_depth_from_memory(buff_depth_);
     }
 }
