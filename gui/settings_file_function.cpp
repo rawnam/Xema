@@ -202,6 +202,25 @@ bool SettingsFileFunction::loadProcessingSettingsFile(QString path)
 			camera_config_.Instance().firwmare_param_.bilateral_filter_param_d = firmware_Obj.value("bilateral_filter_param_d").toInt();
 		}
 
+
+		if (firmware_Obj.contains("use_radius_filter") && firmware_Obj["use_radius_filter"].isDouble())
+		{
+			qDebug() << "use_radius_filter is:" << firmware_Obj.value("use_radius_filter").toInt();
+			camera_config_.Instance().firwmare_param_.use_radius_filter = firmware_Obj.value("use_radius_filter").toInt();
+		}
+
+		if (firmware_Obj.contains("radius_filter_r") && firmware_Obj["radius_filter_r"].isDouble())
+		{
+			qDebug() << "radius_filter_r is:" << firmware_Obj.value("radius_filter_r").toDouble();
+			camera_config_.Instance().firwmare_param_.radius_filter_r = firmware_Obj.value("radius_filter_r").toDouble();
+		}
+
+		if (firmware_Obj.contains("radius_filter_threshold_num") && firmware_Obj["radius_filter_threshold_num"].toInt())
+		{
+			qDebug() << "radius_filter_threshold_num is:" << firmware_Obj.value("radius_filter_threshold_num").toInt();
+			camera_config_.Instance().firwmare_param_.radius_filter_threshold_num = firmware_Obj.value("radius_filter_threshold_num").toInt();
+		}
+
 		if (firmware_Obj.contains("confidence") && firmware_Obj["confidence"].isDouble())
 		{
 			qDebug() << "confidence is:" << firmware_Obj.value("confidence").toInt();
@@ -331,6 +350,10 @@ bool SettingsFileFunction::saveProcessingSettingsFile(QString path)
 
 	jsonObject_firmware.insert("use_bilateral_filter", camera_config_.Instance().firwmare_param_.use_bilateral_filter);
 	jsonObject_firmware.insert("bilateral_filter_param_d", camera_config_.Instance().firwmare_param_.bilateral_filter_param_d);
+
+	jsonObject_firmware.insert("use_radius_filter", camera_config_.Instance().firwmare_param_.use_radius_filter);
+	jsonObject_firmware.insert("radius_filter_r", camera_config_.Instance().firwmare_param_.radius_filter_r);
+	jsonObject_firmware.insert("radius_filter_threshold_num", camera_config_.Instance().firwmare_param_.radius_filter_threshold_num);
 
 	jsonObject_firmware.insert("confidence", camera_config_.Instance().firwmare_param_.confidence);
 	jsonObject_firmware.insert("fisher_confidence", camera_config_.Instance().firwmare_param_.fisher_confidence);

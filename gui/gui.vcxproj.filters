@@ -59,13 +59,16 @@
     <ClCompile Include="update_firmware_gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="update_opencam3d.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\sdk\socket_tcp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\firmware\easylogging++.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="update_opencam3d.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="waiting_gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -91,6 +94,9 @@
     <QtMoc Include="update_firmware_gui.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="waiting_gui.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="camera_gui.ui">
@@ -109,6 +115,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="update_firmware_gui.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="waiting_gui.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

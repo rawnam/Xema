@@ -1,6 +1,7 @@
 <RCC>
   <qresource prefix="/dexforce_camera_gui">
     <file>image/external_param.png</file>
+    <file>image/load.gif</file>
     <file>image/accuracy.png</file>
     <file>image/icon_logo64.svg</file>
     <file>image/video_start.png</file>

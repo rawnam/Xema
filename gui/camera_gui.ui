@@ -17,7 +17,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>DFSense</string>
+   <string>XEMA</string>
   </property>
   <property name="windowIcon">
    <iconset resource="dexforce_camera_gui.qrc">
