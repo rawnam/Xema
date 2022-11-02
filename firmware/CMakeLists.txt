@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 set(CMAKE_BUILD_TYPE "Release")
  
+set(CMAKE_CXX_FLAGS "-Wl,-rpath=./")
 
 project(DF8 CXX CUDA)
 find_package(Threads)

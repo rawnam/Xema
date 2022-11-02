@@ -227,7 +227,7 @@ bool Scan3D::setProjectorVersion(int version)
     case DF_PROJECTOR_3010:
     {
         cuda_set_projector_version(DF_PROJECTOR_3010);
-        max_camera_exposure_ = 60000;
+        max_camera_exposure_ = 100000;
         min_camera_exposure_ = 1700;
         return true;
     }
@@ -237,7 +237,7 @@ bool Scan3D::setProjectorVersion(int version)
     {
 
         cuda_set_projector_version(DF_PROJECTOR_4710);
-        max_camera_exposure_ = 60000; 
+        max_camera_exposure_ = 100000; 
         min_camera_exposure_ = 1700;
         return true;
     }
