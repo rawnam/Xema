@@ -129,7 +129,7 @@ bool set_projector_version(int version)
     case DF_PROJECTOR_3010:
     {
         // cuda_set_camera_version(DFX_800);
-        max_camera_exposure_ = 60000;
+        max_camera_exposure_ = 100000;
         min_camera_exposure_ = 1000;
         return true;
     }
@@ -139,7 +139,7 @@ bool set_projector_version(int version)
     {
 
         // cuda_set_camera_version(DFX_1800);
-        max_camera_exposure_ = 60000; 
+        max_camera_exposure_ = 100000; 
         min_camera_exposure_ = 1000;
         return true;
     }
@@ -4329,7 +4329,8 @@ int init()
  	GPIO::setup(ACT_PIN, GPIO::OUT, GPIO::LOW);         // output pin, set to LOW level
 	GPIO::setup(OUTPUT2_PIN, GPIO::OUT, GPIO::LOW);     // output pin, set to LOW level
 	GPIO::setup(LED_CTL_PIN, GPIO::OUT, GPIO::LOW);     // output pin, set to LOW level
- 
+
+
     if(!scan3d_.init())
     {
         LOG(INFO)<<"init Failed!";
@@ -4379,15 +4380,20 @@ int main()
         // return -1;
     }
     LOG(INFO)<<"inited";
+    int sec = 0;
 
     int server_sock;
     do
     {
         server_sock = setup_socket(DF_PORT);
         sleep(1);
-    }
-    while(server_sock == DF_FAILED);
-    
+        sec++;
+        if (sec > 30)
+        { 
+            lc3010.disable_solid_field();
+        }
+    } while (server_sock == DF_FAILED);
+
     LOG(INFO)<<"listening"; 
     
     lc3010.disable_solid_field();

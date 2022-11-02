@@ -4,6 +4,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "easylogging++.h"
+#include "math.h"
 
 LightCrafter3010::LightCrafter3010()
 {
@@ -80,8 +81,84 @@ void LightCrafter3010::init()
 	buffer[0] = 0x03;
 	write(0x92, buffer, 5);
 
+
+    // set_trigger_out_delay(-500);
+
 	// pattern_mode01();
 	//write_pattern_table();
+}
+  
+void LightCrafter3010::set_trigger_out_delay(int delay_time)
+{
+     
+    int delay = abs(delay_time); 
+
+    std::vector<unsigned char> remainder_list;
+    std::vector<unsigned char> inv_remainder_list;
+
+    for (int i = 0; i < 4; i++)
+    {
+        int remainder = delay % 256;
+        // LOG(INFO) << remainder;
+
+        unsigned char inv_c = ~(remainder);
+        inv_remainder_list.push_back(inv_c); 
+        remainder_list.push_back(remainder);
+        delay /= 256;
+    }
+ 
+    inv_remainder_list[0]++;
+    if (0 == inv_remainder_list[0])
+    {
+        inv_remainder_list[1]++;
+        if (0 == inv_remainder_list[1])
+        {
+            inv_remainder_list[2]++;
+            if (0 == inv_remainder_list[2])
+            {
+                inv_remainder_list[3]++;
+                if (0 == inv_remainder_list[3])
+                {
+                    return;
+                }
+            }
+        }
+    }
+
+    
+	char buffer[6];
+
+    if (delay_time > 0)
+    {
+        // enable trigger out 2
+        // delay = -500us (0xfffffe0c)
+        buffer[4] = remainder_list[3];
+        buffer[3] = remainder_list[2];
+        buffer[2] = remainder_list[1];
+        buffer[1] = remainder_list[0];
+        buffer[0] = 0x03;
+        write(0x92, buffer, 5);
+    }
+    else
+    {
+        // enable trigger out 2
+        // delay = -500us (0xfffffe0c)
+        buffer[4] = inv_remainder_list[3];
+        buffer[3] = inv_remainder_list[2];
+        buffer[2] = inv_remainder_list[1];
+        buffer[1] = inv_remainder_list[0];
+        buffer[0] = 0x03;
+        write(0x92, buffer, 5);
+    }
+ 
+       std::cout << std::hex << (int)buffer[4] << std::endl;
+       std::cout << std::hex << (int)buffer[3] << std::endl;
+       std::cout << std::hex << (int)buffer[2] << std::endl;
+       std::cout << std::hex << (int)buffer[1] << std::endl; 
+       std::cout << std::hex << (int)buffer[0] << std::endl; 
+
+  
+ 
 }
 
 void LightCrafter3010::SetLedCurrent(unsigned short R, unsigned short G, unsigned short B)
@@ -339,7 +416,15 @@ void LightCrafter3010::write_pattern_table(unsigned char* pattern_index, int len
     buffer[10] = 0;
     buffer[11] = 0;
 
-    int pre_illumination_dark_time= 500;
+    int pre_illumination_dark_time= 8500;
+    int pose_illumination_dark_time= 1500; 
+
+
+    int exposure_rate = camera_exposure_/2000;
+
+    pre_illumination_dark_time = 1000+ 170*(exposure_rate);
+    // pose_illumination_dark_time = 500+ 30*(exposure_rate);
+    // pose_illumination_dark_time = 1000+ 30*(exposure_rate);
 
 
 
@@ -348,67 +433,57 @@ void LightCrafter3010::write_pattern_table(unsigned char* pattern_index, int len
   
     if(camera_exposure< camera_min_exposure_)
     {
-        int low_val = (camera_min_exposure_ - 1000) - camera_exposure;
-        pre_illumination_dark_time  += low_val;
-        illumination_time = camera_exposure;
-        LOG(INFO)<<"pre_illumination_dark_time: "<<pre_illumination_dark_time;
-        LOG(INFO)<<"illumination_time: "<<illumination_time;
-        // illumination_time = camera_exposure;
+        pre_illumination_dark_time = camera_min_exposure_ -camera_exposure +1000; 
+        illumination_time = camera_exposure; 
     }
 
-    std::vector<int> remainder_list;
-    for(int i= 0;i< 8;i++)
+    LOG(INFO) << "pre_illumination_dark_time: " << pre_illumination_dark_time;
+    LOG(INFO) << "illumination_time: " << illumination_time;
+    LOG(INFO) << "pose_illumination_dark_time: " << pose_illumination_dark_time;
+
+    std::vector<unsigned char> remainder_list;
+    for(int i= 0;i< 4;i++)
     {
-        int remainder = illumination_time%16;
+        int remainder = illumination_time%256;
         remainder_list.push_back(remainder);
-        illumination_time /=16; 
+        illumination_time /=256; 
     }
 
  
-    buffer[12] = remainder_list[1]*16+remainder_list[0];
-    buffer[13] = remainder_list[3]*16+remainder_list[2];
-    buffer[14] = remainder_list[5]*16+remainder_list[4];
-    buffer[15] = remainder_list[7]*16+remainder_list[6];
+    buffer[12] = remainder_list[0];
+    buffer[13] = remainder_list[1];
+    buffer[14] = remainder_list[2];
+    buffer[15] = remainder_list[3];
 
-    std::vector<int> dark_remainder_list;
-    for(int i= 0;i< 8;i++)
+    std::vector<unsigned char> dark_remainder_list;
+    for(int i= 0;i< 4;i++)
     {
-        int remainder = pre_illumination_dark_time%16;
+        int remainder = pre_illumination_dark_time%256;
         dark_remainder_list.push_back(remainder);
-        pre_illumination_dark_time /=16; 
+        pre_illumination_dark_time /=256; 
     }
 
     // Pre-illumination Dark Time = 500us
-    // buffer[16] = 0xf4;
-    // buffer[17] = 0x01;
-    // buffer[18] = 0x00;
-    // buffer[19] = 0x00;
-    buffer[16] = dark_remainder_list[1]*16+dark_remainder_list[0];
-    buffer[17] = dark_remainder_list[3]*16+dark_remainder_list[2];
-    buffer[18] = dark_remainder_list[5]*16+dark_remainder_list[4];
-    buffer[19] = dark_remainder_list[7]*16+dark_remainder_list[6];
+ 
+    buffer[16] = dark_remainder_list[0];
+    buffer[17] = dark_remainder_list[1];
+    buffer[18] = dark_remainder_list[2];
+    buffer[19] = dark_remainder_list[3];
  
 
-    int pose_illumination_dark_time= 3000;
-    std::vector<int> pose_dark_remainder_list;
-    for(int i= 0;i< 8;i++)
+    std::vector<unsigned char> pose_dark_remainder_list;
+    for(int i= 0;i< 4;i++)
     {
-        int remainder = pose_illumination_dark_time%16;
+        int remainder = pose_illumination_dark_time%256;
         pose_dark_remainder_list.push_back(remainder);
-        pose_illumination_dark_time /=16; 
+        pose_illumination_dark_time /=256; 
     }
-    buffer[20] = pose_dark_remainder_list[1]*16+pose_dark_remainder_list[0];
-    buffer[21] = pose_dark_remainder_list[3]*16+pose_dark_remainder_list[2];
-    buffer[22] = pose_dark_remainder_list[5]*16+pose_dark_remainder_list[4];
-    buffer[23] = pose_dark_remainder_list[7]*16+pose_dark_remainder_list[6];
+    buffer[20] = pose_dark_remainder_list[0];
+    buffer[21] = pose_dark_remainder_list[1];
+    buffer[22] = pose_dark_remainder_list[2];
+    buffer[23] = pose_dark_remainder_list[3];
 
-    // Post-illumination Dark Time = 1000us
-    // buffer[20] = 0xb8;
-    // buffer[21] = 0x0b;
-    // buffer[22] = 0x00;
-    // buffer[23] = 0x00;
-
-
+  
 
     for(int i=0; i<len; i++)
     {
