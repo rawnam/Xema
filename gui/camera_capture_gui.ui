@@ -268,7 +268,7 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-5</y>
+              <y>0</y>
               <width>441</width>
               <height>889</height>
              </rect>
@@ -527,7 +527,7 @@
                     <number>1700</number>
                    </property>
                    <property name="maximum">
-                    <number>60000</number>
+                    <number>100000</number>
                    </property>
                    <property name="singleStep">
                     <number>1000</number>
