@@ -10,14 +10,15 @@
 
 Calibrate_Function::Calibrate_Function()
 {
-	board_size_.width = 7;
-	board_size_.height = 11;
+	board_message_.rows = 11;
+	board_message_.cols = 7;
+	board_message_.width = 40;
+	board_message_.height = 20;
+ 
 
 	dlp_width_ = 1920;
 	dlp_height_ = 1080;
-
-	board_width_ = 40;
-	board_height_ = 20;
+ 
 }
 Calibrate_Function::~Calibrate_Function()
 {
@@ -45,13 +46,19 @@ void Calibrate_Function::setCalibrationBoard(int board_num)
 	}
 }
 
+
+void Calibrate_Function::setBoardMessage(BoardMessage board_message)
+{
+	board_message_ = board_message;
+}
+
 void Calibrate_Function::setBoardMessage(int rows, int cols, int width, int height)
 {
-	board_size_.width = cols;
-	board_size_.height = rows;
-
-	board_width_ = width;
-	board_height_ = height;
+	board_message_.cols = cols;
+	board_message_.rows = rows;
+	board_message_.width = width;
+	board_message_.height = height;
+ 
 }
 
 double Calibrate_Function::computeLineError(std::vector<cv::Point2f> points, double max_err)
@@ -283,7 +290,7 @@ double Calibrate_Function::calibrateStereo(std::vector<std::vector<cv::Point2f>>
 
 	for (int g_i = 0; g_i < camera_points_list.size(); g_i++)
 	{
-		std::vector<cv::Point3f> objectCorners = generateAsymmetricWorldFeature(board_width_, board_height_);
+		std::vector<cv::Point3f> objectCorners = generateAsymmetricWorldFeature(board_message_);
 		world_feature_points.push_back(objectCorners);
 	}
 
@@ -327,9 +334,11 @@ double Calibrate_Function::calibrateStereo(std::vector<std::vector<cv::Point2f>>
 	cv::Mat s_camera_distortion = camera_distortion_.clone(), s_projector_distortion = projector_distortion_.clone();
 
 	cv::TermCriteria term_criteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 500, DBL_EPSILON);
-
+	cv::Size board_size;
+	board_size.width = board_message_.cols;
+	board_size.height = board_message_.rows;
 	double stereoError = cv::stereoCalibrate(world_feature_points, camera_points_list, dlp_points_list, s_camera_intrinsic, s_camera_distortion,
-		s_project_intrinsic, s_projector_distortion, board_size_, _R, _T, _E, _F,/*cv::CALIB_FIX_INTRINSIC*/ cv::CALIB_USE_INTRINSIC_GUESS /*+ cal_flags*/, term_criteria);
+		s_project_intrinsic, s_projector_distortion, board_size, _R, _T, _E, _F,/*cv::CALIB_FIX_INTRINSIC*/ cv::CALIB_USE_INTRINSIC_GUESS /*+ cal_flags*/, term_criteria);
 
 	//double stereoError = cv::stereoCalibrate(world_feature_points, camera_points_list, dlp_points_list, s_camera_intrinsic, s_camera_distortion,
 	//	s_project_intrinsic, s_projector_distortion, board_size_, _R, _T, _E, _F, cv::CALIB_FIX_INTRINSIC /*+ cal_flags*/, term_criteria);
@@ -380,7 +389,7 @@ double Calibrate_Function::calibrateProjector(std::vector<std::vector<cv::Point2
 	{
 		select_group.insert(std::pair<int, bool>(g_i, true));
 
-		std::vector<cv::Point3f> objectCorners = generateAsymmetricWorldFeature(board_width_, board_height_);
+		std::vector<cv::Point3f> objectCorners = generateAsymmetricWorldFeature(board_message_);
 		world_feature_points.push_back(objectCorners);
 	}
 
@@ -397,8 +406,11 @@ double Calibrate_Function::calibrateProjector(std::vector<std::vector<cv::Point2
 	cv::Mat distCoeffs;
 	std::vector<cv::Mat> rvecsMat, tvecsMat;
 	int flag = 0;
+	cv::Size board_size;
+	board_size.width = board_message_.cols;
+	board_size.height = board_message_.rows;
 	/* ���б궨���� */
-	double err_first = cv::calibrateCamera(world_feature_points, dlp_points_list, board_size_, cameraMatrix, distCoeffs, rvecsMat, tvecsMat,
+	double err_first = cv::calibrateCamera(world_feature_points, dlp_points_list, board_size, cameraMatrix, distCoeffs, rvecsMat, tvecsMat,
 		flag, cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 500, DBL_EPSILON));
 
 	//std::cout << "First calibrate error: " << err_first << std::endl;
@@ -484,7 +496,10 @@ double Calibrate_Function::calibrateProjector(std::vector<std::vector<cv::Point2
 			max_series = -1;
 			max_err = 0;
 
-			err_first = cv::calibrateCamera(world_feature_points, dlp_points_list, board_size_, cameraMatrix, distCoeffs, rvecsMat, tvecsMat,
+			cv::Size board_size;
+			board_size.width = board_message_.cols;
+			board_size.height = board_message_.rows;
+			err_first = cv::calibrateCamera(world_feature_points, dlp_points_list, board_size, cameraMatrix, distCoeffs, rvecsMat, tvecsMat,
 				flag, cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 500, DBL_EPSILON));
 
 			//std::cout << "Dlp error: " << err_first << std::endl;
@@ -744,10 +759,13 @@ bool Calibrate_Function::cameraPointsToDlp(std::vector<cv::Point2f> camera_point
 
 std::vector<cv::Point3f> Calibrate_Function::generateSymmetricWorldFeature(float width, float height)
 {
+	cv::Size board_size;
+	board_size.width = board_message_.cols;
+	board_size.height = board_message_.rows;
 	std::vector<cv::Point3f> objectCorners;
-	for (int r = 0; r < board_size_.height; r++)
+	for (int r = 0; r < board_size.height; r++)
 	{
-		for (int c = 0; c < board_size_.width; c++)
+		for (int c = 0; c < board_size.width; c++)
 		{
 			objectCorners.push_back(cv::Point3f(width * c, height * r, 0.0f));
 		}
@@ -756,12 +774,41 @@ std::vector<cv::Point3f> Calibrate_Function::generateSymmetricWorldFeature(float
 	return objectCorners;
 }
 
-std::vector<cv::Point3f> Calibrate_Function::generateAsymmetricWorldFeature(float width, float height)
+
+std::vector<cv::Point3f> Calibrate_Function::generateAsymmetricWorldFeature(struct BoardMessage board_message)
 {
 	std::vector<cv::Point3f> objectCorners;
-	for (int r = 0; r < board_size_.height; r++)
+	for (int r = 0; r < board_message.rows; r++)
 	{
-		for (int c = 0; c < board_size_.width; c++)
+		for (int c = 0; c < board_message.cols; c++)
+		{
+
+			if (0 == r % 2)
+			{
+
+				objectCorners.push_back(cv::Point3f(board_message.width * c, board_message.height * r, 0.0f));
+			}
+			else if (1 == r % 2)
+			{
+
+				objectCorners.push_back(cv::Point3f(board_message.width * c + 0.5 * board_message.width, board_message.height * r, 0.0f));
+			}
+
+		}
+	}
+
+	return objectCorners;
+}
+
+std::vector<cv::Point3f> Calibrate_Function::generateAsymmetricWorldFeature(float width, float height)
+{
+	cv::Size board_size;
+	board_size.width = board_message_.cols;
+	board_size.height = board_message_.rows;
+	std::vector<cv::Point3f> objectCorners;
+	for (int r = 0; r < board_size.height; r++)
+	{
+		for (int c = 0; c < board_size.width; c++)
 		{
 
 			if (0 == r % 2)
@@ -794,7 +841,7 @@ double Calibrate_Function::calibrateCamera(std::vector<std::vector<cv::Point2f>>
 	{
 		select_group.insert(std::pair<int, bool>(g_i, true));
 
-		std::vector<cv::Point3f> objectCorners = generateAsymmetricWorldFeature(board_width_, board_height_);
+		std::vector<cv::Point3f> objectCorners = generateAsymmetricWorldFeature(board_message_);
 
 		world_feature_points.push_back(objectCorners);
 	}
@@ -803,9 +850,11 @@ double Calibrate_Function::calibrateCamera(std::vector<std::vector<cv::Point2f>>
 	cv::Mat distCoeffs;
 	std::vector<cv::Mat> rvecsMat, tvecsMat;
 	int flag = 0;
-
+	cv::Size board_size;
+	board_size.width = board_message_.cols;
+	board_size.height = board_message_.rows;
 	/* ���б궨���� */
-	double err_first = cv::calibrateCamera(world_feature_points, camera_points_list, board_size_, cameraMatrix, distCoeffs, rvecsMat, tvecsMat,
+	double err_first = cv::calibrateCamera(world_feature_points, camera_points_list, board_size, cameraMatrix, distCoeffs, rvecsMat, tvecsMat,
 		flag, cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 500, DBL_EPSILON));
 
 	//std::cout << "First calibrate error: " << err_first<<std::endl;
@@ -891,7 +940,12 @@ double Calibrate_Function::calibrateCamera(std::vector<std::vector<cv::Point2f>>
 			max_series = -1;
 			max_err = 0;
 
-			err_first = cv::calibrateCamera(world_feature_points, camera_points_list, board_size_, cameraMatrix, distCoeffs, rvecsMat, tvecsMat,
+			cv::Size board_size;
+			board_size.width = board_message_.cols;
+			board_size.height = board_message_.rows;
+
+
+			err_first = cv::calibrateCamera(world_feature_points, camera_points_list, board_size, cameraMatrix, distCoeffs, rvecsMat, tvecsMat,
 				flag, cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 500, DBL_EPSILON));
 
 			//std::cout  << "calibrate error: " << err_first << std::endl;
@@ -917,7 +971,13 @@ double Calibrate_Function::calibrateCamera(std::vector<std::vector<cv::Point2f>>
 
 }
 
-
+cv::Size Calibrate_Function::getBoardSize()
+{
+	cv::Size board_size;
+	board_size.width = board_message_.cols;
+	board_size.height = board_message_.rows;
+	return board_size;
+}
 
 int Calibrate_Function::testOverExposure(cv::Mat img, std::vector<cv::Point2f> points)
 {
@@ -941,7 +1001,10 @@ bool Calibrate_Function::findCircleBoardFeature(cv::Mat img, std::vector<cv::Poi
 {
 	std::vector<cv::Point2f> circle_points;
 	cv::Mat img_inv = inv_image(img);
-	bool found = cv::findCirclesGrid(img_inv, board_size_, circle_points, cv::CALIB_CB_ASYMMETRIC_GRID | cv::CALIB_CB_CLUSTERING);
+	cv::Size board_size;
+	board_size.width = board_message_.cols;
+	board_size.height = board_message_.rows;
+	bool found = cv::findCirclesGrid(img_inv, board_size, circle_points, cv::CALIB_CB_ASYMMETRIC_GRID | cv::CALIB_CB_CLUSTERING);
 
 	if (!found)
 		return false;

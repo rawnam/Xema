@@ -1,7 +1,7 @@
 #include "LookupTableFunction.h"
 #include "iostream"
 #include <fstream>
-#include "../firmware/protocol.h"
+#include "../firmware/protocol.h" 
 //#include "FileIoFunction.h" 
 
 LookupTableFunction::LookupTableFunction()
@@ -12,8 +12,8 @@ LookupTableFunction::LookupTableFunction()
 	min_low_z_ = 10;
 	max_max_z_ = 30000;
 
-	dlp_width_ = 1920;
-	dlp_height_ = 1080;
+	dlp_width_ = 1280;
+	dlp_height_ = 720;
 }
 
 
@@ -21,31 +21,36 @@ LookupTableFunction::~LookupTableFunction()
 {
 }
 
-bool LookupTableFunction::setCameraVersion(int version)
+void LookupTableFunction::setCameraResolution(int width, int height)
+{
+	image_size_.width = width;
+	image_size_.height = height;
+}
+
+void LookupTableFunction::setImageResolution(int width, int height)
+{
+	image_size_.width = width;
+	image_size_.height = height;
+}
+
+
+bool LookupTableFunction::setProjectorVersion(int version)
 {
 
 	switch (version)
 	{
-	case DFX_800:
+	case DF_PROJECTOR_3010:
 	{
 		dlp_width_ = 1280;
-		dlp_height_ = 720;
-
-		min_low_z_ = 100;
-		max_max_z_ = 5000;
-
+		dlp_height_ = 720; 
 		return true;
 	}
 	break;
 
-	case DFX_1800:
-	{
-
+	case DF_PROJECTOR_4710:
+	{ 
 		dlp_width_ = 1920;
-		dlp_height_ = 1080;
-
-		min_low_z_ = 300;
-		max_max_z_ = 10000;
+		dlp_height_ = 1080; 
 
 		return true;
 	}
@@ -57,8 +62,46 @@ bool LookupTableFunction::setCameraVersion(int version)
 
 	return false;
 
-
 }
+
+// bool LookupTableFunction::setCameraVersion(int version)
+// {
+
+// 	switch (version)
+// 	{
+// 	case DFX_800:
+// 	{
+// 		dlp_width_ = 1280;
+// 		dlp_height_ = 720;
+
+// 		min_low_z_ = 100;
+// 		max_max_z_ = 5000;
+
+// 		return true;
+// 	}
+// 	break;
+
+// 	case DFX_1800:
+// 	{
+
+// 		dlp_width_ = 1920;
+// 		dlp_height_ = 1080;
+
+// 		min_low_z_ = 300;
+// 		max_max_z_ = 10000;
+
+// 		return true;
+// 	}
+// 	break;
+
+// 	default:
+// 		break;
+// 	}
+
+// 	return false;
+
+
+// }
 
 /*******************************************************************************************************/
 
@@ -314,6 +357,53 @@ bool LookupTableFunction::generateLookTable(cv::Mat& xL_rotate_x, cv::Mat& xL_ro
 }
 
 /******************************************************************************************************/
+
+bool LookupTableFunction::readTableFloat(std::string dir_path, cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y,
+	cv::Mat& rectify_R1, cv::Mat& pattern_mapping, cv::Mat& pattern_minimapping, int width, int height)
+{
+
+	/****************************************************************************************************************************/
+
+	if (!readBinMappingFloat(3, 3, dir_path + "/R1.bin", R_1_))
+	{
+		return false;
+	}
+
+	if (!readBinMappingFloat(128, 128, dir_path + "/single_pattern_minimapping.bin", pattern_minimapping))
+	{
+		std::cout << "read mini mapping error!";
+	}
+
+	if (!readBinMappingFloat(4000, 2000, dir_path + "/single_pattern_mapping.bin", single_pattern_mapping_))
+	{
+		return false;
+	}
+
+	if (!readBinMappingFloat(height, width, dir_path + "/combine_xL_rotate_x_cam1_iter.bin", xL_rotate_x_))
+	{
+		return false;
+	}
+
+	if (!readBinMappingFloat(height, width, dir_path + "/combine_xL_rotate_y_cam1_iter.bin", xL_rotate_y_))
+	{
+		return false;
+	}
+	/****************************************************************************************************************************/
+
+
+
+	if (!single_pattern_mapping_.data || !xL_rotate_x_.data || !xL_rotate_y_.data)
+	{
+		return false;
+	}
+
+	xL_rotate_x = xL_rotate_x_.clone();
+	xL_rotate_y = xL_rotate_y_.clone();
+	rectify_R1 = R_1_.clone();
+	pattern_mapping = single_pattern_mapping_.clone();
+
+	return true;
+}
 
 bool LookupTableFunction::readTableFloat(std::string dir_path, cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_mapping)
 {
@@ -668,6 +758,7 @@ bool LookupTableFunction::readBinMappingFloat(int rows, int cols, std::string ma
 	std::ifstream inFile(mapping_file, std::ios::in | std::ios::binary); //�����ƶ���ʽ��
 	if (!inFile) {
 		std::cout << "error" << std::endl;
+		out_map = map.clone();
 		return false;
 	}
 	while (inFile.read((char*)map.data, sizeof(float) * rows * cols)) { //һֱ�����ļ�����
@@ -1236,10 +1327,10 @@ bool MiniLookupTableFunction::generateLookTable(cv::Mat& xL_rotate_x, cv::Mat& x
 	generateRotateTable(project_intrinsic_, projector_distortion_, R2, cv::Size(1920, 1200), xR_undistort_map_x, xR_undistort_map_y);
 
 	// 取四个点作为裁剪map的依据
-	projector_left_up_y = (xR_undistort_map_y.at<double>(5, 0) + 1 ) * 2000;
-	projector_right_up_y = (xR_undistort_map_y.at<double>(5, 1279) + 1 ) * 2000;
-	projector_left_down_y = (xR_undistort_map_y.at<double>(714, 0) + 1 ) * 2000;
-	projector_right_down_y = (xR_undistort_map_y.at<double>(714, 1279) + 1 ) * 2000;
+	projector_left_up_y = (xR_undistort_map_y.at<double>(5, 0) + 1) * 2000;
+	projector_right_up_y = (xR_undistort_map_y.at<double>(5, (dlp_width_ -1)) + 1) * 2000;
+	projector_left_down_y = (xR_undistort_map_y.at<double>(dlp_height_ - 1, 0) + 1) * 2000;
+	projector_right_down_y = (xR_undistort_map_y.at<double>(dlp_height_ - 1, (dlp_width_ -1)) + 1) * 2000;
 
 	cv::Mat mapping, mini_mapping;
 	generateMiniGridMapping(mapping, mini_mapping);
@@ -1259,7 +1350,7 @@ bool MiniLookupTableFunction::generateLookTable(cv::Mat& xL_rotate_x, cv::Mat& x
 }
 
 
-bool MiniLookupTableFunction::generateBigLookTable(cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_minimapping)
+bool MiniLookupTableFunction::generateBigLookTable(cv::Mat& xL_rotate_x, cv::Mat& xL_rotate_y, cv::Mat& rectify_R1, cv::Mat& pattern_mapping, cv::Mat& pattern_minimapping)
 {
 
 	if (!camera_intrinsic_.data || !camera_distortion_.data || !project_intrinsic_.data ||
@@ -1287,13 +1378,18 @@ bool MiniLookupTableFunction::generateBigLookTable(cv::Mat& xL_rotate_x, cv::Mat
 
 
 	generateRotateTable(camera_intrinsic_, camera_distortion_, R1, image_size_, xL_undistort_map_x, xL_undistort_map_y);
-	generateRotateTable(project_intrinsic_, projector_distortion_, R2, cv::Size(1920, 1200), xR_undistort_map_x, xR_undistort_map_y);
+	generateRotateTable(project_intrinsic_, projector_distortion_, R2, image_size_, xR_undistort_map_x, xR_undistort_map_y);
 
 	// 取四个点作为裁剪map的依据
+	//projector_left_up_y = (xR_undistort_map_y.at<double>(5, 0) + 1) * 2000;
+	//projector_right_up_y = (xR_undistort_map_y.at<double>(5, 1279) + 1) * 2000;
+	//projector_left_down_y = (xR_undistort_map_y.at<double>(714, 0) + 1) * 2000;
+	//projector_right_down_y = (xR_undistort_map_y.at<double>(714, 1279) + 1) * 2000;
+
 	projector_left_up_y = (xR_undistort_map_y.at<double>(5, 0) + 1) * 2000;
-	projector_right_up_y = (xR_undistort_map_y.at<double>(5, 1279) + 1) * 2000;
-	projector_left_down_y = (xR_undistort_map_y.at<double>(714, 0) + 1) * 2000;
-	projector_right_down_y = (xR_undistort_map_y.at<double>(714, 1279) + 1) * 2000;
+	projector_right_up_y = (xR_undistort_map_y.at<double>(5, dlp_width_ - 1) + 1) * 2000;
+	projector_left_down_y = (xR_undistort_map_y.at<double>(dlp_height_ - 1, 0) + 1) * 2000;
+	projector_right_down_y = (xR_undistort_map_y.at<double>(dlp_height_ - 1, dlp_width_ - 1) + 1) * 2000;
 
 	cv::Mat mapping, mini_mapping;
 	generateMiniGridMapping(mapping, mini_mapping);
@@ -1306,7 +1402,8 @@ bool MiniLookupTableFunction::generateBigLookTable(cv::Mat& xL_rotate_x, cv::Mat
 	xL_rotate_x = xL_undistort_map_x.clone();
 	xL_rotate_y = xL_undistort_map_y.clone();
 	rectify_R1 = R1.clone();
-	pattern_minimapping = mapping.clone();
+	pattern_mapping = mapping.clone();
+	pattern_minimapping = mini_mapping.clone();
 
 
 	return true;
@@ -1732,7 +1829,7 @@ bool MiniLookupTableFunction::generateColOfDistorted(cv::InputArray _cameraMatri
 	cv::Mat col_of_distorted_data(1, 2000, CV_32F, cv::Scalar(-2));
 	float* dis_col = col_of_distorted_data.ptr<float>(0);
 	//std::cout << "_col_distorted" << _col_distorted << std::endl;
-	
+
 	for (int col = 0; col < 2000; col += 1)
 	{
 		col_undistorted = col / 1000. - 1.;
@@ -1762,12 +1859,12 @@ bool MiniLookupTableFunction::generateColOfDistorted(cv::InputArray _cameraMatri
 bool MiniLookupTableFunction::generateMiniGridMapping(cv::Mat& _LookupTable, cv::Mat& _MiniLookupTable)
 {
 
-	cv::Size image_size = cv::Size(1920, 1200);
+	//cv::Size image_size = cv::Size(1920, 1200);
 	cv::Mat RL, RR, PL, PR, Q;
 
 
 	cv::stereoRectify(camera_intrinsic_, camera_distortion_, project_intrinsic_, projector_distortion_,
-		image_size, rotation_matrix_, translation_matrix_, RL, RR, PL, PR, Q);
+		image_size_, rotation_matrix_, translation_matrix_, RL, RR, PL, PR, Q);
 
 
 	// std::cout << intrinsicMatrix_projector << std::endl;
@@ -1828,16 +1925,16 @@ bool MiniLookupTableFunction::generateMiniGridMapping(cv::Mat& _LookupTable, cv:
 	//将插值的数据存入theBigLookUpTable，以便使用
 	cv::Mat theBigLookUpTable(4000, 2000, CV_32F, cv::Scalar(-2));
 	// 斜率
-	double k_up = (projector_right_up_y - projector_left_up_y) / 1279;
-	double k_down = (projector_right_down_y - projector_left_down_y) / 1279;
-	
+	double k_up = (projector_right_up_y - projector_left_up_y) / (dlp_width_ -1);
+	double k_down = (projector_right_down_y - projector_left_down_y) / (dlp_width_-1);
+
 	for (int row = 0; row < 4000; row += 1)
 	{
 		float* ptr_before = theLookUpTable.ptr<float>(row);
 		float* ptr_after = theBigLookUpTable.ptr<float>(row);
 		for (int col = 0; col < 2000; col += 1)
 		{
-			if (col < 7 || col > 1273)
+			if (col < 7 || col > dlp_width_ - 7)
 			{
 				ptr_after[col] = -2;
 			}
@@ -1849,7 +1946,7 @@ bool MiniLookupTableFunction::generateMiniGridMapping(cv::Mat& _LookupTable, cv:
 			{
 				ptr_after[col] = ptr_before[col];
 			}
-			
+
 		}
 
 	}

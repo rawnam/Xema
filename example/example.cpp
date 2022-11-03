@@ -8,12 +8,30 @@
 int main()
 {
 	/*****************************************************************************************************/
+	int ret_code = 0;
+	//更新相机设备列表
+	int camera_num = 0;
+	ret_code = DfUpdateDeviceList(camera_num);
+	if (0 != ret_code || 0 == camera_num)
+	{
+		return -1;
+	}
+	 
+	DeviceBaseInfo* pBaseinfo = (DeviceBaseInfo*)malloc(sizeof(DeviceBaseInfo) * camera_num);
+	int n_size = camera_num * sizeof(DeviceBaseInfo);
+	//获取设备信息
+	ret_code = DfGetAllDeviceBaseInfo(pBaseinfo, &n_size); 
+	for (int i = 0; i < camera_num; i++)
+	{
+		std::cout << "mac: "<< pBaseinfo[i].mac <<"  ip: "<< pBaseinfo[i].ip<<std::endl;
+	}
 
-	//连接相机
-	int ret_code = DfConnect("192.168.0.122");
+	char* ip = pBaseinfo[0].ip; 
+	 
+	//连接相机 
+	ret_code = DfConnect(ip);
 
-	int width = 0, height = 0;
-
+	int width = 0, height = 0; 
 	if (0 == ret_code)
 	{
 		//必须连接相机成功后，才可获取相机分辨率
@@ -75,8 +93,8 @@ int main()
 	float* height_map_data = (float*)malloc(sizeof(float) * width * height);
 	memset(height_map_data, 0, sizeof(float) * width * height);
 
-	unsigned short* depth_data = (unsigned short*)malloc(sizeof(unsigned short) * width * height);
-	memset(depth_data, 0, sizeof(unsigned short) * width * height);
+	float* depth_data = (float*)malloc(sizeof(float) * width * height);
+	memset(depth_data, 0, sizeof(float) * width * height);
 
 	char* timestamp_data = (char*)malloc(sizeof(char) * 30);
 	memset(timestamp_data, 0, sizeof(char) * 30);
@@ -160,7 +178,7 @@ int main()
 			}
 
 			//获取深度图数据
-			ret_code = DfGetDepthData(depth_data);
+			ret_code = DfGetDepthDataFloat(depth_data);
 
 			if (0 == ret_code)
 			{
@@ -210,7 +228,8 @@ int main()
 	free(depth_data);
 	free(point_cloud_data);
 	free(height_map_data);
-	free(timestamp_data);
+	free(timestamp_data); 
+	free(pBaseinfo);
 
 	DfDisconnect("192.168.88.106");
 }

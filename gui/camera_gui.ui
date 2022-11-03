@@ -76,6 +76,7 @@
     </property>
     <addaction name="actionAbout"/>
     <addaction name="action_get_calibration_param"/>
+    <addaction name="action_update_firmware"/>
    </widget>
    <widget class="QMenu" name="menu_file">
     <property name="font">
@@ -102,6 +103,7 @@
      <string>设置</string>
     </property>
     <addaction name="action_select_calibration_board"/>
+    <addaction name="action_outlier_removal"/>
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menu_setting"/>
@@ -186,6 +188,16 @@
     <font>
      <pointsize>12</pointsize>
     </font>
+   </property>
+  </action>
+  <action name="action_outlier_removal">
+   <property name="text">
+    <string>滤除外点</string>
+   </property>
+  </action>
+  <action name="action_update_firmware">
+   <property name="text">
+    <string>固件升级</string>
    </property>
   </action>
  </widget>

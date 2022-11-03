@@ -591,7 +591,7 @@ int FileIoFunction::percentile(cv::Mat& image, int percent)
 }
 
 //深度图转z-map图
-bool  FileIoFunction::depthToColor(cv::Mat depth_map, cv::Mat& color_map, cv::Mat& grey_map, int low_z, int high_z)
+bool  FileIoFunction::depthToColor(cv::Mat depth_map, cv::Mat& color_map, cv::Mat& grey_map, float low_z, float high_z)
 {
 
 	if (!depth_map.data)
@@ -602,7 +602,7 @@ bool  FileIoFunction::depthToColor(cv::Mat depth_map, cv::Mat& color_map, cv::Ma
 	cv::Mat handle_map(depth_map.size(), CV_8U, cv::Scalar(0));
 	cv::Mat mask_map(depth_map.size(), CV_8U, cv::Scalar(0));
 
-	int range = high_z - low_z;
+	float range = high_z - low_z;
 
 	if (depth_map.type() != CV_32FC1)
 	{
@@ -632,7 +632,7 @@ bool  FileIoFunction::depthToColor(cv::Mat depth_map, cv::Mat& color_map, cv::Ma
 				ptr_h[c] = 255.0 * (ptr_dr[c] - low_z) / range;
 			}
 				
-			if (ptr_dr[c] > 0)
+			if (ptr_dr[c] >= low_z && ptr_dr[c]<= high_z)
 			{
 				ptr_m[c] = 255;
 			}

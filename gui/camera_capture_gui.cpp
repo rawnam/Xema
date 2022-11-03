@@ -8,7 +8,6 @@
 #include <QMouseEvent>
 #include <QtWidgets/qfiledialog.h>
 #include <qheaderview.h>
-#include "../calibration/calibrate_function.h"
 #include "PrecisionTest.h"
 #include <qdesktopservices.h>
 #include <thread>
@@ -23,10 +22,11 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	ui.tableWidget_more_exposure->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
 	ui.tableWidget_more_exposure->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
 	ui.tableWidget_more_exposure->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+	ui.tableWidget_more_exposure->horizontalHeader()->setSortIndicatorShown(false);
 	//ui.tableWidget_more_exposure->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
 	ui.tableWidget_more_exposure->setEditTriggers(QAbstractItemView::NoEditTriggers); //设置不可编辑
 	ui.tableWidget_more_exposure->setFrameShape(QFrame::Box);
-
+	 
 
 
 	config_system_param_machine_.loadProcessingSettingsFile("../camera_config.json");
@@ -36,11 +36,10 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 
 
 
-	radio_button_flag_ = SELECT_BRIGHTNESS_FLAG_;
-	showImage();
 
-	setUiData();
+
 	initializeFunction();
+	setUiData();
 	undateSystemConfigUiData();
 
 	last_path_ = "../TestData";
@@ -53,13 +52,9 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 		bool res = dir.mkpath(path);
 	}
 
-	//ui.tableWidget_more_exposure->hide();
-	//ui.spinBox_exposure_num->hide();
-	//ui.label_exposure_num->hide();
-
-	//ui.radioButton_depth_grey->hide();
-
-
+  
+	radio_button_flag_ = SELECT_BRIGHTNESS_FLAG_;
+	showImage();
 }
 
 CameraCaptureGui::~CameraCaptureGui()
@@ -72,15 +67,50 @@ void CameraCaptureGui::setOnDrop(int (*p_function)(void*))
 	m_p_OnDropped_ = p_function;
 }
 
+
+void CameraCaptureGui::getCameraIp(QString& ip)
+{
+	ip = ui.lineEdit_ip->text();
+}
+
 void CameraCaptureGui::setCalibrationBoard(int flag)
 {
 
 	switch (flag)
 	{
+	case 4:
+	{
+		board_message_.rows = 11;
+		board_message_.cols = 7;
+		board_message_.width = 4;
+		board_message_.height = 2;
+		    
+		calibration_board_flag_ = flag;
+
+		processing_gui_settings_data_.Instance().calibration_board = flag;
+	}
+	break;
+
+	case 12:
+	{
+		board_message_.rows = 11;
+		board_message_.cols = 7;
+		board_message_.width = 12;
+		board_message_.height = 6;
+		 
+		calibration_board_flag_ = flag;
+
+		processing_gui_settings_data_.Instance().calibration_board = flag;
+	}
+	break;
+
 	case 20:
 	{
-		board_size_.width = 20.0;
-		board_size_.height = 10.0;
+		board_message_.rows = 11;
+		board_message_.cols = 7;
+		board_message_.width = 20;
+		board_message_.height = 10;
+		 
 		calibration_board_flag_ = flag;
 
 		processing_gui_settings_data_.Instance().calibration_board = flag;
@@ -89,8 +119,23 @@ void CameraCaptureGui::setCalibrationBoard(int flag)
 
 	case 40:
 	{
-		board_size_.width = 40.0;
-		board_size_.height = 20.0;
+		board_message_.rows = 11;
+		board_message_.cols = 7;
+		board_message_.width = 40;
+		board_message_.height = 20;
+		 
+		calibration_board_flag_ = flag;
+		processing_gui_settings_data_.Instance().calibration_board = flag;
+	}
+	break;
+
+	case 80:
+	{
+		board_message_.rows = 13;
+		board_message_.cols = 9;
+		board_message_.width = 80;
+		board_message_.height = 40;
+		 
 		calibration_board_flag_ = flag;
 		processing_gui_settings_data_.Instance().calibration_board = flag;
 	}
@@ -99,7 +144,7 @@ void CameraCaptureGui::setCalibrationBoard(int flag)
 		break;
 	}
 
-
+ 
 }
 
 
@@ -111,9 +156,10 @@ bool CameraCaptureGui::initializeFunction()
 	/*******************************************************************************************************************/
 
 	connect(ui.spinBox_exposure_num, SIGNAL(valueChanged(int)), this, SLOT(do_spin_exposure_num_changed(int)));
-	connect(ui.spinBox_min_z, SIGNAL(valueChanged(int)), this, SLOT(do_spin_min_z_changed(int)));
-	connect(ui.spinBox_max_z, SIGNAL(valueChanged(int)), this, SLOT(do_spin_max_z_changed(int)));
+	connect(ui.doubleSpinBox_min_z, SIGNAL(valueChanged(double)), this, SLOT(do_spin_min_z_changed(double)));
+	connect(ui.doubleSpinBox_max_z, SIGNAL(valueChanged(double)), this, SLOT(do_spin_max_z_changed(double)));
 	connect(ui.doubleSpinBox_confidence, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_confidence(double)));
+	connect(ui.doubleSpinBox_fisher, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_fisher(double)));
 	connect(ui.doubleSpinBox_gain, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_gain(double)));
 	connect(ui.spinBox_repetition_count, SIGNAL(valueChanged(int)), this, SLOT(do_spin_repetition_count_changed(int)));
 
@@ -124,11 +170,13 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.radioButton_brightness, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_brightness(bool)));
 	connect(ui.radioButton_depth_color, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_color_depth(bool)));
 	connect(ui.radioButton_depth_grey, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_gray_depth(bool)));
-
-
+	 
+	connect(ui.comboBox_ip, SIGNAL(activated(int)), this, SLOT(do_comboBox_activated_ip(int)));
 	connect(ui.checkBox_hdr, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_hdr(bool)));
+	connect(ui.checkBox_over_exposure, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_over_exposure(bool)));
 
 	connect(ui.pushButton_connect, SIGNAL(clicked()), this, SLOT(do_pushButton_connect()));
+	connect(ui.pushButton_refresh, SIGNAL(clicked()), this, SLOT(do_pushButton_refresh()));
 	connect(ui.pushButton_capture_one_frame, SIGNAL(clicked()), this, SLOT(do_pushButton_capture_one_frame()));
 	connect(ui.pushButton_capture_continuous, SIGNAL(clicked()), this, SLOT(do_pushButton_capture_continuous()));
 
@@ -161,8 +209,11 @@ bool CameraCaptureGui::initializeFunction()
 	generate_brightness_model_ = GENERATE_BRIGHTNESS_DEFAULT_;
 	generate_brightness_exposure_ = 12000;
 
-	//board_size_.width = 20.0;
-	//board_size_.height = 10.0;
+	board_message_.rows = 11;
+	board_message_.cols = 7;
+	board_message_.width = 20;
+	board_message_.height = 10;
+ 
 
 	camera_version_ = 800;
 	/**********************************************************************************************************************/
@@ -209,12 +260,9 @@ bool CameraCaptureGui::saveOneFrameData(QString path_name)
 	cv::imwrite(height_str.toLocal8Bit().toStdString(), height_map_);
 
 	QString points_str = path_name + ".ply";
-	cv::Mat points_map(brightness_map_.size(), CV_32FC3, cv::Scalar(0., 0., 0.));
-
-	depthTransformPointcloud((float*)depth_map_.data, (float*)points_map.data);
-
+  
 	FileIoFunction file_io_machine;
-	file_io_machine.SaveBinPointsToPly(points_map, points_str, brightness_map_);
+	file_io_machine.SaveBinPointsToPly(pointcloud_map_, points_str, brightness_map_);
 
 	return true;
 }
@@ -280,8 +328,16 @@ bool CameraCaptureGui::renderBrightnessImage(cv::Mat brightness)
 		}
 
 	}
+	if (ui.checkBox_over_exposure->isChecked())
+	{
+		render_image_brightness_ = color_map.clone();
 
-	render_image_brightness_ = color_map.clone();
+	}
+	else
+	{
+		render_image_brightness_ = brightness.clone();
+
+	}
 	return true;
 }
 
@@ -293,8 +349,8 @@ bool CameraCaptureGui::renderHeightImage(cv::Mat height)
 		return false;
 	}
 
-	int low_z = processing_gui_settings_data_.Instance().low_z_value;
-	int high_z = processing_gui_settings_data_.Instance().high_z_value;
+	float low_z = processing_gui_settings_data_.Instance().low_z_value;
+	float high_z = processing_gui_settings_data_.Instance().high_z_value;
 
 	FileIoFunction io_machine;
 
@@ -388,12 +444,15 @@ void CameraCaptureGui::undateSystemConfigUiData()
 		ui.spinBox_smoothing->setValue(firmware_config_param_.bilateral_filter_param_d / 2);
 	}
 
+	float val = (50 + firmware_config_param_.fisher_confidence) / 2;
+	ui.doubleSpinBox_fisher->setValue(val);
+
 }
 
 void CameraCaptureGui::setUiData()
 {
-	ui.spinBox_min_z->setValue(processing_gui_settings_data_.Instance().low_z_value);
-	ui.spinBox_max_z->setValue(processing_gui_settings_data_.Instance().high_z_value);
+	ui.doubleSpinBox_min_z->setValue(processing_gui_settings_data_.Instance().low_z_value);
+	ui.doubleSpinBox_max_z->setValue(processing_gui_settings_data_.Instance().high_z_value);
 	ui.lineEdit_ip->setText(processing_gui_settings_data_.Instance().ip);
 	ui.spinBox_repetition_count->setValue(processing_gui_settings_data_.Instance().repetition_count);
 
@@ -443,7 +502,7 @@ void CameraCaptureGui::add_exposure_item(int row, int exposure, int led)
 	}
 
 	QSpinBox* exposureSpinBoxItem = new QSpinBox();
-	exposureSpinBoxItem->setRange(6000, 60000);//设置数值显示范围
+	exposureSpinBoxItem->setRange(1000, 60000);//设置数值显示范围
 	exposureSpinBoxItem->setValue(exposure);
 	exposureSpinBoxItem->setButtonSymbols(QAbstractSpinBox::NoButtons);
 	exposureSpinBoxItem->setAlignment(Qt::AlignHCenter);
@@ -476,7 +535,7 @@ void CameraCaptureGui::add_exposure_item(int row, int exposure, int led)
 
 }
 
-void CameraCaptureGui::do_spin_min_z_changed(int val)
+void CameraCaptureGui::do_spin_min_z_changed(double val)
 {
 	processing_gui_settings_data_.Instance().low_z_value = val;
 
@@ -597,7 +656,7 @@ void CameraCaptureGui::do_spin_led_current_changed(int val)
 	camera_setting_flag_ = false;
 }
 
-void CameraCaptureGui::do_spin_max_z_changed(int val)
+void CameraCaptureGui::do_spin_max_z_changed(double val)
 {
 
 	processing_gui_settings_data_.Instance().high_z_value = val;
@@ -717,6 +776,60 @@ void CameraCaptureGui::do_doubleSpin_gain(double val)
 	}
 
 	camera_setting_flag_ = false;
+}
+
+
+void CameraCaptureGui::do_doubleSpin_fisher(double val)
+{
+
+	if (camera_setting_flag_)
+	{
+		return;
+	}
+
+
+	//设置参数时加锁
+	camera_setting_flag_ = true;
+	if (connected_flag_)
+	{
+
+		firmware_config_param_.fisher_confidence = (float)(2*val)-50;
+
+		int ret_code = -1;
+		//如果连续采集在用、先暂停
+		if (start_timer_flag_)
+		{
+
+			stopCapturingOneFrameBaseThread();
+
+			ret_code = DfSetParamOutlierFilter(val);
+			if (0 == ret_code)
+			{
+				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
+				QString str = u8"设置噪点过滤: " + QString::number(val);
+				addLogMessage(str);
+			}
+
+			do_pushButton_capture_continuous();
+
+		}
+		else
+		{
+			ret_code = DfSetParamOutlierFilter(val);
+
+			if (0 == ret_code)
+			{
+				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
+				QString str = u8"设置噪点过滤: " + QString::number(val);
+				addLogMessage(str);
+			}
+
+		}
+
+	}
+
+	camera_setting_flag_ = false;
+
 }
 
 void CameraCaptureGui::do_doubleSpin_confidence(double val)
@@ -849,6 +962,13 @@ bool CameraCaptureGui::setCameraConfigParam()
 		addLogMessage(u8"设置相机增益失败！");
 	}
 
+	float fisher_val = (50 + firmware_config_param_.fisher_confidence) / 2;
+	ret_code = DfSetParamOutlierFilter(fisher_val);
+	if (0 != ret_code)
+	{
+		addLogMessage(u8"设置过滤噪点参数失败！");
+	}
+
 	if (DF_UNKNOWN == ret_code)
 	{
 		addLogMessage(u8"请检查相机版本！");
@@ -904,6 +1024,35 @@ void CameraCaptureGui::sleep(int sectime)
 	}
 }
 
+
+void CameraCaptureGui::updateOutlierRemovalConfigParam(struct FirmwareConfigParam param)
+{
+	if (param.use_reflect_filter != firmware_config_param_.use_reflect_filter)
+	{
+		if (DF_SUCCESS == DfSetParamReflectFilter(param.use_reflect_filter))
+		{
+			firmware_config_param_.use_reflect_filter = param.use_reflect_filter;
+			QString str = u8"设置反射点滤除： "+QString::number(param.use_reflect_filter);
+			addLogMessage(str);
+		}
+	}
+
+	if (param.use_radius_filter != firmware_config_param_.use_radius_filter)
+	{
+		if (DF_SUCCESS == DfSetParamRadiusFilter(param.use_radius_filter, param.radius_filter_r, param.radius_filter_threshold_num));
+		{
+			firmware_config_param_.use_radius_filter = param.use_radius_filter;
+			QString str = u8"设置半径滤波： " + QString::number(param.use_radius_filter);
+			addLogMessage(str);
+		}
+	}
+	 
+}
+
+void CameraCaptureGui::getFirmwareConfigParam(struct FirmwareConfigParam& param)
+{
+	param = firmware_config_param_;
+}
 
 void CameraCaptureGui::getGuiConfigParam(struct GuiConfigDataStruct& gui_param)
 {
@@ -1169,6 +1318,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 	}
 	capturing_flag_ = true;
 
+
 	int width = camera_width_;
 	int height = camera_height_;
 
@@ -1291,13 +1441,15 @@ bool CameraCaptureGui::captureOneFrameData()
 	{
 
 
-		addLogMessage(u8"采集完成！");
 
 
 		brightness_map_ = brightness.clone();
 		depth_map_ = depth.clone();
 
 		depthTransformPointcloud((float*)depth.data, (float*)point_cloud.data);
+		pointcloud_map_ = point_cloud.clone();
+		addLogMessage(u8"采集完成！");
+
 		transformPointcloud((float*)point_cloud.data, (float*)point_cloud.data, system_config_param_.standard_plane_external_param, &system_config_param_.standard_plane_external_param[9]);
 
 		std::vector<cv::Mat> channels;
@@ -1307,7 +1459,8 @@ bool CameraCaptureGui::captureOneFrameData()
 
 
 		float temperature = 0;
-		ret_code = DfGetDeviceTemperature(temperature);
+		//ret_code = DfGetDeviceTemperature(temperature);
+		ret_code = DfGetProjectorTemperature(temperature);
 
 
 		emit send_temperature_update(temperature);
@@ -1327,6 +1480,37 @@ bool CameraCaptureGui::isConnect()
 }
 
 
+void CameraCaptureGui::do_pushButton_refresh()
+{
+	device_mac_list_.clear();
+	device_ip_list_.clear();
+	ui.comboBox_ip->clear();
+
+	int ret_code = 0;
+	//更新相机设备列表
+	int camera_num = 0;
+	ret_code = DfUpdateDeviceList(camera_num);
+	if (0 != ret_code || 0 == camera_num)
+	{
+		return  ;
+	}
+
+	DeviceBaseInfo* pBaseinfo = (DeviceBaseInfo*)malloc(sizeof(DeviceBaseInfo) * camera_num);
+	int n_size = camera_num * sizeof(DeviceBaseInfo);
+	//获取设备信息
+	ret_code = DfGetAllDeviceBaseInfo(pBaseinfo, &n_size);
+	for (int i = 0; i < camera_num; i++)
+	{
+		device_mac_list_.push_back(QString(pBaseinfo[i].mac));
+		device_ip_list_.push_back(QString(pBaseinfo[i].ip));
+		//std::cout << "mac: " << pBaseinfo[i].mac << "  ip: " << pBaseinfo[i].ip << std::endl;
+		QString text = QString(pBaseinfo[i].ip) + "(" + QString(pBaseinfo[i].mac)+  ")";
+		ui.comboBox_ip->addItem(text);
+	}
+
+
+}
+
 void  CameraCaptureGui::do_pushButton_connect()
 {
 
@@ -1340,26 +1524,19 @@ void  CameraCaptureGui::do_pushButton_connect()
 			return;
 		}
 
-
-
-		//addLogMessage(QString::fromUtf8("连接相机："));
+		 
 		addLogMessage(u8"连接相机：");
 		int ret_code = DfConnect(camera_ip_.toStdString().c_str());
 
 		DfRegisterOnDropped(m_p_OnDropped_);
 
-
-		if (0 == ret_code)
+		 
+		if (DF_SUCCESS == ret_code)
 		{
 			//必须连接相机成功后，才可获取相机分辨率
 			ret_code = DfGetCameraResolution(&camera_width_, &camera_height_);
 			std::cout << "Width: " << camera_width_ << "    Height: " << camera_height_ << std::endl;
 
-			if (0 != ret_code)
-			{
-				qDebug() << "Connect Error!;";
-				return;
-			}
 			//获取相机标定参数
 			ret_code = DfGetCalibrationParam(camera_calibration_param_);
 			if (0 != ret_code)
@@ -1369,31 +1546,31 @@ void  CameraCaptureGui::do_pushButton_connect()
 			}
 
 			//获取相机型号参数
-			ret_code = DfGetCameraVersion(camera_version_);
-			if (0 != ret_code)
-			{
-				qDebug() << "Get Calibration Param Error!;";
-				return;
-			}
+			//ret_code = DfGetCameraVersion(camera_version_);
+			//if (0 != ret_code)
+			//{
+			//	qDebug() << "Get Calibration Param Error!;";
+			//	return;
+			//}
 
-			switch (camera_version_)
-			{
-			case 800:
-			{
-				addLogMessage(u8"连接DFX800成功！");
-			}
-			break;
-			case 1800:
-			{
-				addLogMessage(u8"连接DFX1800成功！");
-			}
-			break;
-			default:
-				break;
-			}
+			//switch (camera_version_)
+			//{
+			//case 800:
+			//{
+			//	addLogMessage(u8"连接DFX800成功！");
+			//}
+			//break;
+			//case 1800:
+			//{
+			//	addLogMessage(u8"连接DFX1800成功！");
+			//}
+			//break;
+			//default:
+			//	break;
+			//}
 
 
-			//addLogMessage(u8"连接相机成功！"));
+			addLogMessage(u8"连接相机成功！");
 			//保存ip配置
 			processing_gui_settings_data_.Instance().ip = camera_ip_;
 
@@ -1436,15 +1613,26 @@ void  CameraCaptureGui::do_pushButton_connect()
 			}
 
 		}
-		else
+		else if (DF_BUSY == ret_code)
+		{
+			addLogMessage(u8"相机忙！");
+			return;
+		}
+		else if (DF_ERROR_2D_CAMERA == ret_code)
+		{
+			addLogMessage(u8"2D相机故障！");
+			return;
+		}
+		else 
 		{
 			std::cout << "Connect Camera Error!";
-			addLogMessage(u8"连接相机失败！");
+			addLogMessage(u8"连接相机失败，请确认相机IP！");
 			return;
 		}
 
 
 		connected_flag_ = true;
+		ui.lineEdit_ip->setDisabled(true);
 
 		CalibrationParam calib_param;
 		ret_code = DfGetCalibrationParam(&calib_param);
@@ -1511,13 +1699,14 @@ void  CameraCaptureGui::do_pushButton_disconnect()
 		}
 
 		int ret = DfDisconnect(camera_ip_.toStdString().c_str());
-		if (DF_SUCCESS != ret)
-		{
-			return;
-		}
+		//if (DF_SUCCESS != ret)
+		//{
+		//	return;
+		//}
 
 		addLogMessage(u8"断开相机！");
-		connected_flag_ = false;
+		connected_flag_ = false; 
+		ui.lineEdit_ip->setDisabled(false);
 
 		ui.pushButton_connect->setIcon(QIcon(":/dexforce_camera_gui/image/connect.png"));
 	}
@@ -1536,6 +1725,7 @@ double CameraCaptureGui::computePointsDistance(cv::Point2f p_0, cv::Point2f p_1,
 	cv::Point3f f_p_0_inter, f_p_1_inter;
 
 	Calibrate_Function calib_function;
+	calib_function.setBoardMessage(board_message_);
 	f_p_0_inter.x = calib_function.Bilinear_interpolation(p_0.x, p_0.y, point_cloud_channels[0]);
 	f_p_0_inter.y = calib_function.Bilinear_interpolation(p_0.x, p_0.y, point_cloud_channels[1]);
 	f_p_0_inter.z = calib_function.Bilinear_interpolation(p_0.x, p_0.y, point_cloud_channels[2]);
@@ -1571,11 +1761,13 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 
 
 		Calibrate_Function calib_function;
+		calib_function.setBoardMessage(board_message_);
 		std::vector<cv::Point2f> circle_points;
 		bool found = calib_function.findCircleBoardFeature(brightness_map_, circle_points);
 
 		if (!found)
-		{
+		{ 
+			addLogMessage(u8"无法识别标定板！");
 			return;
 		}
 
@@ -1593,7 +1785,7 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 		cv::Mat pc1(point_3d.size(), 3, CV_64F, cv::Scalar(0));
 		cv::Mat pc2(point_3d.size(), 3, CV_64F, cv::Scalar(0));
 
-		std::vector<cv::Point3f> world_points = calib_function.generateAsymmetricWorldFeature(board_size_.width, board_size_.height);
+		std::vector<cv::Point3f> world_points = calib_function.generateAsymmetricWorldFeature(board_message_);
 
 		for (int r = 0; r < point_3d.size(); r++)
 		{
@@ -1612,6 +1804,23 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 		cv::Mat t(3, 3, CV_64F, cv::Scalar(0));
 
 		precision_machine.svdIcp(pc1, pc2, r, t);
+
+		/******************************************************************************************/
+
+		std::vector<cv::Point3f> transform_points;
+
+		precision_machine.transformPoints(point_3d, transform_points, r, t);
+
+		double diff = precision_machine.computeTwoPointSetDistance(world_points, transform_points);
+		addLogMessage(u8"映射精度: "+QString::number(diff,'f',3));
+		if (diff > 10)
+		{
+			addLogMessage(u8"映射基准平面失败，请检查标定板型号！");
+			return;
+		}
+		/******************************************************************************************/
+
+
 		r.convertTo(r, CV_32F);
 		t.convertTo(t, CV_32F);
 		transformPointcloud((float*)points_map.data, (float*)points_map.data, (float*)r.data, (float*)t.data);
@@ -1625,8 +1834,8 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 		renderHeightImage(height_map);
 		showImage();
 
-		ui.spinBox_min_z->setValue(-10);
-		ui.spinBox_max_z->setValue(10);
+		ui.doubleSpinBox_min_z->setValue(-10);
+		ui.doubleSpinBox_max_z->setValue(10);
 
 		for (int i = 0; i < 9; i++)
 		{
@@ -1647,7 +1856,7 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 				qDebug() << "Get Param Error;";
 				return;
 			}
-			QString str = u8"保存高度映射基准平面";
+			QString str = u8"保存高度映射基准平面参数";
 			addLogMessage(str);
 
 		}
@@ -1664,6 +1873,7 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 void CameraCaptureGui::do_pushButton_test_accuracy()
 {
 	Calibrate_Function calib_function;
+	calib_function.setBoardMessage(board_message_);
 
 	if (brightness_map_.empty() || brightness_map_.type() != CV_8UC1)
 	{
@@ -1692,8 +1902,9 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 
 		if (found)
 		{
-			Calibrate_Function calib_machine;
-			std::vector<cv::Point3f> objects = calib_machine.generateAsymmetricWorldFeature(board_size_.width, board_size_.height);
+			Calibrate_Function calib_machine; 
+			calib_machine.setBoardMessage(board_message_);
+			std::vector<cv::Point3f> objects = calib_machine.generateAsymmetricWorldFeature(board_message_);
 
 			cv::Mat raux, taux;
 			std::vector<cv::Point2f> image_points_pro;
@@ -1726,6 +1937,10 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 			render_image_brightness_ = color_img.clone();
 			showImage();
 		}
+		else
+		{
+			addLogMessage(u8"无法识别标定板！"); 
+		}
 
 
 		/*************************************************************************************/
@@ -1743,7 +1958,8 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 		bool found = calib_function.findCircleBoardFeature(undist_img, circle_points);
 
 		if (!found)
-		{
+		{  
+			addLogMessage(u8"无法识别标定板！"); 
 			return;
 		}
 		cv::Mat points_map(brightness_map_.size(), CV_32FC3, cv::Scalar(0., 0., 0.));
@@ -1814,11 +2030,14 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 		//cv::undistort(brightness_map_, undist_img, cameraMatrix, distCoeffs);
 		//std::vector<cv::Point2f> undist_circle_points;
 		Calibrate_Function calib_function;
+		calib_function.setBoardMessage(board_message_);
+
 		std::vector<cv::Point2f> circle_points;
 		bool found = calib_function.findCircleBoardFeature(brightness_map_, circle_points);
 
 		if (!found)
-		{
+		{ 
+			addLogMessage(u8"无法识别标定板！"); 
 			return;
 		}
 
@@ -1846,7 +2065,7 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 		cv::Mat pc1(point_3d.size(), 3, CV_64F, cv::Scalar(0));
 		cv::Mat pc2(point_3d.size(), 3, CV_64F, cv::Scalar(0));
 
-		std::vector<cv::Point3f> world_points = calib_function.generateAsymmetricWorldFeature(board_size_.width, board_size_.height);
+		std::vector<cv::Point3f> world_points = calib_function.generateAsymmetricWorldFeature(board_message_);
 
 		for (int r = 0; r < point_3d.size(); r++)
 		{
@@ -1871,6 +2090,13 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 		precision_machine.transformPoints(point_3d, transform_points, r, t);
 
 		double diff = precision_machine.computeTwoPointSetDistance(world_points, transform_points);
+
+		addLogMessage(u8"标定精度: " + QString::number(diff, 'f', 3));
+
+		if (diff > 10)
+		{
+			addLogMessage(u8"请检查标定板型号！");
+		}
 
 		//addLogMessage(u8"平均点偏差: ") + QString::number(diff) +
 		//	u8" 距离: ") + QString::number(0));
@@ -1897,13 +2123,12 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 
 			//addLogMessage(u8"标定精度: " + QString::number(diff) +
 			//	u8"	距离: " + QString::number(dist));
-			addLogMessage(u8"标定精度: " + QString::number(diff, 'f', 3));
+			 
 		}
 		else
 		{
 			//addLogMessage(u8"标定精度: " + QString::number(diff) +
-			//	u8"	距离: " + QString::number(0));
-			addLogMessage(u8"标定精度: " + QString::number(diff, 'f', 3));
+			//	u8"	距离: " + QString::number(0)); 
 		}
 
 
@@ -1918,7 +2143,8 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 		bool found = calib_function.findCircleBoardFeature(undist_img, circle_points);
 
 		if (!found)
-		{
+		{ 
+			addLogMessage(u8"无法识别标定板！");
 			return;
 		}
 		cv::Mat points_map(brightness_map_.size(), CV_32FC3, cv::Scalar(0., 0., 0.));
@@ -2129,7 +2355,7 @@ void  CameraCaptureGui::do_timeout_capture_slot()
 		//{
 		//	capture_timer_.start();
 		//}
-
+		 
 		std::thread t_s(&CameraCaptureGui::captureOneFrameBaseThread, this, ui.checkBox_hdr->isChecked());
 		t_s.detach();
 		capture_timer_.start();
@@ -2204,6 +2430,16 @@ void  CameraCaptureGui::do_pushButton_capture_continuous()
 //	}
 //}
 
+void CameraCaptureGui::do_comboBox_activated_ip(int index)
+{ 
+	ui.lineEdit_ip->setText(device_ip_list_[index]);
+}
+
+void CameraCaptureGui::do_checkBox_toggled_over_exposure(bool state)
+{
+	renderBrightnessImage(brightness_map_); 
+	showImage();
+}
 
 void CameraCaptureGui::do_checkBox_toggled_hdr(bool state)
 {
@@ -2392,6 +2628,7 @@ bool CameraCaptureGui::bilinearInterpolationFeaturePoints(std::vector<cv::Point2
 
 
 	Calibrate_Function calib_function;
+	calib_function.setBoardMessage(board_message_);
 	std::vector<cv::Mat> point_cloud_channels;
 	cv::split(point_cloud, point_cloud_channels);
 

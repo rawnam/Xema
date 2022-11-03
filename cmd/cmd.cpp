@@ -19,6 +19,7 @@
 #include "getopt.h" 
 #include <iomanip>
 #include "../test/LookupTableFunction.h"
+#include "../test/triangulation.h"
 
 using namespace std;
 
@@ -127,6 +128,9 @@ open_cam3d.exe --get-repetition-phase-02 --count 3 --ip 192.168.x.x --path  ./ph
 34.Enable Focusing: \n\
 open_cam3d.exe --enable-focusing --ip 192.168.x.x \n\
 \n\
+35.Set Board Inspect: \n\
+open_cam3d.exe --set-board-inspect --switch enable --ip 192.168.x.x \n\
+\n\
 ";
 
 void help_with_version(const char* help);
@@ -139,7 +143,7 @@ int get_repetition_frame_03(const char* ip, int count, const char* frame_path);
 int get_repetition_frame_04(const char* ip, int count, const char* frame_path);
 int get_frame_hdr(const char* ip, const char* frame_path);
 void save_frame(float* depth_buffer, unsigned char* bright_buffer, const char* frame_path);
-void save_images(const char* raw_image_dir, unsigned char* buffer, int image_size, int image_num);
+void save_images(const char* raw_image_dir, unsigned char* buffer, int width, int height, int image_num);
 void save_point_cloud(float* point_cloud_buffer, const char* pointcloud_path);
 void save_color_point_cloud(float* point_cloud_buffer, unsigned char* brightness_buffer, const char* pointcloud_path);
 void write_fbin(std::ofstream& out, float val);
@@ -175,6 +179,7 @@ int self_test(const char* ip);
 int get_projector_temperature(const char* ip);
 int get_repetition_phase_02(const char* ip, int count, const char* phase_image_dir);
 int configure_focusing(const char* ip);
+int set_board_inspect(const char* ip,bool enable);
 
 extern int optind, opterr, optopt;
 extern char* optarg;
@@ -224,7 +229,9 @@ enum opt_set
 	SELF_TEST,
 	GET_PROJECTOR_TEMPERATURE,
 	GET_REPETITION_PHASE_02,
-	ENABLE_FOCUSING
+	ENABLE_FOCUSING,
+	SWITCH,
+	SET_BOARD_INSPECT,
 };
 
 static struct option long_options[] =
@@ -236,6 +243,7 @@ static struct option long_options[] =
 	{"model", required_argument, NULL, MODEL},
 	{"exposure", required_argument, NULL, EXPOSURE},
 	{"offset", required_argument, NULL, OFFSET},
+	{"switch", required_argument, NULL, SWITCH},
 	{"get-temperature",no_argument,NULL,GET_TEMPERATURE},
 	{"get-calib-param",no_argument,NULL,GET_CALIB_PARAM},
 	{"set-calib-param",no_argument,NULL,SET_CALIB_PARAM},
@@ -273,16 +281,18 @@ static struct option long_options[] =
 	{"self-test",no_argument,NULL,SELF_TEST},
 	{"get-projector-temperature",no_argument,NULL,GET_PROJECTOR_TEMPERATURE},
 	{"enable-focusing",no_argument,NULL,ENABLE_FOCUSING},
+	{"set-board-inspect",no_argument,NULL,SET_BOARD_INSPECT},
 };
 
 
-const char* camera_id;
-const char* path;
-const char* repetition_count;
-const char* use_command;
-const char* c_model;
-const char* c_exposure;
-const char* c_offset;
+const char* camera_id = NULL;
+const char* path = NULL;
+const char* repetition_count = NULL;
+const char* use_command = NULL;
+const char* c_model = NULL;
+const char* c_exposure = NULL;
+const char* c_offset = NULL;
+const char* c_switch = NULL;
 int command = HELP;
 
 struct CameraCalibParam calibration_param_;
@@ -319,6 +329,9 @@ int main(int argc, char* argv[])
 		case OFFSET:
 			c_offset = optarg;
 			break;
+		case SWITCH:
+			c_switch = optarg;
+			break;
 		case '?':
 			printf("unknow option:%c\n", optopt);
 			break;
@@ -346,7 +359,7 @@ int main(int argc, char* argv[])
 		set_calib_looktable(camera_id, path);
 		break;
 	case SET_CALIB_MINILOOKTABLE:
-		set_calib_minilooktable(camera_id, path);
+		set_calib_looktable(camera_id, path);
 		break;
 	case TEST_CALIB_PARAM:
 		test_calib_param(camera_id, path);
@@ -473,6 +486,19 @@ int main(int argc, char* argv[])
 	case ENABLE_FOCUSING:
 		configure_focusing(camera_id);
 		break;
+	case SET_BOARD_INSPECT:
+	{
+		std::string switch_str(c_switch);
+		if ("enable" == switch_str)
+		{
+			set_board_inspect(camera_id,true);
+		}
+		else if ("disable" == switch_str)
+		{ 
+			set_board_inspect(camera_id, false);
+		}
+	}
+		break;
 	default:
 		break;
 	}
@@ -527,13 +553,19 @@ bool depthTransformPointcloud(cv::Mat depth_map, cv::Mat& point_cloud_map)
 	double camera_cx = calibration_param_.camera_intrinsic[2];
 	double camera_cy = calibration_param_.camera_intrinsic[5];
 
+	float k1 = calibration_param_.camera_distortion[0];
+	float k2 = calibration_param_.camera_distortion[1];
+	float p1 = calibration_param_.camera_distortion[2];
+	float p2 = calibration_param_.camera_distortion[3];
+	float k3 = calibration_param_.camera_distortion[4];
+
 	int nr = depth_map.rows;
 	int nc = depth_map.cols;
 
 
 	cv::Mat points_map(nr, nc, CV_32FC3, cv::Scalar(0, 0, 0));
 
-
+#pragma omp parallel for
 	for (int r = 0; r < nr; r++)
 	{
 
@@ -542,15 +574,19 @@ bool depthTransformPointcloud(cv::Mat depth_map, cv::Mat& point_cloud_map)
 
 		for (int c = 0; c < nc; c++)
 		{
-
+			double undistort_x = c;
+			double undistort_y = r;
 			if (ptr_d[c] > 0)
 			{
+
+				undistortPoint(c, r, camera_fx, camera_fy,
+					camera_cx, camera_cy, k1, k2, k3, p1, p2, undistort_x, undistort_y);
 
 				cv::Point3f p;
 				p.z = ptr_d[c];
 
-				p.x = (c - camera_cx) * p.z / camera_fx;
-				p.y = (r - camera_cy) * p.z / camera_fy;
+				p.x = (undistort_x - camera_cx) * p.z / camera_fx;
+				p.y = (undistort_y - camera_cy) * p.z / camera_fy;
 
 
 				ptr_p[c][0] = p.x;
@@ -601,16 +637,18 @@ void save_frame(float* depth_buffer, unsigned char* bright_buffer, const char* f
 
 }
 
-void save_images(const char* raw_image_dir, unsigned char* buffer, int image_size, int image_num)
+void save_images(const char* raw_image_dir, unsigned char* buffer, int width, int height, int image_num)
 {
 	std::string folderPath = raw_image_dir;
 	std::string mkdir_cmd = std::string("mkdir ") + folderPath;
 	system(mkdir_cmd.c_str());
 
+	int image_size = width * height;
+
 	for (int i = 0; i < image_num; i++)
 	{
 		std::stringstream ss;
-		cv::Mat image(1200, 1920, CV_8UC1, buffer + (long)(image_size * i));
+		cv::Mat image(height, width, CV_8UC1, buffer + (long)(image_size * i));
 		ss << std::setw(2) << std::setfill('0') << i;
 		std::string filename = folderPath + "/phase" + ss.str() + ".bmp";
 		cv::imwrite(filename, image);
@@ -814,7 +852,7 @@ bool SaveBinPointsToPly(cv::Mat deep_mat, string path, cv::Mat texture_map)
 				/*****************************************************************************************************/
 			}
 
-			
+
 			//Header 
 			file << "ply" << "\n";
 			file << "format binary_little_endian 1.0" << "\n";
@@ -1302,7 +1340,7 @@ int get_raw_01(const char* ip, const char* raw_image_dir)
 
 	ret = DfGetCameraRawData01(raw_buf, image_size * capture_num);
 
-	save_images(raw_image_dir, raw_buf, image_size, capture_num);
+	save_images(raw_image_dir, raw_buf, width, height, capture_num);
 
 	delete[] raw_buf;
 
@@ -1331,7 +1369,7 @@ int get_raw_03(const char* ip, const char* raw_image_dir)
 
 	ret = DfGetCameraRawData03(raw_buf, image_size * 31);
 
-	save_images(raw_image_dir, raw_buf, image_size, 31);
+	save_images(raw_image_dir, raw_buf, width, height, 31);
 
 	delete[] raw_buf;
 
@@ -1360,7 +1398,7 @@ int get_raw_02(const char* ip, const char* raw_image_dir)
 
 	ret = DfGetCameraRawDataTest(raw_buf, image_size * capture_num);
 
-	save_images(raw_image_dir, raw_buf, image_size, capture_num);
+	save_images(raw_image_dir, raw_buf, width, height, capture_num);
 
 	delete[] raw_buf;
 
@@ -1509,40 +1547,84 @@ int set_calib_looktable(const char* ip, const char* calib_param_path)
 	}
 	ifile.close();
 	std::cout << "Read Param" << std::endl;
-	LookupTableFunction looktable_machine;
-	MiniLookupTableFunction minilooktable_machine;
-	looktable_machine.setCalibData(calibration_param);
-	minilooktable_machine.setCalibData(calibration_param);
-	//looktable_machine.readCalibData(calib_param_path);
-	cv::Mat xL_rotate_x;
-	cv::Mat xL_rotate_y;
-	cv::Mat rectify_R1;
-	cv::Mat pattern_mapping;
-
-
-	std::cout << "Start Generate LookTable Param" << std::endl;
-	bool ok = looktable_machine.generateLookTable(xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping);
-	bool ok1 = minilooktable_machine.generateBigLookTable(xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping);
-	std::cout << "Finished Generate LookTable Param: " << ok << std::endl;
-
-	xL_rotate_x.convertTo(xL_rotate_x, CV_32F);
-	xL_rotate_y.convertTo(xL_rotate_y, CV_32F);
-	rectify_R1.convertTo(rectify_R1, CV_32F);
-	pattern_mapping.convertTo(pattern_mapping, CV_32F);
 
 	/**************************************************************************************************/
 
 	DfRegisterOnDropped(on_dropped);
 
 	int ret = DfConnectNet(ip);
+	if (ret != DF_SUCCESS)
+	{
+		std::cout << "Connect failed!" << std::endl;
+		return 0;
+	}
+
+
+	int width = 0;
+	int height = 0;
+
+	ret = DfGetCameraResolution(&width, &height);
+	if (ret != DF_SUCCESS)
+	{
+		std::cout << "DfGetCameraResolution failed!" << std::endl;
+		return 0;
+	}
+	std::cout << "width: " << width << std::endl;
+	std::cout << "height: " << height << std::endl;
+
+	int version = 0;
+	ret = DfGetProjectorVersion(version);
+	if (ret != DF_SUCCESS)
+	{
+		std::cout << "DfGetProjectorVersion failed!" << std::endl;
+		return -1;
+	}
+
+	std::cout << "version: " << version << std::endl;
+	ret = DfDisconnectNet();
+
+	MiniLookupTableFunction minilooktable_machine;
+	minilooktable_machine.setCameraResolution(width, height);
+	
+	if (!minilooktable_machine.setProjectorVersion(version))
+	{
+		std::cout << "Set Projector Version failed!" << std::endl;
+		std::cout << "version: " << version<< std::endl;
+		return -1;
+	}
+
+
+	minilooktable_machine.setCalibData(calibration_param);
+	cv::Mat xL_rotate_x;
+	cv::Mat xL_rotate_y;
+	cv::Mat rectify_R1;
+	cv::Mat pattern_mapping;
+	cv::Mat pattern_minimapping;
+
+
+	std::cout << "Start Generate LookTable Param" << std::endl;
+	//bool ok = looktable_machine.generateLookTable(xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping);
+	bool ok = minilooktable_machine.generateBigLookTable(xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping, pattern_minimapping);
+	std::cout << "Finished Generate LookTable Param: " << ok << std::endl;
+
+	xL_rotate_x.convertTo(xL_rotate_x, CV_32F);
+	xL_rotate_y.convertTo(xL_rotate_y, CV_32F);
+	rectify_R1.convertTo(rectify_R1, CV_32F);
+	pattern_mapping.convertTo(pattern_mapping, CV_32F);
+	pattern_minimapping.convertTo(pattern_minimapping, CV_32F);
+
+	cv::imwrite("../cmd_table.tiff", pattern_mapping);
+	DfRegisterOnDropped(on_dropped);
+
+	ret = DfConnectNet(ip);
 	if (ret == DF_FAILED)
 	{
 		return 0;
 	}
 
 
-
-	DfSetCalibrationLookTable(calibration_param, (float*)xL_rotate_x.data, (float*)xL_rotate_y.data, (float*)rectify_R1.data, (float*)pattern_mapping.data);
+	DfSetCalibrationLookTable(calibration_param, (float*)xL_rotate_x.data, (float*)xL_rotate_y.data, (float*)rectify_R1.data,
+		(float*)pattern_mapping.data, (float*)pattern_minimapping.data, width, height);
 
 
 
@@ -1774,6 +1856,24 @@ int get_temperature(const char* ip)
 
 	DfDisconnectNet();
 	return 1;
+}
+
+int set_board_inspect(const char* ip, bool enable)
+{
+
+	/*********************************************************************************************/
+	DfRegisterOnDropped(on_dropped);
+
+	int ret = DfConnectNet(ip);
+	if (ret == DF_FAILED)
+	{
+		return 0;
+	}
+ 
+	DfSetBoardInspect(enable);
+
+	DfDisconnectNet();
+
 }
 
 int configure_focusing(const char* ip)

@@ -12,6 +12,8 @@ public:
 	bool RadiusOutlierRemoval(cv::Mat& point_cloud_map, cv::Mat& mask, double dot_spacing, double radius, int points_num);
 
 	bool statisticOutlierRemoval(cv::Mat& point_cloud_map, int num_neighbors, double threshold_radio);
+
+	bool removeReflectNoise(cv::Mat unwrap_map, cv::Mat confidence_map, cv::Mat& mask);
 private:
 
 	double computePointsDistance(cv::Vec3d p0, cv::Vec3d p1);
@@ -31,5 +33,6 @@ private:
 	bool computeNormalDistribution(cv::Mat& point_cloud_map, int num_neighbors, double& mean, double& sd);
 
 	bool getDistanctList(cv::Mat point_cloud_map, cv::Point pos, int num_neighbors, double& mean, std::vector<double>& dist_list);
+
 };
 

@@ -7,7 +7,7 @@
 #define DF_SDK_API 
 #endif
 
-
+#include "camera_status.h"
 
 /***************************************************************************************/
 
@@ -29,6 +29,28 @@ extern "C"
 
 	};
 
+	//设备基本信息结构体
+	struct DeviceBaseInfo
+	{
+		//相机内参
+		char mac[64];
+		//相机外参
+		char ip[64];  
+	};
+
+	//函数名： DfUpdateDeviceList
+	//功能： 获取可连接设备数
+	//输入参数： device_num(设备数)
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+	DF_SDK_API int DfUpdateDeviceList(int& device_num);
+
+	//函数名： DfGetAllDeviceBaseInfo
+	//功能： 获取设备基本信息
+	//输入参数： pDeviceInfo(设备信息)、pBufferSize（设备结构体内存尺寸）
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+	DF_SDK_API int DfGetAllDeviceBaseInfo(DeviceBaseInfo* pDeviceInfo, int* pBufferSize);
 
 	//函数名： DfConnect
 	//功能： 连接相机
@@ -58,6 +80,12 @@ extern "C"
 	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 	DF_SDK_API int DfGetDepthData(unsigned short* depth);
 
+	//函数名： DfGetDepthDataFloat
+	//功能： 获取深度图
+	//输入参数：无
+	//输出参数： depth(深度图)
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfGetDepthDataFloat(float* depth);
 
 	//函数名： DfGetBrightnessData
 	//功能： 获取亮度图
@@ -241,6 +269,34 @@ extern "C"
 	//输出参数：smoothing(0:关、1-5:平滑程度由低到高)
 	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 	DF_SDK_API int DfGetParamSmoothing(int& smoothing);
+
+	//函数名： DfSetParamRadiusFilter
+	//功能： 设置点云半径滤波参数
+	//输入参数：use(开关：1开、0关)、radius(半径）、num（有效点）
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfSetParamRadiusFilter(int use,float radius,int num);
+
+	//函数名： DfGetParamRadiusFilter
+	//功能： 获取点云半径滤波参数
+	//输入参数：无
+	//输出参数：use(开关：1开、0关)、radius(半径）、num（有效点）
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfGetParamRadiusFilter(int& use, float& radius, int& num);
+
+	//函数名： DfSetParamOutlierFilter
+	//功能： 设置外点过滤阈值
+	//输入参数：threshold(阈值0-100)
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfSetParamOutlierFilter(float threshold);
+
+	//函数名： DfGetParamOutlierFilter
+	//功能： 获取外点过滤阈值
+	//输入参数： 无
+	//输出参数：threshold(阈值0-100)
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfGetParamOutlierFilter(float& threshold);
 }
 
 
@@ -333,7 +389,7 @@ DF_SDK_API int DfGetCameraRawData04Repetition(unsigned char* raw, int raw_buf_si
 //输入参数：depth_map（深度图）
 //输出参数：point_cloud_map（点云）
 //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
-DF_SDK_API bool depthTransformPointcloud(float* depth_map, float* point_cloud_map);
+DF_SDK_API int depthTransformPointcloud(float* depth_map, float* point_cloud_map);
 
 //函数名： transformPointcloud
 //功能： 点云坐标系转换接口
@@ -437,7 +493,7 @@ DF_SDK_API int DfSetCalibrationParam(const struct CameraCalibParam& calibration_
 //输出参数：无
 //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfSetCalibrationLookTable(const struct CameraCalibParam& calibration_param, float* rotate_x,
-	float* rotate_y, float* rectify_r1, float* mapping);
+	float* rotate_y, float* rectify_r1, float* mapping, float* mini_mapping, int width, int height);
 
 //函数名： DfSetCalibrationMiniLookTable
 //功能：设置标定参数接口
@@ -531,6 +587,13 @@ DF_SDK_API int DfSelfTest(char* pTest, int length);
 //返回值：  类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfGetCameraVersion(int& version);
 
+//函数名：  DfGetProjectVersion
+//功能：    获取相机型号
+//输入参数：无
+//输出参数：型号（3010、4710）
+//返回值：  类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetProjectorVersion(int& version);
+
 //函数名： DfSetParamOffset
 //功能： 设置补偿参数
 //输入参数：offset(补偿值)
@@ -588,3 +651,23 @@ DF_SDK_API int DfCaptureRepetitionData(int repetition_count, int exposure_num, c
 DF_SDK_API int DfGetTestFrame01(unsigned char* raw, int raw_buf_size, float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size);
 
+//函数名： DfSetParamReflectFilter
+//功能： 设置点云半径滤波参数
+//输入参数：use(开关：1开、0关) 
+//输出参数： 无
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfSetParamReflectFilter(int use);
+
+//函数名： DfGetParamReflectFilter
+//功能： 设置点云平滑参数
+//输入参数：无
+//输出参数：use(开关：1开、0关)
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfGetParamReflectFilter(int& use);
+
+//函数名： DfSetBoardInspect
+//功能： 设置标定板检测
+//输入参数：enable(开关) 
+//输出参数： 无
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfSetBoardInspect(bool enable);

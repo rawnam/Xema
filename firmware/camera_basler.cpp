@@ -404,9 +404,8 @@ bool CameraBasler::openCamera()
     res = PylonDeviceFeatureFromString( hDev_, "AcquisitionMode", "Continuous" );
     // CHECK( res );
 
- 
- 
- 
+    min_camera_exposure_ = 6250;
+
     camera_opened_state_ = true;
  
     return true;
@@ -512,6 +511,11 @@ bool CameraBasler::setExposure(double val)
     while (!lck.try_lock_for(std::chrono::milliseconds(1)))
     {
         LOG(INFO) << "--";
+    }
+
+    if(val< min_camera_exposure_)
+    {
+        val = min_camera_exposure_;
     }
 
     GENAPIC_RESULT              res;                      /* Return value of pylon methods. */

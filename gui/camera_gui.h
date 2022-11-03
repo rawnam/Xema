@@ -38,7 +38,11 @@ public slots:
 
 	void do_action_select_calibration_board();
 
+	void do_action_outlier_removal_settings();
+
 	void do_slot_handle_network();
+
+	void do_action_update_firmware();
 protected:
 	void closeEvent(QCloseEvent* e);
 

@@ -80,19 +80,23 @@
 </table>
 
 
-
+<br> <a href='https://github.com/Open3DV/xema_hardware/tree/main/step'>XEMA structural design files</a>
+<br> <a href='https://evercraft.co/share?key=4CFED0'>XEMA-S assembly.stp (view online) </a>
+<br> <a href='https://evercraft.co/share?key=92E956'>XEMA-S structural components.stp (view online) </a>
+<br> <a href='https://evercraft.co/share?key=A39A64'>XEMA-L assembly.stp (view online) </a>
+<br> <a href='https://evercraft.co/share?key=167319'>XEMA-L structural components.stp (view online) </a>
+<br> <a href='https://github.com/Open3DV/xema_hardware/tree/main/pcb'>XEMA Jetson Nano Carrier Board design files</a>
 
 
 <img src='images/logo/dexforce.png' width=150>
 
-Code: <https://github.com/Open3DV/Xema>  
-Email: <wudi@dexforce.com>
+Email: <info@dexforce.com>
 
 ## Partners:
  <table>
     <tr>
-        <td ><div style="width: 100pt"><img src='images/logo/seeed.png' width=100> <br> <a href='https://www.seeedstudio.com/pcb-assembly.html'>Fusion PCB Assembly Service </a> </div></td>
-        <td><div style="width: 100pt"><img src='images/logo/nvidia.png' width=100> <br> <a href='https://www.seeedstudio.com/blog/2020/05/13/seeed-provide-manufacture-service-for-nvidia-jetson-modules-based-products/'>NVIDIA Jetson Sponsorship </a> </div></td>
+        <td ><div style="width: 150pt"><img src='images/logo/seeed.png' width=100> <br> <a href='https://www.seeedstudio.com/pcb-assembly.html'>Fusion PCB Assembly Service </a> </div></td>
+        <td><div style="width: 150pt"><img src='images/logo/nvidia_inception_program.jpg' width=100></div></td>
         <td><div style="width: 100pt"><img src='images/logo/anhua.png' width=100></div></td>
         <td><div style="width: 100pt"><img src='images/logo/cbc.png' width=100></div></td>
     </tr>

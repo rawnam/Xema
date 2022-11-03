@@ -4,6 +4,7 @@
 #include "lightcrafter3010.h"
 #include "camera_param.h"
 #include "vector"
+#include "system_config_settings.h"
 
 class Scan3D
 {
@@ -29,10 +30,13 @@ public:
     
     bool setParamGenerateBrightness(int model,int exposure);
 
-    bool setCameraVersion(int version);
+    bool setProjectorVersion(int version);
 
-    void getCameraVersion(int &version);
+    void getProjectorVersion(int &version);
     
+    void setParamSystemConfig(SystemConfigDataStruct param);
+
+    void setParamFisherConfidence(float confidence);
     /************************************************************************/
     
     bool captureTextureImage(int model,float exposure,unsigned char* buff);
@@ -51,11 +55,17 @@ public:
 
     bool captureFrame04();
 
-    bool captureFrame04Hdr();
+    bool captureFrame04BaseConfidence();
 
-    bool captureFrame04Repetition01(int repetition_count);
+    bool captureFrame04Hdr();
+    
+    bool captureFrame04HdrBaseConfidence(); 
+
+    bool captureFrame04Repetition01(int repetition_count); 
 
     bool captureFrame04Repetition02(int repetition_count);
+    
+    bool captureFrame04Repetition02BaseConfidence(int repetition_count);
 
     bool captureFrame05();
     
@@ -80,12 +90,14 @@ public:
 
     void getCameraResolution(int &width, int &height);
 
+    void removeOutlierBaseRadiusFilter();
+
 private:
  
     Camera* camera_;
     LightCrafter3010 lc3010_;
 
-    int camera_version_;
+    int projector_version_;
     bool camera_opened_flag_;
     
 
@@ -112,5 +124,10 @@ private:
     unsigned char* buff_brightness_;
     float* buff_depth_;
     float* buff_pointcloud_;
+
+    float fisher_confidence_val_;
+
+    
+    SystemConfigDataStruct system_config_settings_machine_;
 
 };

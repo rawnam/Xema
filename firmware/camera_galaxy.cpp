@@ -177,6 +177,15 @@ bool CameraGalaxy::openCamera()
 
         status = GXGetInt(hDevice_, GX_INT_WIDTH, &image_width_);
         status = GXGetInt(hDevice_, GX_INT_HEIGHT, &image_height_);
+
+        double max_frame = 0;
+        status = GXGetFloat(hDevice_, GX_FLOAT_ACQUISITION_FRAME_RATE, &max_frame);
+
+        LOG(INFO) << "max frame: " << max_frame;
+        min_camera_exposure_ = 1000000/((int)max_frame);
+        LOG(INFO) << "min_camera_exposure_: " << min_camera_exposure_;
+
+
     }
 
     return true;
@@ -273,11 +282,11 @@ bool CameraGalaxy::switchToExternalTriggerMode()
 
 bool CameraGalaxy::getExposure(double &val)
 {
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-    {
-        LOG(INFO) << "getExposure --";
-    }
+    // std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
+    // while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+    // {
+    //     LOG(INFO) << "getExposure --";
+    // }
 
     GX_STATUS status = GX_STATUS_SUCCESS;
     status = GXGetFloat(hDevice_, GX_FLOAT_EXPOSURE_TIME, &val);
@@ -293,10 +302,15 @@ bool CameraGalaxy::getExposure(double &val)
 }
 bool CameraGalaxy::setExposure(double val)
 {
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+    // std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
+    // while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+    // {
+    //     LOG(INFO) << "setExposure --";
+    // }
+
+    if(val< min_camera_exposure_)
     {
-        LOG(INFO) << "setExposure --";
+        val = min_camera_exposure_;
     }
 
     GX_STATUS status = GX_STATUS_SUCCESS;

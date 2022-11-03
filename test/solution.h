@@ -27,6 +27,9 @@ public:
 
 	bool reconstructMixedVariableWavelengthXPatternsBaseTable(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path = "./");
 
+	bool reconstructMixedVariableWavelengthXPatternsBaseTableAndConfidence(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path = "./");
+
+
 	bool reconstructPatterns04RepetitionBaseTable(std::vector <std::vector<cv::Mat>> patterns_list, struct CameraCalibParam calib_param, std::string pointcloud_path = "./");
 
 	bool reconstructPatterns04Repetition01BaseTable(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path = "./");
@@ -63,14 +66,19 @@ public:
 
 	bool readImages(std::string dir, std::vector<cv::Mat>& patterns);
 
-	bool setCameraVersion(int version);
+	bool readColorImages(std::string dir, std::vector<cv::Mat>& patterns);
+
+	bool setProjectorVersion(int version);
 
 	bool findMaskBaseConfidence(cv::Mat confidence_map, int threshold, cv::Mat& mask);
 
 	bool findMaskBaseConfidenceLocalGrads(cv::Mat confidence_map, float threshold, cv::Mat& mask);
 
+public:
+	int confidence_level_ = 50;
+
 private:
-	int camera_version_;
+	int projector_version_;
 
 };
 

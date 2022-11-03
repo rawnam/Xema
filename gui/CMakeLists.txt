@@ -3,8 +3,7 @@ cmake_minimum_required(VERSION 3.4.1)
 add_compile_options(-fPIC)
 add_definitions(-std=c++11)
 
-set(CMAKE_CXX_FLAGS   "-no-pie") 
-set(CMAKE_CXX_FLAGS   "${CMAKE_CXX_FLAGS}-WL,-rpath=./")
+set(CMAKE_CXX_FLAGS   "-no-pie")
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
@@ -24,6 +23,9 @@ set(HEADERS
     camera_capture_gui.h
     calibration_param_gui.h
     select_calibration_board_gui.h
+    outlier_removal_gui.h
+    update_firmware_gui.h
+    update_opencam3d.h
 )
 
 set(SOURCES 
@@ -32,6 +34,9 @@ set(SOURCES
     camera_capture_gui.cpp
     calibration_param_gui.cpp 
     select_calibration_board_gui.cpp
+    outlier_removal_gui.cpp
+    update_firmware_gui.cpp
+    update_opencam3d.cpp
 )
 
 set(RESOURCES 

@@ -53,6 +53,21 @@
     <ClCompile Include="select_calibration_board_gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="outlier_removal_gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="update_firmware_gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="update_opencam3d.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdk\socket_tcp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\firmware\easylogging++.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="camera_gui.h">
@@ -70,6 +85,12 @@
     <QtMoc Include="select_calibration_board_gui.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="outlier_removal_gui.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="update_firmware_gui.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="camera_gui.ui">
@@ -84,6 +105,12 @@
     <QtUic Include="select_calibration_board_gui.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="outlier_removal_gui.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="update_firmware_gui.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="file_io_function.h">
@@ -93,6 +120,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PrecisionTest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="x64\Release\uic\ui_update_firmware_gui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="update_opencam3d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\firmware\easylogging++.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

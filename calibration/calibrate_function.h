@@ -7,6 +7,13 @@
 #include <fstream>
 #include <map>
 
+struct BoardMessage
+{
+	int rows;
+	int cols;
+	int width;
+	int height;
+};
 
 class Calibrate_Function
 {
@@ -51,9 +58,9 @@ public:
 
 	int testOverExposure(cv::Mat img, std::vector<cv::Point2f> points);
 
-	cv::Size getBoardSize() {
-		return board_size_;
-	}
+	cv::Size getBoardSize();
+
+	std::vector<cv::Point3f> generateAsymmetricWorldFeature(struct BoardMessage board_message);
 
 	std::vector<cv::Point3f> generateAsymmetricWorldFeature(float width, float height);
 
@@ -61,14 +68,17 @@ public:
 
 	void setBoardMessage(int rows, int cols, int width, int height);
 
+	void setBoardMessage(BoardMessage board_message);
+
 	void setCalibrationBoard(int board_num);
 
 private:
 
-	cv::Size board_size_;
+	BoardMessage board_message_;
+	//cv::Size board_size_;
 	 
-	float board_width_;
-	float board_height_;
+	//float board_width_;
+	//float board_height_;
 
 	double dlp_width_;
 	double dlp_height_;

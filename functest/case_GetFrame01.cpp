@@ -59,7 +59,7 @@ bool get_frame_01(const char* ip)
 		return false;
 	}
 
-	ret = solution_.setCameraVersion(camera_version);
+	ret = solution_.setProjectorVersion(camera_version);
 	if (!ret)
 	{
 		std::cout << "Set Camera Version Error!" << std::endl;

@@ -3,7 +3,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerWorkingDirectory>..\x64\Release</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>--enable-focusing --ip 192.168.0.122</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>open_cam3d.exe --set-calib-looktable --ip 192.168.0.155 --path .\500\param.txt</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommandArguments>--set-calib-param --ip 192.168.88.106 --path .\capture\param_106.txt</LocalDebuggerCommandArguments>

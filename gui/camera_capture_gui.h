@@ -5,6 +5,7 @@
 #include "settings_file_function.h"
 #include <opencv2/core.hpp>
 #include "../sdk/open_cam3d.h"
+#include "../calibration/calibrate_function.h"
 //#include "../firmware/system_config_settings.h"
 #include "../firmware/protocol.h"
 #include <QThread>
@@ -74,11 +75,16 @@ public:
 
 	void getGuiConfigParam(struct GuiConfigDataStruct& gui_param);
 
+	void getFirmwareConfigParam(struct FirmwareConfigParam& param); 
+
+	void updateOutlierRemovalConfigParam(struct FirmwareConfigParam param);
+
 	//更新生成亮度图参数
 	void updateGenerateBrightnessParam();
 
 	void setCalibrationBoard(int flag);
 
+	void getCameraIp(QString& ip);
 private:
 	bool showImage();
 
@@ -112,6 +118,8 @@ public slots:
 
 	void do_pushButton_disconnect();
 
+	void do_pushButton_refresh();
+
 private slots:
 	void do_QRadioButton_toggled_brightness(bool state);
 
@@ -133,8 +141,11 @@ private slots:
 
 private slots:
 	//void do_checkBox_toggled_bilateral_filter(bool state);
+	void do_comboBox_activated_ip(int index);
 
 	void do_checkBox_toggled_hdr(bool state);
+
+	void do_checkBox_toggled_over_exposure(bool state);
 
 	void do_spin_smoothing_changed(int val);
 
@@ -144,13 +155,15 @@ private slots:
 
 	void do_spin_repetition_count_changed(int val);
 
-	void do_spin_min_z_changed(int val);
+	void do_spin_min_z_changed(double val);
 
-	void do_spin_max_z_changed(int val);
+	void do_spin_max_z_changed(double val);
 
 	void do_doubleSpin_gain(double val);
 
 	void do_doubleSpin_confidence(double val);
+
+	void do_doubleSpin_fisher(double val);
 
 	void do_pushButton_capture_one_frame();
 
@@ -178,6 +191,8 @@ private:
 
 	bool capture_show_flag_;
 
+	std::vector<QString> device_mac_list_;
+	std::vector<QString> device_ip_list_;
 
 	//std::mutex	capture_m_mutex_;
 	bool capturing_flag_;
@@ -190,6 +205,7 @@ private:
 	int radio_button_flag_;
 
 	cv::Mat depth_map_;
+	cv::Mat pointcloud_map_;
 	cv::Mat brightness_map_;
 	cv::Mat height_map_;
 	cv::Mat render_image_brightness_;
@@ -234,7 +250,8 @@ private:
 	int generate_brightness_model_;
 	float generate_brightness_exposure_;
 
-	cv::Size2f board_size_;
+	//cv::Size2f board_size_;
+	struct BoardMessage board_message_;
 
 	int calibration_board_flag_;
 	int camera_version_;

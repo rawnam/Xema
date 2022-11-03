@@ -257,7 +257,11 @@ public:
 	}
 
 	void read_dmd_device_id(int& version);
+
+    void set_camera_min_exposure(float min);
 private:
 	float camera_exposure_;
+    float dlp_min_exposure_;
+    float camera_min_exposure_;
 };
 

@@ -26,8 +26,8 @@ bool GuiConfigDataStruct::loadFromSettings(const QString& f)
 	//{
 	QSettings settings(f, QSettings::IniFormat);
 
-	instance_.low_z_value = settings.value("low_z_value", 400.0).toInt();
-	instance_.high_z_value = settings.value("high_z_value", 600.0).toInt();
+	instance_.low_z_value = settings.value("low_z_value", 400.0).toFloat();
+	instance_.high_z_value = settings.value("high_z_value", 600.0).toFloat();
 	instance_.ip = settings.value("ip", "").toString();
 
 	return true;
@@ -207,6 +207,12 @@ bool SettingsFileFunction::loadProcessingSettingsFile(QString path)
 			qDebug() << "confidence is:" << firmware_Obj.value("confidence").toInt();
 			camera_config_.Instance().firwmare_param_.confidence = firmware_Obj.value("confidence").toInt();
 		}
+
+		if (firmware_Obj.contains("fisher_confidence") && firmware_Obj["fisher_confidence"].isDouble())
+		{
+			qDebug() << "fisher_confidence is:" << firmware_Obj.value("fisher_confidence").toInt();
+			camera_config_.Instance().firwmare_param_.fisher_confidence = firmware_Obj.value("fisher_confidence").toInt();
+		}
 	}
 
 	/******************************************************************************************************************************/
@@ -218,12 +224,12 @@ bool SettingsFileFunction::loadProcessingSettingsFile(QString path)
 
 		if (gui_Obj.contains("low_z_value") && gui_Obj["low_z_value"].isDouble())
 		{
-			gui_config_.Instance().low_z_value = gui_Obj.value("low_z_value").toInt();
+			gui_config_.Instance().low_z_value = gui_Obj.value("low_z_value").toDouble();
 		}
 
 		if (gui_Obj.contains("high_z_value") && gui_Obj["high_z_value"].isDouble())
 		{
-			gui_config_.Instance().high_z_value = gui_Obj.value("high_z_value").toInt();
+			gui_config_.Instance().high_z_value = gui_Obj.value("high_z_value").toDouble();
 		}
 
 		if (gui_Obj.contains("ip") && gui_Obj["ip"].isString())
@@ -327,6 +333,7 @@ bool SettingsFileFunction::saveProcessingSettingsFile(QString path)
 	jsonObject_firmware.insert("bilateral_filter_param_d", camera_config_.Instance().firwmare_param_.bilateral_filter_param_d);
 
 	jsonObject_firmware.insert("confidence", camera_config_.Instance().firwmare_param_.confidence);
+	jsonObject_firmware.insert("fisher_confidence", camera_config_.Instance().firwmare_param_.fisher_confidence);
 
 	// 使用QJsonDocument设置该json对象
 	QJsonDocument jsonDoc;
