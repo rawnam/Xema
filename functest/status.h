@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "../firmware/protocol.h"
 //#define DF_SUCCESS 0
 //#define DF_FAILED 1

@@ -30,12 +30,12 @@ std::time_t getTimeStamp(int& msec)
 
 std::tm* gettm(long long timestamp)
 {
-	auto milli = timestamp + (long long)8 * 60 * 60 * 1000; //�˴�ת��Ϊ����������ʱ�䣬���������ʱ����Ҫ�������޸�
+	auto milli = timestamp + (long long)8 * 60 * 60 * 1000; 
 	auto mTime = std::chrono::milliseconds(milli);
 	auto tp = std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds>(mTime);
 	auto tt = std::chrono::system_clock::to_time_t(tp);
 	std::tm* now = std::gmtime(&tt);
-	//printf("%4d��%02d��%02d�� %02d:%02d:%02d\n", now->tm_year + 1900, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
+
 	return now;
 }
 
@@ -48,13 +48,13 @@ std::string GetTimeStamp()
 	auto t = getTimeStamp(msec);
 	//std::cout << "Millisecond timestamp is: " << t << std::endl;
 	auto time_ptr = gettm(t);
-	sprintf(time_str[0], "%02d", time_ptr->tm_year + 1900); //�·�Ҫ��1
-	sprintf(time_str[1], "%02d", time_ptr->tm_mon + 1); //�·�Ҫ��1
-	sprintf(time_str[2], "%02d", time_ptr->tm_mday);//��
-	sprintf(time_str[3], "%02d", time_ptr->tm_hour);//ʱ
-	sprintf(time_str[4], "%02d", time_ptr->tm_min);// ��
-	sprintf(time_str[5], "%02d", time_ptr->tm_sec);//ʱ
-	sprintf(time_str[6], "%02d", msec);// ��
+	sprintf(time_str[0], "%02d", time_ptr->tm_year + 1900);
+	sprintf(time_str[1], "%02d", time_ptr->tm_mon + 1); 
+	sprintf(time_str[2], "%02d", time_ptr->tm_mday);
+	sprintf(time_str[3], "%02d", time_ptr->tm_hour);
+	sprintf(time_str[4], "%02d", time_ptr->tm_min);
+	sprintf(time_str[5], "%02d", time_ptr->tm_sec);
+	sprintf(time_str[6], "%02d", msec);
 	//for (int i = 0; i < 7; i++)
 	//{
 	//	std::cout << "time_str[" << i << "] is: " << time_str[i] << std::endl;
@@ -252,32 +252,28 @@ void  getFiles(std::string path, std::vector<std::string>& files)
 {
 
 #ifdef _WIN32 
-	//�ļ����  
+	
 	intptr_t    hFile = 0;
-	//�ļ���Ϣ������һ���洢�ļ���Ϣ�Ľṹ��  
+	
 	struct _finddata_t fileinfo;
-	string p;//�ַ��������·��
-	if ((hFile = _findfirst(p.assign(path).append("/*.bmp").c_str(), &fileinfo)) != -1)//�����ҳɹ��������
+	string p;
+	if ((hFile = _findfirst(p.assign(path).append("/*.bmp").c_str(), &fileinfo)) != -1)
 	{
 		do
 		{
-			//�����Ŀ¼,����֮�����ļ����ڻ����ļ��У�  
+			
 			if ((fileinfo.attrib & _A_SUBDIR))
 			{
-				//�ļ���������"."&&�ļ���������".."
-					//.��ʾ��ǰĿ¼
-					//..��ʾ��ǰĿ¼�ĸ�Ŀ¼
-					//�ж�ʱ�����߶�Ҫ���ԣ���Ȼ�����޵ݹ�������ȥ�ˣ�
 				//if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
 				//	getFiles(p.assign(path).append("\\").append(fileinfo.name), files);
 			}
-			//�������,�����б�  
+			
 			else
 			{
 				files.push_back(p.assign(path).append("/").append(fileinfo.name));
 			}
 		} while (_findnext(hFile, &fileinfo) == 0);
-		//_findclose������������
+		
 		_findclose(hFile);
 	}
 
@@ -333,7 +329,7 @@ bool SavePointToTxt(cv::Mat deep_map, std::string path, cv::Mat texture_map)
 
 	if (texture_map.empty())
 	{
-		//����ɫ
+		
 		for (int i = 0; i < nc * nr; i++)
 		{
 			if (point_cloud_buffer[i * 3 + 2] > 0.01)
@@ -345,7 +341,7 @@ bool SavePointToTxt(cv::Mat deep_map, std::string path, cv::Mat texture_map)
 	{
 		if (1 == texture_map.channels())
 		{
-			//����ɫ 
+			
 			for (int i = 0; i < nc * nr; i++)
 			{
 				if (point_cloud_buffer[i * 3 + 2] > 0.01)
@@ -355,7 +351,7 @@ bool SavePointToTxt(cv::Mat deep_map, std::string path, cv::Mat texture_map)
 		}
 		else if (3 == texture_map.channels())
 		{
-			//����ɫ 
+			
 			for (int i = 0; i < nc * nr; i++)
 			{
 				if (point_cloud_buffer[i * 3 + 2] > 0.01)
@@ -374,7 +370,7 @@ bool SavePointToTxt(cv::Mat deep_map, std::string path, cv::Mat texture_map)
 	return true;
 }
 
-//��ȡz-map Roiͼ
+
 bool MaskZMap(cv::Mat& z_map, cv::Mat mask)
 {
 	if (!z_map.data)

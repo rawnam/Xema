@@ -1,4 +1,4 @@
-﻿#include "calibration_param_gui.h"
+#include "calibration_param_gui.h"
 
 CalibrationParamGui::CalibrationParamGui(QWidget* parent)
 	: QDialog(parent)

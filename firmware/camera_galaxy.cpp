@@ -153,21 +153,21 @@ bool CameraGalaxy::openCamera()
     {
 
         /***********************************************************************************************/
-        //�� �� �� �� ֵ
+
         status = GXSetFloat(hDevice_, GX_FLOAT_EXPOSURE_TIME, 12000.0);
-        //�� �� �� �� �� �� �� ��
+
         status = GXSetEnum(hDevice_, GX_ENUM_EXPOSURE_AUTO, GX_EXPOSURE_AUTO_OFF);
 
-        //ѡ �� �� �� ͨ �� �� ��
+
         status = GXSetEnum(hDevice_, GX_ENUM_GAIN_SELECTOR, GX_GAIN_SELECTOR_ALL);
-        //�� �� �� �� ֵ
+
         status = GXSetFloat(hDevice_, GX_FLOAT_GAIN, 0.0);
-        //�� �� �� �� ѡ �� Ϊ Line2
+
         status = GXSetEnum(hDevice_, GX_ENUM_LINE_SELECTOR, GX_ENUM_LINE_SELECTOR_LINE2);
-        //�� �� �� �� �� �� Ϊ �� ��
+
         status = GXSetEnum(hDevice_, GX_ENUM_LINE_MODE, GX_ENUM_LINE_MODE_INPUT);
 
-        //�� �� �� �� �� �� Դ Ϊ �� �� ��,�� �� �� �� ��
+
         // emStatus = GXSetEnum(hDevice_, GX_ENUM_LINE_SOURCE, GX_ENUM_LINE_SOURCE_STROBE);
         status = GXSetEnum(hDevice_, GX_ENUM_TRIGGER_ACTIVATION, GX_TRIGGER_ACTIVATION_RISINGEDGE);
         status = GXSetEnum(hDevice_, GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_LINE2);

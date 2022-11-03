@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #ifdef _WIN32 
 #include "../sdk/open_cam3d.h" 
 #include <windows.h>

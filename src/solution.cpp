@@ -1,4 +1,4 @@
-﻿#ifdef _WIN32  
+#ifdef _WIN32  
 #include <windows.h>
 #include <io.h>
 #elif __linux 
@@ -81,7 +81,7 @@ bool Solution::readCameraCalibData(std::string path, struct CameraCalibParam& pa
 
 	float I[40] = { 0 };
 
-	//��data1�ļ��ж���int����
+
 	for (int i = 0; i < 40; i++)
 	{
 
@@ -514,32 +514,29 @@ void Solution::getFiles(std::string path, std::vector<std::string>& files)
 {
 
 #ifdef _WIN32 
-	//�ļ����  
+
 	intptr_t    hFile = 0;
-	//�ļ���Ϣ������һ���洢�ļ���Ϣ�Ľṹ��  
+
 	struct _finddata_t fileinfo;
-	std::string p;//�ַ��������·��
-	if ((hFile = _findfirst(p.assign(path).append("/*.bmp").c_str(), &fileinfo)) != -1)//�����ҳɹ��������
+	std::string p;
+	if ((hFile = _findfirst(p.assign(path).append("/*.bmp").c_str(), &fileinfo)) != -1)
 	{
 		do
 		{
-			//�����Ŀ¼,����֮�����ļ����ڻ����ļ��У�  
+
 			if ((fileinfo.attrib & _A_SUBDIR))
 			{
-				//�ļ���������"."&&�ļ���������".."
-					//.��ʾ��ǰĿ¼
-					//..��ʾ��ǰĿ¼�ĸ�Ŀ¼
-					//�ж�ʱ�����߶�Ҫ���ԣ���Ȼ�����޵ݹ�������ȥ�ˣ�
+
 				//if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
 				//	getFiles(p.assign(path).append("\\").append(fileinfo.name), files);
 			}
-			//�������,�����б�  
+
 			else
 			{
 				files.push_back(p.assign(path).append("/").append(fileinfo.name));
 			}
 		} while (_findnext(hFile, &fileinfo) == 0);
-		//_findclose������������
+
 		_findclose(hFile);
 	}
 

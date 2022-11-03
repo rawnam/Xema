@@ -128,12 +128,12 @@ __global__ void parallel_cuda_merge_hdr_2(const float*  depth_map_0,const float*
 	uint32_t img_height, uint32_t img_width, float* const depth_map,unsigned char * const brightness);
 
 /*******************************************************************************************/
-//����device�ڴ�
+
 bool cuda_malloc_memory();
-//�����궨����
+
 bool cuda_copy_calib_data(float* camera_intrinsic, float* project_intrinsic, float* camera_distortion,
 	float* projector_distortion, float* rotation_matrix, float* translation_matrix);
-//��ά�ؽ�
+
 bool cuda_reconstruct_base_24(std::vector<unsigned char*> patterns,float* point_cloud); 
 
 bool cuda_get_frame_base_24(std::vector<unsigned char*> patterns,float* depth, unsigned char* brightness); 
@@ -160,7 +160,7 @@ bool cuda_get_pointcloud_data(float* pointcloud);
 bool cuda_get_brightness_data(unsigned char* brightness);
 
 
-//�ͷ�����device�ڴ�
+
 bool cuda_free_memory();
 
 /*****************************************************************************************/

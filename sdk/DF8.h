@@ -14,77 +14,77 @@
 extern "C"
 {
 
-	//·µ»ØÂë
-	//0: ³É¹¦; -1:Ê§°Ü; -2:Î´»ñÈ¡Ïà»ú·Ö±æÂÊ·ÖÅäÄÚ´æ
+	//è¿”å›žç 
+	//0: æˆåŠŸ; -1:å¤±è´¥; -2:æœªèŽ·å–ç›¸æœºåˆ†è¾¨çŽ‡åˆ†é…å†…å­˜
 
-	//Ïà»ú±ê¶¨²ÎÊý½á¹¹Ìå
+	//ç›¸æœºæ ‡å®šå‚æ•°ç»“æž„ä½“
 	struct CalibrationParam
 	{
-		//Ïà»úÄÚ²Î
+		//ç›¸æœºå†…å‚
 		float intrinsic[3 * 3];
-		//Ïà»úÍâ²Î
+		//ç›¸æœºå¤–å‚
 		float extrinsic[4 * 4];
-		//Ïà»ú»û±ä
+		//ç›¸æœºç•¸å˜
 		float distortion[1 * 12];//<k1,k2,p1,p2,k3,k4,k5,k6,s1,s2,s3,s4>
 
 	};
 
 
-	//º¯ÊýÃû£º DfConnect
-	//¹¦ÄÜ£º Á¬½ÓÏà»ú
-	//ÊäÈë²ÎÊý£º camera_id£¨Ïà»úid£©
-	//Êä³ö²ÎÊý£º ÎÞ
-	//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾Á¬½Ó³É¹¦;·µ»Ø-1±íÊ¾Á¬½ÓÊ§°Ü.
+	//å‡½æ•°åï¼š DfConnect
+	//åŠŸèƒ½ï¼š è¿žæŽ¥ç›¸æœº
+	//è¾“å…¥å‚æ•°ï¼š camera_idï¼ˆç›¸æœºidï¼‰
+	//è¾“å‡ºå‚æ•°ï¼š æ— 
+	//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè¿žæŽ¥æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºè¿žæŽ¥å¤±è´¥.
 	DF8_SDK_API int DfConnect(const char* camera_id);
 
-	//º¯ÊýÃû£º DfGetCameraResolution
-	//¹¦ÄÜ£º »ñÈ¡Ïà»ú·Ö±æÂÊ
-	//ÊäÈë²ÎÊý£º ÎÞ
-	//Êä³ö²ÎÊý£º width(Í¼Ïñ¿í)¡¢height(Í¼Ïñ¸ß)
-	//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊý³É¹¦;·µ»Ø-1±íÊ¾»ñÈ¡²ÎÊýÊ§°Ü.
+	//å‡½æ•°åï¼š DfGetCameraResolution
+	//åŠŸèƒ½ï¼š èŽ·å–ç›¸æœºåˆ†è¾¨çŽ‡
+	//è¾“å…¥å‚æ•°ï¼š æ— 
+	//è¾“å‡ºå‚æ•°ï¼š width(å›¾åƒå®½)ã€height(å›¾åƒé«˜)
+	//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–å‚æ•°æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºèŽ·å–å‚æ•°å¤±è´¥.
 	DF8_SDK_API int DfGetCameraResolution(int* width, int* height);
 
-	//º¯ÊýÃû£º DfCaptureData
-	//¹¦ÄÜ£º ²É¼¯Ò»Ö¡Êý¾Ý²¢×èÈûÖÁ·µ»Ø×´Ì¬
-	//ÊäÈë²ÎÊý£º exposure_num£¨ÆØ¹â´ÎÊý£©£º¿ÉÉèÖÃÖµÎª1¡¢2¡¢3.
-	//Êä³ö²ÎÊý£º timestamp(Ê±¼ä´Á)
-	//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²É¼¯Êý¾Ý³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êý¾ÝÊ§°Ü.
+	//å‡½æ•°åï¼š DfCaptureData
+	//åŠŸèƒ½ï¼š é‡‡é›†ä¸€å¸§æ•°æ®å¹¶é˜»å¡žè‡³è¿”å›žçŠ¶æ€
+	//è¾“å…¥å‚æ•°ï¼š exposure_numï¼ˆæ›å…‰æ¬¡æ•°ï¼‰ï¼šå¯è®¾ç½®å€¼ä¸º1ã€2ã€3.
+	//è¾“å‡ºå‚æ•°ï¼š timestamp(æ—¶é—´æˆ³)
+	//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–é‡‡é›†æ•°æ®æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 	DF8_SDK_API int DfCaptureData(int exposure_num, char* timestamp);
 
-	//º¯ÊýÃû£º DfGetDepthData
-	//¹¦ÄÜ£º ²É¼¯µãÔÆÊý¾Ý²¢×èÈûÖÁ·µ»Ø½á¹û
-	//ÊäÈë²ÎÊý£ºÎÞ
-	//Êä³ö²ÎÊý£º depth(Éî¶ÈÍ¼)
-	//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡Êý¾Ý³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êý¾ÝÊ§°Ü.
+	//å‡½æ•°åï¼š DfGetDepthData
+	//åŠŸèƒ½ï¼š é‡‡é›†ç‚¹äº‘æ•°æ®å¹¶é˜»å¡žè‡³è¿”å›žç»“æžœ
+	//è¾“å…¥å‚æ•°ï¼šæ— 
+	//è¾“å‡ºå‚æ•°ï¼š depth(æ·±åº¦å›¾)
+	//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–æ•°æ®æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 	DF8_SDK_API int DfGetDepthData(unsigned short* depth);
 
 
-	//º¯ÊýÃû£º DfGetBrightnessData
-	//¹¦ÄÜ£º ²É¼¯µãÔÆÊý¾Ý²¢×èÈûÖÁ·µ»Ø½á¹û
-	//ÊäÈë²ÎÊý£ºÎÞ
-	//Êä³ö²ÎÊý£º brightness(ÁÁ¶ÈÍ¼)
-	//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡Êý¾Ý³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êý¾ÝÊ§°Ü.
+	//å‡½æ•°åï¼š DfGetBrightnessData
+	//åŠŸèƒ½ï¼š é‡‡é›†ç‚¹äº‘æ•°æ®å¹¶é˜»å¡žè‡³è¿”å›žç»“æžœ
+	//è¾“å…¥å‚æ•°ï¼šæ— 
+	//è¾“å‡ºå‚æ•°ï¼š brightness(äº®åº¦å›¾)
+	//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–æ•°æ®æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 	DF8_SDK_API int DfGetBrightnessData(unsigned char* brightness);
 
-	//º¯ÊýÃû£º DfGetPointcloudData
-	//¹¦ÄÜ£º ²É¼¯µãÔÆÊý¾Ý²¢×èÈûÖÁ·µ»Ø½á¹û
-	//ÊäÈë²ÎÊý£ºÎÞ
-	//Êä³ö²ÎÊý£º point_cloud(µãÔÆ)
-	//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡Êý¾Ý³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êý¾ÝÊ§°Ü.
+	//å‡½æ•°åï¼š DfGetPointcloudData
+	//åŠŸèƒ½ï¼š é‡‡é›†ç‚¹äº‘æ•°æ®å¹¶é˜»å¡žè‡³è¿”å›žç»“æžœ
+	//è¾“å…¥å‚æ•°ï¼šæ— 
+	//è¾“å‡ºå‚æ•°ï¼š point_cloud(ç‚¹äº‘)
+	//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–æ•°æ®æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 	DF8_SDK_API int DfGetPointcloudData(float* point_cloud);
 
-	//º¯ÊýÃû£º DfConnect
-	//¹¦ÄÜ£º ¶Ï¿ªÏà»úÁ¬½Ó
-	//ÊäÈë²ÎÊý£º camera_id£¨Ïà»úid£©
-	//Êä³ö²ÎÊý£º ÎÞ
-	//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾¶Ï¿ª³É¹¦;·µ»Ø-1±íÊ¾¶Ï¿ªÊ§°Ü.
+	//å‡½æ•°åï¼š DfConnect
+	//åŠŸèƒ½ï¼š æ–­å¼€ç›¸æœºè¿žæŽ¥
+	//è¾“å…¥å‚æ•°ï¼š camera_idï¼ˆç›¸æœºidï¼‰
+	//è¾“å‡ºå‚æ•°ï¼š æ— 
+	//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºæ–­å¼€æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºæ–­å¼€å¤±è´¥.
 	DF8_SDK_API int DfDisconnect(const char* camera_id);
 
-	//º¯ÊýÃû£º DfGetCalibrationParam
-	//¹¦ÄÜ£º »ñÈ¡Ïà»ú±ê¶¨²ÎÊý
-	//ÊäÈë²ÎÊý£º ÎÞ
-	//Êä³ö²ÎÊý£º calibration_param£¨Ïà»ú±ê¶¨²ÎÊý½á¹¹Ìå£©
-	//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡±ê¶¨²ÎÊý³É¹¦;·µ»Ø-1±íÊ¾»ñÈ¡±ê¶¨²ÎÊýÊ§°Ü.
+	//å‡½æ•°åï¼š DfGetCalibrationParam
+	//åŠŸèƒ½ï¼š èŽ·å–ç›¸æœºæ ‡å®šå‚æ•°
+	//è¾“å…¥å‚æ•°ï¼š æ— 
+	//è¾“å‡ºå‚æ•°ï¼š calibration_paramï¼ˆç›¸æœºæ ‡å®šå‚æ•°ç»“æž„ä½“ï¼‰
+	//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–æ ‡å®šå‚æ•°æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºèŽ·å–æ ‡å®šå‚æ•°å¤±è´¥.
 	DF8_SDK_API int DfGetCalibrationParam(struct CalibrationParam* calibration_param);
 
 

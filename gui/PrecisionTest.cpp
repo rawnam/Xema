@@ -1,4 +1,4 @@
-﻿#include "PrecisionTest.h"
+#include "PrecisionTest.h"
 
 
 PrecisionTest::PrecisionTest()

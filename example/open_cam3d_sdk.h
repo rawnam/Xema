@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #ifdef _WIN32 
 #define DF_SDK_API __declspec(dllexport)

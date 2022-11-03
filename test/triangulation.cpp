@@ -1,4 +1,4 @@
-﻿#include "triangulation.h"
+#include "triangulation.h"
 #include <cmath>
 
 void normalizePoint(

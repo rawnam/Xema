@@ -1,4 +1,4 @@
-﻿#include "settings_file_function.h"
+#include "settings_file_function.h"
 #include "qsettings.h"
 #include "qfile.h"
 #include <QJsonArray>

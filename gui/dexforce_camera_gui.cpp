@@ -36,7 +36,7 @@ void dexforce_camera_gui::closeEvent(QCloseEvent* e)
         tr("Are you sure to quit this application?"),
         QMessageBox::Yes, QMessageBox::No)
         == QMessageBox::Yes) {
-        e->accept();//不会将事件传递给组件的父组件
+        e->accept();//涓嶄細灏嗕簨浠朵紶閫掔粰缁勪欢鐨勭埗缁勪欢
 
         qDebug() << "ok";
 

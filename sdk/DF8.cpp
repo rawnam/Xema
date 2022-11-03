@@ -66,12 +66,12 @@ std::time_t getTimeStamp(int& msec)
 
 std::tm* gettm(long long timestamp)
 {
-	auto milli = timestamp + (long long)8 * 60 * 60 * 1000; //´Ë´¦×ª»¯Îª¶«°ËÇø±±¾©Ê±¼ä£¬Èç¹ûÊÇÆäËüÊ±ÇøĞèÒª°´ĞèÇóĞŞ¸Ä
+	auto milli = timestamp + (long long)8 * 60 * 60 * 1000; //æ­¤å¤„è½¬åŒ–ä¸ºä¸œå…«åŒºåŒ—äº¬æ—¶é—´ï¼Œå¦‚æœæ˜¯å…¶å®ƒæ—¶åŒºéœ€è¦æŒ‰éœ€æ±‚ä¿®æ”¹
 	auto mTime = std::chrono::milliseconds(milli);
 	auto tp = std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds>(mTime);
 	auto tt = std::chrono::system_clock::to_time_t(tp);
 	std::tm* now = std::gmtime(&tt);
-	//printf("%4dÄê%02dÔÂ%02dÈÕ %02d:%02d:%02d\n", now->tm_year + 1900, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
+	//printf("%4då¹´%02dæœˆ%02dæ—¥ %02d:%02d:%02d\n", now->tm_year + 1900, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
 	return now;
 }
 
@@ -84,13 +84,13 @@ std::string get_timestamp()
 	auto t = getTimeStamp(msec);
 	//std::cout << "Millisecond timestamp is: " << t << std::endl;
 	auto time_ptr = gettm(t);
-	sprintf(time_str[0], "%02d", time_ptr->tm_year + 1900); //ÔÂ·İÒª¼Ó1
-	sprintf(time_str[1], "%02d", time_ptr->tm_mon + 1); //ÔÂ·İÒª¼Ó1
-	sprintf(time_str[2], "%02d", time_ptr->tm_mday);//Ìì
-	sprintf(time_str[3], "%02d", time_ptr->tm_hour);//Ê±
-	sprintf(time_str[4], "%02d", time_ptr->tm_min);// ·Ö
-	sprintf(time_str[5], "%02d", time_ptr->tm_sec);//Ê±
-	sprintf(time_str[6], "%02d", msec);// ·Ö
+	sprintf(time_str[0], "%02d", time_ptr->tm_year + 1900); //æœˆä»½è¦åŠ 1
+	sprintf(time_str[1], "%02d", time_ptr->tm_mon + 1); //æœˆä»½è¦åŠ 1
+	sprintf(time_str[2], "%02d", time_ptr->tm_mday);//å¤©
+	sprintf(time_str[3], "%02d", time_ptr->tm_hour);//æ—¶
+	sprintf(time_str[4], "%02d", time_ptr->tm_min);// åˆ†
+	sprintf(time_str[5], "%02d", time_ptr->tm_sec);//æ—¶
+	sprintf(time_str[6], "%02d", msec);// åˆ†
 	//for (int i = 0; i < 7; i++)
 	//{
 	//	std::cout << "time_str[" << i << "] is: " << time_str[i] << std::endl;
@@ -119,7 +119,7 @@ std::string get_timestamp()
 
 
 /***************************************************************************************************************************/
-//Íø¸ñµôÏß
+//ç½‘æ ¼æ‰çº¿
 int on_dropped(void* param)
 {
 	std::cout << "Network dropped!" << std::endl;
@@ -194,11 +194,11 @@ bool depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 /**************************************************************************************************************************/
 
 
-//º¯ÊıÃû£º DfConnect
-//¹¦ÄÜ£º Á¬½ÓÏà»ú
-//ÊäÈë²ÎÊı£º camera_id£¨Ïà»úid£©
-//Êä³ö²ÎÊı£º ÎŞ
-//·µ»ØÖµ£º ÀàĞÍ£¨int£©:·µ»Ø0±íÊ¾Á¬½Ó³É¹¦;·µ»Ø-1±íÊ¾Á¬½ÓÊ§°Ü.
+//å‡½æ•°åï¼š DfConnect
+//åŠŸèƒ½ï¼š è¿æ¥ç›¸æœº
+//è¾“å…¥å‚æ•°ï¼š camera_idï¼ˆç›¸æœºidï¼‰
+//è¾“å‡ºå‚æ•°ï¼š æ— 
+//è¿”å›å€¼ï¼š ç±»å‹ï¼ˆintï¼‰:è¿”å›0è¡¨ç¤ºè¿æ¥æˆåŠŸ;è¿”å›-1è¡¨ç¤ºè¿æ¥å¤±è´¥.
 DF8_SDK_API int DfConnect(const char* camera_id)
 {
 
@@ -238,7 +238,7 @@ DF8_SDK_API int DfConnect(const char* camera_id)
 
 
 
-	//³õÊ¼»¯
+	//åˆå§‹åŒ–
 
 	camera_ip_ = camera_id;
 	connected_flag_ = true;
@@ -259,11 +259,11 @@ DF8_SDK_API int DfConnect(const char* camera_id)
 	return 0;
 }
 
-//º¯ÊıÃû£º DfGetCameraResolution
-//¹¦ÄÜ£º »ñÈ¡Ïà»ú·Ö±æÂÊ
-//ÊäÈë²ÎÊı£º ÎŞ
-//Êä³ö²ÎÊı£º width(Í¼Ïñ¿í)¡¢height(Í¼Ïñ¸ß)
-//·µ»ØÖµ£º ÀàĞÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊı³É¹¦;·µ»Ø-1±íÊ¾»ñÈ¡²ÎÊıÊ§°Ü.
+//å‡½æ•°åï¼š DfGetCameraResolution
+//åŠŸèƒ½ï¼š è·å–ç›¸æœºåˆ†è¾¨ç‡
+//è¾“å…¥å‚æ•°ï¼š æ— 
+//è¾“å‡ºå‚æ•°ï¼š width(å›¾åƒå®½)ã€height(å›¾åƒé«˜)
+//è¿”å›å€¼ï¼š ç±»å‹ï¼ˆintï¼‰:è¿”å›0è¡¨ç¤ºè·å–å‚æ•°æˆåŠŸ;è¿”å›-1è¡¨ç¤ºè·å–å‚æ•°å¤±è´¥.
 DF8_SDK_API int DfGetCameraResolution(int* width, int* height)
 {
 	if (!connected)
@@ -278,11 +278,11 @@ DF8_SDK_API int DfGetCameraResolution(int* width, int* height)
 	return 0;
 }
 
-//º¯ÊıÃû£º DfCaptureData
-//¹¦ÄÜ£º ²É¼¯Ò»Ö¡Êı¾İ²¢×èÈûÖÁ·µ»Ø×´Ì¬
-//ÊäÈë²ÎÊı£º exposure_num£¨ÆØ¹â´ÎÊı£©£º¿ÉÉèÖÃÖµÎª1¡¢2¡¢3.
-//Êä³ö²ÎÊı£º timestamp(Ê±¼ä´Á)
-//·µ»ØÖµ£º ÀàĞÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²É¼¯Êı¾İ³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êı¾İÊ§°Ü.
+//å‡½æ•°åï¼š DfCaptureData
+//åŠŸèƒ½ï¼š é‡‡é›†ä¸€å¸§æ•°æ®å¹¶é˜»å¡è‡³è¿”å›çŠ¶æ€
+//è¾“å…¥å‚æ•°ï¼š exposure_numï¼ˆæ›å…‰æ¬¡æ•°ï¼‰ï¼šå¯è®¾ç½®å€¼ä¸º1ã€2ã€3.
+//è¾“å‡ºå‚æ•°ï¼š timestamp(æ—¶é—´æˆ³)
+//è¿”å›å€¼ï¼š ç±»å‹ï¼ˆintï¼‰:è¿”å›0è¡¨ç¤ºè·å–é‡‡é›†æ•°æ®æˆåŠŸ;è¿”å›-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 DF8_SDK_API int DfCaptureData(int exposure_num, char* timestamp)
 {
 
@@ -322,11 +322,11 @@ DF8_SDK_API int DfCaptureData(int exposure_num, char* timestamp)
 	return 0;
 }
 
-//º¯ÊıÃû£º DfGetDepthData
-//¹¦ÄÜ£º ²É¼¯µãÔÆÊı¾İ²¢×èÈûÖÁ·µ»Ø½á¹û
-//ÊäÈë²ÎÊı£ºÎŞ
-//Êä³ö²ÎÊı£º depth(Éî¶ÈÍ¼)
-//·µ»ØÖµ£º ÀàĞÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡Êı¾İ³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êı¾İÊ§°Ü.
+//å‡½æ•°åï¼š DfGetDepthData
+//åŠŸèƒ½ï¼š é‡‡é›†ç‚¹äº‘æ•°æ®å¹¶é˜»å¡è‡³è¿”å›ç»“æœ
+//è¾“å…¥å‚æ•°ï¼šæ— 
+//è¾“å‡ºå‚æ•°ï¼š depth(æ·±åº¦å›¾)
+//è¿”å›å€¼ï¼š ç±»å‹ï¼ˆintï¼‰:è¿”å›0è¡¨ç¤ºè·å–æ•°æ®æˆåŠŸ;è¿”å›-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 DF8_SDK_API int DfGetDepthData(unsigned short* depth)
 {
 	if (!connected_flag_)
@@ -369,11 +369,11 @@ DF8_SDK_API int DfGetDepthData(unsigned short* depth)
 }
 
 
-//º¯ÊıÃû£º DfGetBrightnessData
-//¹¦ÄÜ£º ²É¼¯µãÔÆÊı¾İ²¢×èÈûÖÁ·µ»Ø½á¹û
-//ÊäÈë²ÎÊı£ºÎŞ
-//Êä³ö²ÎÊı£º brightness(ÁÁ¶ÈÍ¼)
-//·µ»ØÖµ£º ÀàĞÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡Êı¾İ³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êı¾İÊ§°Ü.
+//å‡½æ•°åï¼š DfGetBrightnessData
+//åŠŸèƒ½ï¼š é‡‡é›†ç‚¹äº‘æ•°æ®å¹¶é˜»å¡è‡³è¿”å›ç»“æœ
+//è¾“å…¥å‚æ•°ï¼šæ— 
+//è¾“å‡ºå‚æ•°ï¼š brightness(äº®åº¦å›¾)
+//è¿”å›å€¼ï¼š ç±»å‹ï¼ˆintï¼‰:è¿”å›0è¡¨ç¤ºè·å–æ•°æ®æˆåŠŸ;è¿”å›-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 DF8_SDK_API int DfGetBrightnessData(unsigned char* brightness)
 {
 	if (!connected_flag_)
@@ -393,11 +393,11 @@ DF8_SDK_API int DfGetBrightnessData(unsigned char* brightness)
 	return 0;
 }
 
-//º¯ÊıÃû£º DfGetPointcloudData
-//¹¦ÄÜ£º ²É¼¯µãÔÆÊı¾İ²¢×èÈûÖÁ·µ»Ø½á¹û
-//ÊäÈë²ÎÊı£ºÎŞ
-//Êä³ö²ÎÊı£º point_cloud(µãÔÆ)
-//·µ»ØÖµ£º ÀàĞÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡Êı¾İ³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êı¾İÊ§°Ü.
+//å‡½æ•°åï¼š DfGetPointcloudData
+//åŠŸèƒ½ï¼š é‡‡é›†ç‚¹äº‘æ•°æ®å¹¶é˜»å¡è‡³è¿”å›ç»“æœ
+//è¾“å…¥å‚æ•°ï¼šæ— 
+//è¾“å‡ºå‚æ•°ï¼š point_cloud(ç‚¹äº‘)
+//è¿”å›å€¼ï¼š ç±»å‹ï¼ˆintï¼‰:è¿”å›0è¡¨ç¤ºè·å–æ•°æ®æˆåŠŸ;è¿”å›-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 DF8_SDK_API int DfGetPointcloudData(float* point_cloud)
 {
 	if (!connected_flag_)
@@ -414,11 +414,11 @@ DF8_SDK_API int DfGetPointcloudData(float* point_cloud)
 	return 0;
 }
 
-//º¯ÊıÃû£º DfConnect
-//¹¦ÄÜ£º ¶Ï¿ªÏà»úÁ¬½Ó
-//ÊäÈë²ÎÊı£º camera_id£¨Ïà»úid£©
-//Êä³ö²ÎÊı£º ÎŞ
-//·µ»ØÖµ£º ÀàĞÍ£¨int£©:·µ»Ø0±íÊ¾¶Ï¿ª³É¹¦;·µ»Ø-1±íÊ¾¶Ï¿ªÊ§°Ü.
+//å‡½æ•°åï¼š DfConnect
+//åŠŸèƒ½ï¼š æ–­å¼€ç›¸æœºè¿æ¥
+//è¾“å…¥å‚æ•°ï¼š camera_idï¼ˆç›¸æœºidï¼‰
+//è¾“å‡ºå‚æ•°ï¼š æ— 
+//è¿”å›å€¼ï¼š ç±»å‹ï¼ˆintï¼‰:è¿”å›0è¡¨ç¤ºæ–­å¼€æˆåŠŸ;è¿”å›-1è¡¨ç¤ºæ–­å¼€å¤±è´¥.
 DF8_SDK_API int DfDisconnect(const char* camera_id)
 {
 	if (!connected_flag_)
@@ -437,11 +437,11 @@ DF8_SDK_API int DfDisconnect(const char* camera_id)
 	return 0;
 }
 
-//º¯ÊıÃû£º DfGetCalibrationParam
-//¹¦ÄÜ£º »ñÈ¡Ïà»ú±ê¶¨²ÎÊı
-//ÊäÈë²ÎÊı£º ÎŞ
-//Êä³ö²ÎÊı£º calibration_param£¨Ïà»ú±ê¶¨²ÎÊı½á¹¹Ìå£©
-//·µ»ØÖµ£º ÀàĞÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡±ê¶¨²ÎÊı³É¹¦;·µ»Ø-1±íÊ¾»ñÈ¡±ê¶¨²ÎÊıÊ§°Ü.
+//å‡½æ•°åï¼š DfGetCalibrationParam
+//åŠŸèƒ½ï¼š è·å–ç›¸æœºæ ‡å®šå‚æ•°
+//è¾“å…¥å‚æ•°ï¼š æ— 
+//è¾“å‡ºå‚æ•°ï¼š calibration_paramï¼ˆç›¸æœºæ ‡å®šå‚æ•°ç»“æ„ä½“ï¼‰
+//è¿”å›å€¼ï¼š ç±»å‹ï¼ˆintï¼‰:è¿”å›0è¡¨ç¤ºè·å–æ ‡å®šå‚æ•°æˆåŠŸ;è¿”å›-1è¡¨ç¤ºè·å–æ ‡å®šå‚æ•°å¤±è´¥.
 DF8_SDK_API int DfGetCalibrationParam(struct CalibrationParam* calibration_param)
 {
 	if (!connected_flag_)

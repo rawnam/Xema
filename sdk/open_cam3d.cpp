@@ -1,4 +1,4 @@
-﻿#include "open_cam3d.h"
+#include "open_cam3d.h"
 #include "socket_tcp.h"
 #include <assert.h>
 #include <iostream>

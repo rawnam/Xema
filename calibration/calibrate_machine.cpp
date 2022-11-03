@@ -93,7 +93,7 @@ bool CalibrateMachine::cameraPointsToDlp(std::vector<cv::Point2f> camera_points,
 		cv::Point d_p;
 		d_p.x = pos.x + 0.5;
 		d_p.y = pos.y + 0.5;
-		//¿ÉÒÔ²åÖµÓÅ»¯
+		//å¯ä»¥æ’å€¼ä¼˜åŒ–
 
 
 		//double hor_val = Bilinear_interpolation(pos.x, pos.y, unwrap_map_hor);
@@ -228,8 +228,8 @@ double CalibrateMachine::getRebuildValueB()
 
 bool CalibrateMachine::readCalibXml()
 {
-	//´ò¿ª»ò´´½¨ÎÄ¼ş
-	QFile file("G:/Code/StructureLight/Images/20201127/Calibrate/calib.xml"); //Ïà¶ÔÂ·¾¶¡¢¾ø¶ÔÂ·¾¶¡¢×ÊÔ´Â·¾¶¶¼ĞĞ
+	//æ‰“å¼€æˆ–åˆ›å»ºæ–‡ä»¶
+	QFile file("G:/Code/StructureLight/Images/20201127/Calibrate/calib.xml"); //ç›¸å¯¹è·¯å¾„ã€ç»å¯¹è·¯å¾„ã€èµ„æºè·¯å¾„éƒ½è¡Œ
 	if (!file.open(QFile::ReadOnly))
 	{
 		qDebug() << "Read Calib Xml Error";
@@ -244,20 +244,20 @@ bool CalibrateMachine::readCalibXml()
 	}
 	file.close();
 
-	QDomElement root = doc.documentElement(); //·µ»Ø¸ù½Úµã
+	QDomElement root = doc.documentElement(); //è¿”å›æ ¹èŠ‚ç‚¹
 	qDebug() << root.nodeName();
-	QDomNode node = root.firstChild(); //»ñµÃµÚÒ»¸ö×Ó½Úµã
-	while (!node.isNull())  //Èç¹û½Úµã²»¿Õ
+	QDomNode node = root.firstChild(); //è·å¾—ç¬¬ä¸€ä¸ªå­èŠ‚ç‚¹
+	while (!node.isNull())  //å¦‚æœèŠ‚ç‚¹ä¸ç©º
 	{
-		if (node.isElement()) //Èç¹û½ÚµãÊÇÔªËØ
+		if (node.isElement()) //å¦‚æœèŠ‚ç‚¹æ˜¯å…ƒç´ 
 		{
-			QDomElement e = node.toElement(); //×ª»»ÎªÔªËØ£¬×¢ÒâÔªËØºÍ½ÚµãÊÇÁ½¸öÊı¾İ½á¹¹£¬ÆäÊµ²î²»¶à
-			qDebug() << e.tagName() << " " << e.attribute("id") << " " << e.attribute("time"); //´òÓ¡¼üÖµ¶Ô£¬tagNameºÍnodeNameÊÇÒ»¸ö¶«Î÷
+			QDomElement e = node.toElement(); //è½¬æ¢ä¸ºå…ƒç´ ï¼Œæ³¨æ„å…ƒç´ å’ŒèŠ‚ç‚¹æ˜¯ä¸¤ä¸ªæ•°æ®ç»“æ„ï¼Œå…¶å®å·®ä¸å¤š
+			qDebug() << e.tagName() << " " << e.attribute("id") << " " << e.attribute("time"); //æ‰“å°é”®å€¼å¯¹ï¼ŒtagNameå’ŒnodeNameæ˜¯ä¸€ä¸ªä¸œè¥¿
 
 
 
 			QDomNodeList list = e.childNodes();
-			for (int i = 0; i<list.count(); i++) //±éÀú×ÓÔªËØ£¬countºÍsize¶¼¿ÉÒÔÓÃ,¿ÉÓÃÓÚ±êÇ©Êı¼ÆÊı
+			for (int i = 0; i<list.count(); i++) //éå†å­å…ƒç´ ï¼Œcountå’Œsizeéƒ½å¯ä»¥ç”¨,å¯ç”¨äºæ ‡ç­¾æ•°è®¡æ•°
 			{
 				QDomNode n = list.at(i);
 				if (node.isElement())
@@ -296,7 +296,7 @@ bool CalibrateMachine::readCalibXml()
 				}
 			}
 		}
-		node = node.nextSibling(); //ÏÂÒ»¸öĞÖµÜ½Úµã,nextSiblingElement()ÊÇÏÂÒ»¸öĞÖµÜÔªËØ£¬¶¼²î²»¶à
+		node = node.nextSibling(); //ä¸‹ä¸€ä¸ªå…„å¼ŸèŠ‚ç‚¹,nextSiblingElement()æ˜¯ä¸‹ä¸€ä¸ªå…„å¼Ÿå…ƒç´ ï¼Œéƒ½å·®ä¸å¤š
 	}
 
 
@@ -346,7 +346,7 @@ bool CalibrateMachine::readCalibXml()
 	return true;
 }
 
-//Ğ´xml
+//å†™xml
 bool CalibrateMachine::writeCalibXml(cv::Mat camera_intrinsic, cv::Mat camera_distortion, cv::Mat projector_instrinsic, cv::Mat projector_distortion, cv::Mat s_r, cv::Mat s_t)
 {
 	if (!camera_intrinsic.data || !camera_distortion.data || !projector_instrinsic.data || !projector_distortion.data || !s_r.data || !s_t.data)
@@ -355,7 +355,7 @@ bool CalibrateMachine::writeCalibXml(cv::Mat camera_intrinsic, cv::Mat camera_di
 	}
 
 	/*************************************************************************************************************************/
-	//±£´ætxt
+	//ä¿å­˜txt
 	QFile file_txt("../param.txt");
 
 	file_txt.open(QIODevice::WriteOnly);
@@ -433,20 +433,20 @@ bool CalibrateMachine::writeCalibXml(cv::Mat camera_intrinsic, cv::Mat camera_di
 
 
 
-	//Ôö¼ÓÒ»¸öÒ»¼¶×Ó½ÚµãÒÔ¼°ÔªËØ
+	//å¢åŠ ä¸€ä¸ªä¸€çº§å­èŠ‚ç‚¹ä»¥åŠå…ƒç´ 
 	QDomDocument doc;
-	QFile file("../calib.xml"); //Ïà¶ÔÂ·¾¶¡¢¾ø¶ÔÂ·¾¶¡¢×ÊÔ´Â·¾¶¶¼¿ÉÒÔ
+	QFile file("../calib.xml"); //ç›¸å¯¹è·¯å¾„ã€ç»å¯¹è·¯å¾„ã€èµ„æºè·¯å¾„éƒ½å¯ä»¥
 
 	//if (!file.exists())
 	//{
-		if (!file.open(QFile::WriteOnly | QFile::Truncate)) //¿ÉÒÔÓÃQIODevice£¬Truncate±íÊ¾Çå¿ÕÔ­À´µÄÄÚÈİ
+		if (!file.open(QFile::WriteOnly | QFile::Truncate)) //å¯ä»¥ç”¨QIODeviceï¼ŒTruncateè¡¨ç¤ºæ¸…ç©ºåŸæ¥çš„å†…å®¹
 			return false;
 
-		//Ğ´ÈëxmlÍ·²¿
-		QDomProcessingInstruction instruction; //Ìí¼Ó´¦ÀíÃüÁî
+		//å†™å…¥xmlå¤´éƒ¨
+		QDomProcessingInstruction instruction; //æ·»åŠ å¤„ç†å‘½ä»¤
 		instruction = doc.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"");
 		doc.appendChild(instruction);
-		//Ìí¼Ó¸ù½Úµã
+		//æ·»åŠ æ ¹èŠ‚ç‚¹
 		QDomElement root = doc.createElement("CalibData");
 		doc.appendChild(root);
 
@@ -492,37 +492,37 @@ bool CalibrateMachine::writeCalibXml(cv::Mat camera_intrinsic, cv::Mat camera_di
 	root = doc.documentElement();
 
 	QDomElement book = doc.createElement("SystemCalib");
-	book.setAttribute("id", 1); //·½Ê½Ò»£º´´½¨ÊôĞÔ  ÆäÖĞ¼üÖµ¶ÔµÄÖµ¿ÉÒÔÊÇ¸÷ÖÖÀàĞÍ
+	book.setAttribute("id", 1); //æ–¹å¼ä¸€ï¼šåˆ›å»ºå±æ€§  å…¶ä¸­é”®å€¼å¯¹çš„å€¼å¯ä»¥æ˜¯å„ç§ç±»å‹
 
-	QDomElement title = doc.createElement("camera_intrinsic"); //´´½¨×ÓÔªËØ
-	QDomText text; //ÉèÖÃÀ¨ºÅ±êÇ©ÖĞ¼äµÄÖµ
+	QDomElement title = doc.createElement("camera_intrinsic"); //åˆ›å»ºå­å…ƒç´ 
+	QDomText text; //è®¾ç½®æ‹¬å·æ ‡ç­¾ä¸­é—´çš„å€¼
 	text = doc.createTextNode(camera_intrinsic_str);
 	book.appendChild(title);
 	title.appendChild(text);
 	//root.appendChild(title);
 
-	title = doc.createElement("camera_distortion"); //´´½¨×ÓÔªËØ
+	title = doc.createElement("camera_distortion"); //åˆ›å»ºå­å…ƒç´ 
 	text = doc.createTextNode(camera_distortion_str);
 	book.appendChild(title);
 	title.appendChild(text);
 	//root.appendChild(title);
 
-	title = doc.createElement("projector_instrinsic"); //´´½¨×ÓÔªËØ
+	title = doc.createElement("projector_instrinsic"); //åˆ›å»ºå­å…ƒç´ 
 	text = doc.createTextNode(projector_instrinsic_str);
 	title.appendChild(text);
 	book.appendChild(title);
 
-	title = doc.createElement("projector_distortion"); //´´½¨×ÓÔªËØ
+	title = doc.createElement("projector_distortion"); //åˆ›å»ºå­å…ƒç´ 
 	text = doc.createTextNode(projector_distortion_str);
 	title.appendChild(text);
 	book.appendChild(title);
 
-	title = doc.createElement("rotation_matrix"); //´´½¨×ÓÔªËØ
+	title = doc.createElement("rotation_matrix"); //åˆ›å»ºå­å…ƒç´ 
 	text = doc.createTextNode(rotation_matrix_str);
 	title.appendChild(text);
 	book.appendChild(title);
 
-	title = doc.createElement("translation_matrix"); //´´½¨×ÓÔªËØ
+	title = doc.createElement("translation_matrix"); //åˆ›å»ºå­å…ƒç´ 
 	text = doc.createTextNode(translation_matrix_str);
 	title.appendChild(text);
 	book.appendChild(title);
@@ -532,11 +532,11 @@ bool CalibrateMachine::writeCalibXml(cv::Mat camera_intrinsic, cv::Mat camera_di
 	/*******************************************************************************************************************************/
 	 
 
-	//Êä³öµ½ÎÄ¼ş
-	if (!file.open(QFile::WriteOnly | QFile::Truncate)) //ÏÈ¶Á½øÀ´£¬ÔÙÖØĞ´£¬Èç¹û²»ÓÃtruncate¾ÍÊÇÔÚºóÃæ×·¼ÓÄÚÈİ£¬¾ÍÎŞĞ§ÁË
+	//è¾“å‡ºåˆ°æ–‡ä»¶
+	if (!file.open(QFile::WriteOnly | QFile::Truncate)) //å…ˆè¯»è¿›æ¥ï¼Œå†é‡å†™ï¼Œå¦‚æœä¸ç”¨truncateå°±æ˜¯åœ¨åé¢è¿½åŠ å†…å®¹ï¼Œå°±æ— æ•ˆäº†
 		return false;
 	QTextStream out_stream(&file);
-	doc.save(out_stream, 4); //Ëõ½ø4¸ñ
+	doc.save(out_stream, 4); //ç¼©è¿›4æ ¼
 	file.close();
 
 	return true;
@@ -905,7 +905,7 @@ bool CalibrateMachine::rebuildBaseSingleSideData(cv::Mat unwrap_map_y, int group
 	/*********************************************************************************/
 	 
 
-	//»û±äĞ£Õı
+	//ç•¸å˜æ ¡æ­£
 	//std::vector<cv::Point2f> correct_camera_points;
 	//std::vector<cv::Point2f> correct_dlp_points;
 
@@ -1118,7 +1118,7 @@ bool CalibrateMachine::rebuildData(cv::Mat unwrap_map_x, cv::Mat unwrap_map_y, i
 	//dlp_points = select_dlp_points;
 
 
-	//»û±äĞ£Õı
+	//ç•¸å˜æ ¡æ­£
 	std::vector<cv::Point2f> correct_camera_points;
 	std::vector<cv::Point2f> correct_dlp_points;
 
@@ -1287,7 +1287,7 @@ double CalibrateMachine::calibrateStereo(std::vector<std::vector<cv::Point2f>> c
 
 	/********************************************************************************************************************/
 
-	//±ê¶¨
+	//æ ‡å®š
 	bool mustInitUndistort = true;
 	int flag = 0;
 
@@ -1435,17 +1435,17 @@ double CalibrateMachine::calibrateProjector(std::vector<std::vector<cv::Point2f>
 	cv::Mat distCoeffs;
 	std::vector<cv::Mat> rvecsMat, tvecsMat;
 
-	/* ÔËĞĞ±ê¶¨º¯Êı */
+	/* è¿è¡Œæ ‡å®šå‡½æ•° */
 	double err_first = cv::calibrateCamera(world_feature_points, dlp_points_list, board_size_, cameraMatrix, distCoeffs, rvecsMat, tvecsMat, cv::CALIB_FIX_K3);
 
 	qDebug() << "First calibrate error: " << err_first;
 
 
-	double total_err = 0.0;            // ËùÓĞÍ¼ÏñµÄÆ½¾ùÎó²îµÄ×ÜºÍ 
-	double err = 0.0;                  // Ã¿·ùÍ¼ÏñµÄÆ½¾ùÎó²î
+	double total_err = 0.0;            // æ‰€æœ‰å›¾åƒçš„å¹³å‡è¯¯å·®çš„æ€»å’Œ 
+	double err = 0.0;                  // æ¯å¹…å›¾åƒçš„å¹³å‡è¯¯å·®
 	double totalErr = 0.0;
 	double totalPoints = 0.0;
-	std::vector<cv::Point2f> image_points_pro;     // ±£´æÖØĞÂ¼ÆËãµÃµ½µÄÍ¶Ó°µã
+	std::vector<cv::Point2f> image_points_pro;     // ä¿å­˜é‡æ–°è®¡ç®—å¾—åˆ°çš„æŠ•å½±ç‚¹
 
 	std::vector<std::vector<cv::Point2f>> select_camera_points;
 	std::vector<std::vector<cv::Point3f>> select_world_points;
@@ -1463,7 +1463,7 @@ double CalibrateMachine::calibrateProjector(std::vector<std::vector<cv::Point2f>
 		for (int i = 0; i < dlp_points_list.size(); i++)
 		{
 
-			projectPoints(world_feature_points[i], rvecsMat[i], tvecsMat[i], cameraMatrix, distCoeffs, image_points_pro);   //Í¨¹ıµÃµ½µÄÉãÏñ»úÄÚÍâ²ÎÊı£¬¶Ô½ÇµãµÄ¿Õ¼äÈıÎ¬×ø±ê½øĞĞÖØĞÂÍ¶Ó°¼ÆËã
+			projectPoints(world_feature_points[i], rvecsMat[i], tvecsMat[i], cameraMatrix, distCoeffs, image_points_pro);   //é€šè¿‡å¾—åˆ°çš„æ‘„åƒæœºå†…å¤–å‚æ•°ï¼Œå¯¹è§’ç‚¹çš„ç©ºé—´ä¸‰ç»´åæ ‡è¿›è¡Œé‡æ–°æŠ•å½±è®¡ç®—
 			err = cv::norm(cv::Mat(dlp_points_list[i]), cv::Mat(image_points_pro), cv::NORM_L2);
 
 
@@ -1570,17 +1570,17 @@ double CalibrateMachine::calibrateCamera(std::vector<std::vector<cv::Point2f>> c
 	cv::Mat distCoeffs;
 	std::vector<cv::Mat> rvecsMat, tvecsMat;
 
-	/* ÔËĞĞ±ê¶¨º¯Êı */
+	/* è¿è¡Œæ ‡å®šå‡½æ•° */
 	double err_first = cv::calibrateCamera(world_feature_points, camera_points_list, board_size_, cameraMatrix, distCoeffs, rvecsMat, tvecsMat, cv::CALIB_FIX_K3);
 
 	qDebug() << "First calibrate error: " << err_first;
 
 
-	double total_err = 0.0;            // ËùÓĞÍ¼ÏñµÄÆ½¾ùÎó²îµÄ×ÜºÍ 
-	double err = 0.0;                  // Ã¿·ùÍ¼ÏñµÄÆ½¾ùÎó²î
+	double total_err = 0.0;            // æ‰€æœ‰å›¾åƒçš„å¹³å‡è¯¯å·®çš„æ€»å’Œ 
+	double err = 0.0;                  // æ¯å¹…å›¾åƒçš„å¹³å‡è¯¯å·®
 	double totalErr = 0.0;
 	double totalPoints = 0.0;
-	std::vector<cv::Point2f> image_points_pro;     // ±£´æÖØĞÂ¼ÆËãµÃµ½µÄÍ¶Ó°µã
+	std::vector<cv::Point2f> image_points_pro;     // ä¿å­˜é‡æ–°è®¡ç®—å¾—åˆ°çš„æŠ•å½±ç‚¹
 
 	std::vector<std::vector<cv::Point2f>> select_camera_points;
 	std::vector<std::vector<cv::Point3f>> select_world_points;
@@ -1598,7 +1598,7 @@ double CalibrateMachine::calibrateCamera(std::vector<std::vector<cv::Point2f>> c
 		for (int i = 0; i < camera_points_list.size(); i++)
 		{
 
-			projectPoints(world_feature_points[i], rvecsMat[i], tvecsMat[i], cameraMatrix, distCoeffs, image_points_pro);   //Í¨¹ıµÃµ½µÄÉãÏñ»úÄÚÍâ²ÎÊı£¬¶Ô½ÇµãµÄ¿Õ¼äÈıÎ¬×ø±ê½øĞĞÖØĞÂÍ¶Ó°¼ÆËã
+			projectPoints(world_feature_points[i], rvecsMat[i], tvecsMat[i], cameraMatrix, distCoeffs, image_points_pro);   //é€šè¿‡å¾—åˆ°çš„æ‘„åƒæœºå†…å¤–å‚æ•°ï¼Œå¯¹è§’ç‚¹çš„ç©ºé—´ä¸‰ç»´åæ ‡è¿›è¡Œé‡æ–°æŠ•å½±è®¡ç®—
 			err = cv::norm(cv::Mat(camera_points_list[i]), cv::Mat(image_points_pro), cv::NORM_L2);
 
 

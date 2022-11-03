@@ -1,4 +1,4 @@
-﻿#include "reconstruct.h"
+#include "reconstruct.h"
 #include <iostream> 
 #include <fstream>
 #include "../src/triangulation.h"

@@ -1,4 +1,4 @@
-﻿#include "../firmware/version.h"
+#include "../firmware/version.h"
 #include "case.h"
 #include "help.h"
 
