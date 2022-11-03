@@ -32,8 +32,8 @@ def Loading_Params_From_Txt(params_file):
 def depth2cloud_undistort(depth, color, camera_mtx, camera_dist):
     pointcloud = []
 
-    for iy in range(1200):
-        for ix in range(1920):
+    for iy in range(depth.shape[0]):
+        for ix in range(depth.shape[1]):
             # 先对图片去畸变
             ixiy = cv2.undistortPoints(np.float32(np.array([ix, iy])), camera_mtx, camera_dist)
             z = depth[iy, ix]
