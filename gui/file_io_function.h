@@ -29,52 +29,53 @@ public:
 
 	/****************************************************************************************************************/
 
-	//±£´æÉî¶ÈÍ¼µ½txtÎÄ¼ş
+	//ä¿å­˜æ·±åº¦å›¾åˆ°txtæ–‡ä»¶
 	bool saveDepthMapToTxt(cv::Mat points_cloud_mat, QString path);
-	//±£´æµãÔÆµ½txtÎÄ¼ş
+	//ä¿å­˜ç‚¹äº‘åˆ°txtæ–‡ä»¶
 	bool SavePointToTxt(cv::Mat deep_mat, QString path,cv::Mat texture_map = cv::Mat());
-	//±£´æAsciiµãÔÆµ½plyÎÄ¼ş
+	//ä¿å­˜Asciiç‚¹äº‘åˆ°plyæ–‡ä»¶
 	bool SaveAsciiPointsToPly(cv::Mat deep_mat, QString path, cv::Mat texture_map = cv::Mat());
-	//±£´æBinµãÔÆµ½plyÎÄ¼ş
+	//ä¿å­˜Binç‚¹äº‘åˆ°plyæ–‡ä»¶
 	bool SaveBinPointsToPly(cv::Mat deep_mat, QString path, cv::Mat texture_map = cv::Mat());
-	//¶Á±ê¶¨ÎÄ¼ş 
+	//è¯»æ ‡å®šæ–‡ä»¶ 
 	bool readCalibXml(cv::Mat& camera_intrinsic, cv::Mat& project_intrinsic, cv::Mat& camera_distortion,
 		cv::Mat& projector_distortion, cv::Mat& rotation_matrix, cv::Mat& translation_matrix, cv::Mat &M_1, cv::Mat &M_2);
 
 	bool readCalibXml(QString path, cv::Mat& camera_intrinsic,cv::Mat& project_intrinsic,cv::Mat& camera_distortion,
 	cv::Mat& projector_distortion,cv::Mat& rotation_matrix,cv::Mat& translation_matrix);
-	//±£´æ±ê¶¨ÎÄ¼ş 
+	//ä¿å­˜æ ‡å®šæ–‡ä»¶ 
 	bool writeCalibXml(QString path, cv::Mat camera_intrinsic, cv::Mat camera_distortion, cv::Mat projector_instrinsic,
 		cv::Mat projector_distortion, cv::Mat s_r, cv::Mat s_t);
-	//»ñÈ¡ÎÄ¼ş¼ĞÊıÄ¿
+	//è·å–æ–‡ä»¶å¤¹æ•°ç›®
 	bool getFoldersNum(QString path, int &num);
-	//»ñÈ¡ÎÄ¼şÊıÄ¿
+	//è·å–æ–‡ä»¶æ•°ç›®
 	bool getFileNum(QString path, QString suffix, int &num);
-	//xyz-mapÍ¼×ªz-mapÍ¼
+	//xyz-mapå›¾è½¬z-mapå›¾
 	bool mapToColor(cv::Mat deep_map, cv::Mat &color_map, cv::Mat &grey_map,int low_z, int high_z);
 
 	int percentile(cv::Mat& image, int percent);
 
-	//Éî¶ÈÍ¼×ªz-mapÍ¼
-	bool depthToColor(cv::Mat depth_map, cv::Mat& color_map, cv::Mat& grey_map, float low_z, float high_z);
+	bool depthToDepthColor(cv::Mat depth_map, cv::Mat& color_map, cv::Mat& grey_map, float low_z, float high_z);
+
+	bool depthToHeightColor(cv::Mat depth_map, cv::Mat& color_map, cv::Mat& grey_map, float low_z, float high_z);
 
 	bool cutDeepMapBaseZ(cv::Mat &deep_map,cv::Mat &mask, int low_z, int high_z);
 
-	//½ØÈ¡z-map RoiÍ¼
+	//æˆªå–z-map Roiå›¾
 	bool maskZMap(cv::Mat &z_map, cv::Mat mask);
-	//±£´æ¶à×éÆØ¹âÍ¼°¸µ½ÎÄ¼ş¼Ğ
+	//ä¿å­˜å¤šç»„æ›å…‰å›¾æ¡ˆåˆ°æ–‡ä»¶å¤¹
 	bool saveMoreExposurePatternsToFolder(QString dir_path, std::vector<std::vector<cv::Mat>> patters_list);
-	//±£´æÍ¼°¸ÖÁÎÄ¼ş¼Ğ
+	//ä¿å­˜å›¾æ¡ˆè‡³æ–‡ä»¶å¤¹
 	bool savePatterns(QString dir_path, std::vector<cv::Mat> patters);
-	//±£´æÍ¼°¸ÖÁÎÄ¼ş¼Ğ£¬ÎÄ¼şÃû×Ô¶¨Òå
+	//ä¿å­˜å›¾æ¡ˆè‡³æ–‡ä»¶å¤¹ï¼Œæ–‡ä»¶åè‡ªå®šä¹‰
 	bool savePatternsToFolder(QString dir_path, std::vector<cv::Mat> patters);
-	//±£´æµãÔÆºÍz-mapÍ¼
+	//ä¿å­˜ç‚¹äº‘å’Œz-mapå›¾
 	bool savePointsToFolder(QString dir_path,cv::Mat deep_map,cv::Mat mask, cv::Mat texture_map= cv::Mat());
-	//ÏàÎ»Í¼×ª»Ò¶ÈÍ¼ÓÃÓÚÏÔÊ¾
+	//ç›¸ä½å›¾è½¬ç°åº¦å›¾ç”¨äºæ˜¾ç¤º
 	bool mapToGrey(cv::Mat phase_map, int period_num, cv::Mat &show_map);
-	//Õı·´Í¶Ó°Í¼°¸ÅÅĞò
+	//æ­£åæŠ•å½±å›¾æ¡ˆæ’åº
 	bool sortPatternsBaseInvertProject(std::vector<cv::Mat> invert_patterns,std::vector<cv::Mat> &sort_patterns);
-	//ÈÚºÏÎÆÀíÍ¼
+	//èåˆçº¹ç†å›¾
 	bool mergeTextureMap(std::vector<cv::Mat> patterns, cv::Mat &texture_map);
 private:
 

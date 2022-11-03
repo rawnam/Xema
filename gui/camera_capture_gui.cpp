@@ -354,7 +354,7 @@ bool CameraCaptureGui::renderHeightImage(cv::Mat height)
 
 	FileIoFunction io_machine;
 
-	io_machine.depthToColor(height, render_image_color_height_, render_image_gray_depth_, low_z, high_z);
+	io_machine.depthToHeightColor(height, render_image_color_height_, render_image_gray_depth_, low_z, high_z);
 
 	return true;
 
@@ -372,7 +372,7 @@ bool CameraCaptureGui::renderDepthImage(cv::Mat depth)
 
 	int max_depth = io_machine.percentile(depth, 95);
 	int min_depth = io_machine.percentile(depth, 5);
-	io_machine.depthToColor(depth, render_image_color_depth_, render_image_gray_depth_, min_depth, max_depth);
+	io_machine.depthToDepthColor(depth, render_image_color_depth_, render_image_gray_depth_, min_depth, max_depth);
 
 	return true;
 
@@ -387,7 +387,7 @@ bool CameraCaptureGui::setShowImages(cv::Mat brightness, cv::Mat depth)
 	int low_z = processing_gui_settings_data_.Instance().low_z_value;
 	int high_z = processing_gui_settings_data_.Instance().high_z_value;
 
-	io_machine.depthToColor(depth, img_color, gray_map, low_z, high_z);
+	io_machine.depthToHeightColor(depth, img_color, gray_map, low_z, high_z);
 
 
 	return true;

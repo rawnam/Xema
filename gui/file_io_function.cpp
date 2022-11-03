@@ -590,8 +590,84 @@ int FileIoFunction::percentile(cv::Mat& image, int percent)
 	return result;
 }
 
-//深度图转z-map图
-bool  FileIoFunction::depthToColor(cv::Mat depth_map, cv::Mat& color_map, cv::Mat& grey_map, float low_z, float high_z)
+
+bool FileIoFunction::depthToDepthColor(cv::Mat depth_map, cv::Mat& color_map, cv::Mat& grey_map, float low_z, float high_z)
+{
+
+	if (!depth_map.data)
+	{
+		return false;
+	}
+
+	cv::Mat handle_map(depth_map.size(), CV_8U, cv::Scalar(0));
+	cv::Mat mask_map(depth_map.size(), CV_8U, cv::Scalar(0));
+
+	// 设置用于非线性显示的部分
+	float out_range_rate = 26. / 255.;
+	int gray_offset = 255 * out_range_rate / 2;
+	float range = high_z - low_z;
+
+	if (depth_map.type() != CV_32FC1)
+	{
+		depth_map.convertTo(depth_map, CV_32FC1);
+	}
+
+
+	int gray_temp;
+	for (int r = 0; r < handle_map.rows; r++)
+	{
+		uchar* ptr_h = handle_map.ptr<uchar>(r);
+		uchar* ptr_m = mask_map.ptr<uchar>(r);
+		float* ptr_dr = depth_map.ptr<float>(r);
+
+		for (int c = 0; c < handle_map.cols; c++)
+		{
+			if (low_z >= ptr_dr[c])
+			{
+				gray_temp = gray_offset - (255.0 - gray_offset * 2) * (low_z - ptr_dr[c]) / range;
+				if (gray_temp < 0)
+				{
+					ptr_h[c] = 0;
+				}
+				else
+				{
+					ptr_h[c] = gray_temp;
+				}
+			}
+			else if (ptr_dr[c] >= high_z)
+			{
+				gray_temp = 255 - gray_offset + (255.0 - gray_offset * 2) * (ptr_dr[c] - high_z) / range;
+				if (gray_temp > 255)
+				{
+					ptr_h[c] = 255;
+				}
+				else
+				{
+					ptr_h[c] = gray_temp;
+				}
+			}
+			else
+			{
+				ptr_h[c] = gray_offset + (255.0 - gray_offset * 2) * (ptr_dr[c] - low_z) / range;
+			}
+
+			if (ptr_dr[c] > 1)
+			{
+				ptr_m[c] = 255;
+			}
+		}
+	}
+
+	grey_map = handle_map.clone();
+
+	cv::applyColorMap(handle_map, color_map, cv::COLORMAP_JET);
+
+	maskZMap(color_map, mask_map);
+
+	return true;
+}
+
+bool FileIoFunction::depthToHeightColor(cv::Mat depth_map, cv::Mat& color_map, cv::Mat& grey_map, float low_z, float high_z)
 {
 
 	if (!depth_map.data)
@@ -631,8 +707,8 @@ bool  FileIoFunction::depthToColor(cv::Mat depth_map, cv::Mat& color_map, cv::Ma
 			{
 				ptr_h[c] = 255.0 * (ptr_dr[c] - low_z) / range;
 			}
-				
-			if (ptr_dr[c] >= low_z && ptr_dr[c]<= high_z)
+
+			if (ptr_dr[c] >= low_z && ptr_dr[c] <= high_z)
 			{
 				ptr_m[c] = 255;
 			}

@@ -233,7 +233,7 @@ bool camera_gui::setShowImages(cv::Mat brightness, cv::Mat depth)
 	int low_z = processing_gui_settings_data_.Instance().low_z_value;
 	int high_z = processing_gui_settings_data_.Instance().high_z_value;
 
-	io_machine.depthToColor(depth, img_color, gray_map, low_z, high_z);
+	io_machine.depthToHeightColor(depth, img_color, gray_map, low_z, high_z);
 
 
 	return true;
