@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "help.h"
 #include "status.h"
 #include "case.h"

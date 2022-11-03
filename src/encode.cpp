@@ -1,4 +1,4 @@
-﻿#include "encode.h"
+#include "encode.h"
 #include "iostream" 
 
 Encode::Encode()

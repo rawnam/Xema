@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 void normalizePoint(float x, float y,
 	float fc_x, float fc_y,

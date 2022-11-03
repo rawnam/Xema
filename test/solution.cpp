@@ -1,4 +1,4 @@
-﻿#ifdef _WIN32  
+#ifdef _WIN32  
 #include <windows.h>
 #include <io.h>
 #elif __linux 
@@ -130,7 +130,7 @@ bool DfSolution::readCameraCalibData(std::string path, struct CameraCalibParam& 
 
 	float I[40] = { 0 };
 
-	//��data1�ļ��ж���int����
+
 	for (int i = 0; i < 40; i++)
 	{
 
@@ -351,32 +351,27 @@ void  DfSolution::getFiles(std::string path, std::vector<std::string>& files)
 {
 
 #ifdef _WIN32 
-	//�ļ����  
+
 	intptr_t    hFile = 0;
-	//�ļ���Ϣ������һ���洢�ļ���Ϣ�Ľṹ��  
+
 	struct _finddata_t fileinfo;
-	string p;//�ַ��������·��
-	if ((hFile = _findfirst(p.assign(path).append("/*.bmp").c_str(), &fileinfo)) != -1)//�����ҳɹ��������
+	string p;
+	if ((hFile = _findfirst(p.assign(path).append("/*.bmp").c_str(), &fileinfo)) != -1)
 	{
 		do
 		{
-			//�����Ŀ¼,����֮�����ļ����ڻ����ļ��У�  
 			if ((fileinfo.attrib & _A_SUBDIR))
 			{
-				//�ļ���������"."&&�ļ���������".."
-					//.��ʾ��ǰĿ¼
-					//..��ʾ��ǰĿ¼�ĸ�Ŀ¼
-					//�ж�ʱ�����߶�Ҫ���ԣ���Ȼ�����޵ݹ�������ȥ�ˣ�
 				//if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
 				//	getFiles(p.assign(path).append("\\").append(fileinfo.name), files);
 			}
-			//�������,�����б�  
+ 
 			else
 			{
 				files.push_back(p.assign(path).append("/").append(fileinfo.name));
 			}
 		} while (_findnext(hFile, &fileinfo) == 0);
-		//_findclose������������
+
 		_findclose(hFile);
 	}
 
@@ -736,25 +731,24 @@ bool DfSolution::testCalibrationParamBaseBoard(std::vector<cv::Mat> patterns, st
 
 	double diff = precision_machine.computeTwoPointSetDistance(world_points, transform_points);
 
-	std::cout << "�������: " << diff << " mm" << std::endl;
+	std::cout << "重投影误差: " << diff << " mm" << std::endl;
 
 	if (diff > 0.1)
 	{
-		std::cout << "����ڲξ��Ȳ�����" << std::endl;
+		std::cout << "误差过大！" << std::endl;
 
 		if (0 == calib_function.testOverExposure(undistort_img, undist_circle_points))
 		{
-			std::cout << "�궨������ˣ�" << std::endl;
-			std::cout << "�����ͶӰ���ȣ�" << std::endl;
+			std::cout << "图像过曝！" << std::endl;
+			std::cout << "请重新拍摄！" << std::endl;
 		}
 	}
 	else
 	{
-		std::cout << "����ڲκϸ�" << std::endl;
+		std::cout << "精度合格！" << std::endl;
 	}
 	/****************************************************************************************************/
 
-		//��ʾ
 
 	cv::Mat draw_color_img;
 	cv::Size board_size = calib_function.getBoardSize();
@@ -926,15 +920,15 @@ bool DfSolution::testCalibrationParamBasePlane(std::vector<cv::Mat> patterns, st
 	double err_value = analyse_err_machine.computeError(err_map);
 	//std::cout << "calibrate err: " << err_value << std::endl;
 
-	std::cout << "�������: " << err_value << " mm" << std::endl;
+	std::cout << "calibrate err: " << err_value << " mm" << std::endl;
 
 	if (err_value > 0.1)
 	{
-		std::cout << "����ڲξ��Ȳ�����" << std::endl;
+		std::cout << "精度不合格！" << std::endl;
 	}
 	else
 	{
-		std::cout << "����ڲκϸ�" << std::endl;
+		std::cout << "精度合格！" << std::endl;
 
 	}
 
@@ -1056,7 +1050,7 @@ bool DfSolution::reconstructPatterns04Repetition01BaseTable(std::vector<cv::Mat>
 	/***********************************************************************************/
 
 	clock_t startTime, endTime;
-	startTime = clock();//��ʱ��ʼ
+	startTime = clock();
 
 
 	LookupTableFunction lookup_table_machine_;
@@ -1080,7 +1074,7 @@ bool DfSolution::reconstructPatterns04Repetition01BaseTable(std::vector<cv::Mat>
 	//lookup_table_machine_.readTable("../", 1200, 1920);
 
 
-	endTime = clock();//��ʱ����
+	endTime = clock();
 	std::cout << "The run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
 	/************************************************************************************/
@@ -1207,7 +1201,7 @@ bool DfSolution::reconstructPatterns04Repetition01BaseTable(std::vector<cv::Mat>
 	texture_map = undistort_img.clone();
 
 	cv::Mat z_map_table;
-	//����ؽ���deep_map ��ͨ��Ϊx y z��ͨ����double ����
+
 	lookup_table_machine_.rebuildData(unwrap_ver, 1, z_map_table, unwrap_mask);
 
 	cv::Mat deep_map_table;
@@ -1216,12 +1210,12 @@ bool DfSolution::reconstructPatterns04Repetition01BaseTable(std::vector<cv::Mat>
 	ret = lookup_table_machine_.generate_pointcloud(z_map_table, unwrap_mask, deep_map_table);
 
 
-	//startTime = clock();//��ʱ��ʼ   
+	//startTime = clock();
 	//FilterModule filter_machine;
 	////相机像素为5.4um、焦距12mm。dot_spacing = 5.4*distance/12000 mm，典型值0.54mm（1200） 
 	//filter_machine.RadiusOutlierRemoval(deep_map_table, unwrap_mask, 0.8, 3, 4);
 	////filter_machine.statisticOutlierRemoval(deep_map_table, 6, 1);
-	//endTime = clock();//��ʱ����
+	//endTime = clock();
 	//std::cout << "statisticOutlierRemoval run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
 	/*********************************************************************************/
@@ -1266,7 +1260,7 @@ bool DfSolution::reconstructPatterns04RepetitionBaseTable(std::vector<std::vecto
 	/***********************************************************************************/
 
 	clock_t startTime, endTime;
-	startTime = clock();//��ʱ��ʼ
+	startTime = clock();
 
 
 	LookupTableFunction lookup_table_machine_;
@@ -1282,7 +1276,7 @@ bool DfSolution::reconstructPatterns04RepetitionBaseTable(std::vector<std::vecto
 	//lookup_table_machine_.readTable("../", 1200, 1920);
 
 
-	endTime = clock();//��ʱ����
+	endTime = clock();
 	std::cout << "The run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
 	/************************************************************************************/
@@ -1380,7 +1374,7 @@ bool DfSolution::reconstructPatterns04RepetitionBaseTable(std::vector<std::vecto
 	texture_map = undistort_img.clone();
 
 	cv::Mat z_map_table;
-	//����ؽ���deep_map ��ͨ��Ϊx y z��ͨ����double ����
+
 	lookup_table_machine_.rebuildData(unwrap_ver, 1, z_map_table, unwrap_mask);
 
 	cv::Mat deep_map_table;
@@ -1389,12 +1383,12 @@ bool DfSolution::reconstructPatterns04RepetitionBaseTable(std::vector<std::vecto
 	ret = lookup_table_machine_.generate_pointcloud(z_map_table, unwrap_mask, deep_map_table);
 
 
-	//startTime = clock();//��ʱ��ʼ   
+	//startTime = clock();
 	//FilterModule filter_machine;
 	////相机像素为5.4um、焦距12mm。dot_spacing = 5.4*distance/12000 mm，典型值0.54mm（1200） 
 	//filter_machine.RadiusOutlierRemoval(deep_map_table, unwrap_mask, 0.8, 3, 4);
 	////filter_machine.statisticOutlierRemoval(deep_map_table, 6, 1);
-	//endTime = clock();//��ʱ����
+	//endTime = clock();
 	//std::cout << "statisticOutlierRemoval run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
 	/*********************************************************************************/
@@ -1611,7 +1605,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 	/***********************************************************************************/
 
 	clock_t startTime, endTime;
-	startTime = clock();//��ʱ��ʼ
+	startTime = clock();
 
 
 	LookupTableFunction lookup_table_machine_;
@@ -1644,7 +1638,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 	//bool ok = looktable_machine.generateLookTable(xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping);
 	bool ok = lookup_table_machine_.generateLookTable(xL_rotate_x_new, xL_rotate_y_new, R1_new, pattern_mapping_new);
 
-	endTime = clock();//��ʱ����
+	endTime = clock();
 	std::cout << "The run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
 
@@ -1762,7 +1756,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 	//}
 
 	cv::Mat z_map_table;
-	//����ؽ���deep_map ��ͨ��Ϊx y z��ͨ����double ����
+
 	lookup_table_machine_.rebuildData(unwrap_ver, 1, z_map_table, unwrap_mask);
 
 	cv::Mat deep_map_table;
@@ -1771,12 +1765,12 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTable(std::vecto
 	ret = lookup_table_machine_.generate_pointcloud(z_map_table, unwrap_mask, deep_map_table);
 
 
-	startTime = clock();//��ʱ��ʼ   
+	startTime = clock(); 
 	FilterModule filter_machine;
 	//相机像素为5.4um、焦距12mm。dot_spacing = 5.4*distance/12 m，典型值0.54mm（1200） 
 	//filter_machine.RadiusOutlierRemoval(deep_map_table, unwrap_mask, 0.5, 3, 3);
 	//filter_machine.statisticOutlierRemoval(deep_map_table, 6, 1);
-	endTime = clock();//��ʱ����
+	endTime = clock();
 	std::cout << "statisticOutlierRemoval run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
 	/*********************************************************************************/
@@ -1833,7 +1827,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTableAndConfiden
 	/***********************************************************************************/
 
 	clock_t startTime, endTime;
-	startTime = clock();//��ʱ��ʼ
+	startTime = clock();
 
 
 	LookupTableFunction lookup_table_machine_;
@@ -1866,7 +1860,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTableAndConfiden
 	//bool ok = looktable_machine.generateLookTable(xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping);
 	bool ok = lookup_table_machine_.generateLookTable(xL_rotate_x_new, xL_rotate_y_new, R1_new, pattern_mapping_new);
 
-	endTime = clock();//��ʱ����
+	endTime = clock();
 	std::cout << "The run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
 
@@ -2001,7 +1995,7 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTableAndConfiden
 	//}
 
 	cv::Mat z_map_table;
-	//����ؽ���deep_map ��ͨ��Ϊx y z��ͨ����double ����
+
 	lookup_table_machine_.rebuildData(unwrap_ver, 1, z_map_table, unwrap_mask);
 
 	cv::Mat deep_map_table;
@@ -2010,12 +2004,12 @@ bool DfSolution::reconstructMixedVariableWavelengthXPatternsBaseTableAndConfiden
 	ret = lookup_table_machine_.generate_pointcloud(z_map_table, unwrap_mask, deep_map_table);
 
 
-	startTime = clock();//��ʱ��ʼ   
+	startTime = clock();
 	FilterModule filter_machine;
 	//相机像素为5.4um、焦距12mm。dot_spacing = 5.4*distance/12 m，典型值0.54mm（1200） 
 	//filter_machine.RadiusOutlierRemoval(deep_map_table, unwrap_mask, 0.5, 3, 3);
 	//filter_machine.statisticOutlierRemoval(deep_map_table, 6, 1);
-	endTime = clock();//��ʱ����
+	endTime = clock();
 	std::cout << "statisticOutlierRemoval run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
 	/*********************************************************************************/
@@ -2325,10 +2319,10 @@ bool DfSolution::reconstructMixedVariableWavelengthPatternsBaseXYSR(std::vector<
 
 
 	clock_t startTime, endTime;
-	startTime = clock();//��ʱ��ʼ   
+	startTime = clock();
 	FilterModule filter_machine;
 	filter_machine.RadiusOutlierRemoval(deep_map, unwrap_mask, 0.5, 2, 4);
-	endTime = clock();//��ʱ����
+	endTime = clock();
 	std::cout << "RadiusOutlierRemoval run time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << endl;
 
 	cv::Mat color_err_map;

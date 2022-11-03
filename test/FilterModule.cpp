@@ -1,4 +1,4 @@
-﻿#include "FilterModule.h"
+#include "FilterModule.h"
 #include <iostream> 
 #include <numeric>
 

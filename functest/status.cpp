@@ -1,4 +1,4 @@
-﻿#include "help.h"
+#include "help.h"
 #include "case.h"
 #include "status.h"
 

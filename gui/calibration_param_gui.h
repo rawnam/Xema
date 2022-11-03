@@ -21,8 +21,8 @@ public:
 private:
 	Ui::CalibrationParamGui ui;
 
-	//相机系统配置参数
+	//鐩告満绯荤粺閰嶇疆鍙傛暟
 	struct SystemConfigParam system_config_param_;
-	//相机标定参数
+	//鐩告満鏍囧畾鍙傛暟
 	struct CameraCalibParam camera_calibration_param_;
 };

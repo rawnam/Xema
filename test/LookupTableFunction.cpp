@@ -210,7 +210,6 @@ bool LookupTableFunction::generateRotateTable(cv::Mat camera_intrinsic_, cv::Mat
 	/*********************************************************************************/
 
 
-	//����У��
 	std::vector<cv::Point2d> correct_camera_points;
 	undistortedPoints(camera_points, camera_intrinsic_, camera_distortion_, correct_camera_points);
 
@@ -279,7 +278,7 @@ bool LookupTableFunction::generateGridMapping(cv::Mat rotate_x, cv::Mat rotate_y
 		}
 	}
 
-	//��ֵ
+
 
 	for (int r = 1; r < interpolation_map.rows - 1; r++)
 	{
@@ -577,7 +576,7 @@ bool LookupTableFunction::readCalibData(std::string path)
 
 	double I[40] = { 0 };
 
-	//��data1�ļ��ж���int����
+
 	for (int i = 0; i < 40; i++)
 	{
 
@@ -716,13 +715,13 @@ bool LookupTableFunction::TestReadBinMapping(int rows, int cols, std::string map
 {
 	cv::Mat map(rows, cols, CV_64F, cv::Scalar(0));
 
-	std::ifstream inFile(mapping_file, std::ios::in | std::ios::binary); //�����ƶ���ʽ��
+	std::ifstream inFile(mapping_file, std::ios::in | std::ios::binary); 
 	if (!inFile) {
 		std::cout << "error" << std::endl;
 		return false;
 	}
-	while (inFile.read((char*)map.data, sizeof(double) * rows * cols)) { //һֱ�����ļ�����
-		int readedBytes = inFile.gcount(); //���ղŶ��˶����ֽ�
+	while (inFile.read((char*)map.data, sizeof(double) * rows * cols)) {
+		int readedBytes = inFile.gcount();
 		std::cout << readedBytes << std::endl;
 	}
 	inFile.close();
@@ -755,14 +754,14 @@ bool LookupTableFunction::saveBinMapping(std::string mapping_file, cv::Mat out_m
 bool LookupTableFunction::readBinMappingFloat(int rows, int cols, std::string mapping_file, cv::Mat& out_map)
 {
 	cv::Mat map(rows, cols, CV_32F, cv::Scalar(0));
-	std::ifstream inFile(mapping_file, std::ios::in | std::ios::binary); //�����ƶ���ʽ��
+	std::ifstream inFile(mapping_file, std::ios::in | std::ios::binary); 
 	if (!inFile) {
 		std::cout << "error" << std::endl;
 		out_map = map.clone();
 		return false;
 	}
-	while (inFile.read((char*)map.data, sizeof(float) * rows * cols)) { //һֱ�����ļ�����
-		int readedBytes = inFile.gcount(); //���ղŶ��˶����ֽ�
+	while (inFile.read((char*)map.data, sizeof(float) * rows * cols)) { 
+		int readedBytes = inFile.gcount(); 
 		//std::cout << readedBytes << std::endl;
 	}
 	inFile.close();
@@ -792,13 +791,13 @@ bool LookupTableFunction::readBinMapping(int rows, int cols, std::string mapping
 	//return true;
 
 	cv::Mat map(rows, cols, CV_64F, cv::Scalar(0));
-	std::ifstream inFile(mapping_file, std::ios::in | std::ios::binary); //�����ƶ���ʽ��
+	std::ifstream inFile(mapping_file, std::ios::in | std::ios::binary); 
 	if (!inFile) {
 		std::cout << "error" << std::endl;
 		return false;
 	}
-	while (inFile.read((char*)map.data, sizeof(double) * rows * cols)) { //һֱ�����ļ�����
-		int readedBytes = inFile.gcount(); //���ղŶ��˶����ֽ�
+	while (inFile.read((char*)map.data, sizeof(double) * rows * cols)) { 
+		int readedBytes = inFile.gcount(); 
 		//std::cout << readedBytes << std::endl;
 	}
 	inFile.close();
@@ -998,12 +997,12 @@ bool LookupTableFunction::rebuildData(cv::Mat unwrap_map_x, int group_num, cv::M
 	double b = value_b_;
 
 
-	//��ʼ�����������DMD_Points�ľ���ֵ
+	
 	double phase_max = 2 * CV_PI * pow(2.0, group_num - 1);
 	int nr = unwrap_map_x.rows;
 	int nc = unwrap_map_x.cols;
 
-	//��ʼ�����ͼ
+	
 	cv::Mat all_deep_map = cv::Mat(nr, nc, CV_64F, cv::Scalar(0));
 	deep_map = all_deep_map.clone();
 
@@ -1017,12 +1016,12 @@ bool LookupTableFunction::rebuildData(cv::Mat unwrap_map_x, int group_num, cv::M
 		double* ptr_disparity = disparity_map.ptr<double>(Yc);
 
 		for (int Xc = 0; Xc < nc; Xc++) {
-			//����Xp��������
+			
 			double Xp = dlp_width_ * ptr_x[Xc] / phase_max;
 			double d = 0;
-			//��Ҫ��mask������������Ƿ���Ҫ
+			
 			if (ptr_m[Xc] == 255 && Xp > 0) {
-				//������ȣ���Ҫ�õ�����ĵ�����꣬����λ�õ���Xp���꣬������������ֵ����ľ����Ӳ�����õ���b
+				
 				ptr_d[Xc] = depth_per_point_6patterns_combine(Xc, Yc, Xp, xL_rotate_x, xL_rotate_y, single_pattern_mapping, b, d);
 
 				if (0 == ptr_d[Xc])
@@ -1164,12 +1163,12 @@ bool MiniLookupTableFunction::rebuildData(cv::Mat unwrap_map_x, int group_num, c
 	double b = value_b_;
 
 
-	//��ʼ�����������DMD_Points�ľ���ֵ
+	
 	double phase_max = 2 * CV_PI * pow(2.0, group_num - 1);
 	int nr = unwrap_map_x.rows;
 	int nc = unwrap_map_x.cols;
 
-	//��ʼ�����ͼ
+	
 	cv::Mat all_deep_map = cv::Mat(nr, nc, CV_64F, cv::Scalar(0));
 	deep_map = all_deep_map.clone();
 
@@ -1184,11 +1183,11 @@ bool MiniLookupTableFunction::rebuildData(cv::Mat unwrap_map_x, int group_num, c
 		uchar* ptr_m = mask.ptr<uchar>(Yc);
 
 		for (int Xc = 0; Xc < nc; Xc++) {
-			//����Xp��������
+			
 			double Xp = 1280 * ptr_x[Xc] / phase_max;
-			//��Ҫ��mask������������Ƿ���Ҫ
+			
 			if (ptr_m[Xc] == 255) {
-				//������ȣ���Ҫ�õ�����ĵ�����꣬����λ�õ���Xp���꣬������������ֵ����ľ����Ӳ�����õ���b
+				
 				ptr_d[Xc] = depth_per_point_6patterns_combine(Xc, Yc, Xp, xL_rotate_x, xL_rotate_y, single_pattern_mapping, b);
 			}
 			else {

@@ -1,4 +1,4 @@
-﻿#include "AnalyseError.h"
+#include "AnalyseError.h"
 #include "iostream"
 
 AnalyseError::AnalyseError()

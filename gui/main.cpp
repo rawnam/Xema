@@ -1,4 +1,4 @@
-﻿#include "camera_gui.h"
+#include "camera_gui.h"
 #include <QtWidgets/QApplication>
 #include <QTextCodec>
 

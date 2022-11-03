@@ -1,4 +1,4 @@
-﻿#ifndef DEXFORCE_PROTOCAL_H
+#ifndef DEXFORCE_PROTOCAL_H
 #define DEXFORCE_PROTOCAL_H
 
 #include "../sdk/camera_status.h"

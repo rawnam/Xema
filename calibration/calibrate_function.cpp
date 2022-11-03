@@ -108,7 +108,7 @@ bool Calibrate_Function::saveMatTxt(cv::Mat mat, std::string path)
 	int nr = mat.rows;
 	int nc = mat.cols;
 
-	//����txt 
+
 	std::ofstream stream(path, std::ios::trunc);
 
 	for (int r = 0; r < nr; r++)
@@ -133,7 +133,7 @@ bool Calibrate_Function::savePointsTxt(std::vector<cv::Point2f> points, std::str
 		return false;
 
 	/*************************************************************************************************************************/
-	//����txt 
+
 	std::ofstream stream(path, std::ios::trunc);
 
 	for (int i = 0; i < points.size(); i++)
@@ -179,7 +179,7 @@ bool Calibrate_Function::writeCalibTxt(cv::Mat camera_intrinsic, cv::Mat camera_
 	}
 
 	/*************************************************************************************************************************/
-	//����txt 
+
 	std::ofstream stream(path, std::ios::trunc);
 
 	stream << camera_intrinsic.at<double>(0, 0) << "\n";
@@ -298,7 +298,7 @@ double Calibrate_Function::calibrateStereo(std::vector<std::vector<cv::Point2f>>
 
 
 
-	//�궨
+
 	//bool mustInitUndistort = true;
 	//int flag = 0;
 

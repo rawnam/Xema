@@ -1,4 +1,4 @@
-﻿#include "select_calibration_board_gui.h"
+#include "select_calibration_board_gui.h"
 
 SelectCalibrationBoardGui::SelectCalibrationBoardGui(QWidget* parent)
 	: QDialog(parent)
