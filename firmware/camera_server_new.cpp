@@ -139,7 +139,7 @@ bool set_projector_version(int version)
     {
 
         // cuda_set_camera_version(DFX_1800);
-        max_camera_exposure_ = 100000; 
+        max_camera_exposure_ = 28000; 
         min_camera_exposure_ = 1000;
         return true;
     }
