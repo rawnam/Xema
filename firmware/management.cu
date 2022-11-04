@@ -884,10 +884,17 @@ void cuda_remove_points_base_radius_filter(float dot_spacing,float radius,int th
     // cudaFuncSetCacheConfig (cuda_filter_radius_outlier_removal, cudaFuncCachePreferL1);
 	kernel_filter_radius_outlier_removal << <blocksPerGrid, threadsPerBlock >> > (h_image_height_,h_image_width_,d_point_cloud_map_,d_mask_map_,d2,r2,threshold_num); 
 	
+	cudaDeviceSynchronize();
+
+	// cv::Mat mask(1200, 1920, CV_8U, cv::Scalar(0));
+	// CHECK(cudaMemcpy(mask.data, d_mask_map_, 1 * h_image_height_ * h_image_width_ * sizeof(uchar), cudaMemcpyDeviceToHost));
+	// cv::imwrite("mask.bmp", mask);
 	LOG(INFO)<<"remove start:";
 	kernel_removal_points_base_mask << <blocksPerGrid, threadsPerBlock >> > (h_image_height_,h_image_width_,d_point_cloud_map_,d_depth_map_,d_mask_map_); 
 
     cudaDeviceSynchronize();
+ 
+
 	LOG(INFO)<<"remove_base_radius_filter finished!";
 }
 

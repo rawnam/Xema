@@ -40,6 +40,7 @@ camera_gui::camera_gui(QWidget* parent)
 	connect(this, SIGNAL(send_network_drop()), this, SLOT(do_slot_handle_network()));
 
 	connect(ui.action_update_firmware, SIGNAL(triggered()), this, SLOT(do_action_update_firmware()));
+	 
 }
 
 camera_gui::~camera_gui()

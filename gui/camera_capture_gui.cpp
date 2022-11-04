@@ -10,7 +10,10 @@
 #include <qheaderview.h>
 #include "PrecisionTest.h"
 #include <qdesktopservices.h>
-#include <thread>
+#include <thread> 
+#include <QFuture>
+#include <QtConcurrent>
+#include "waiting_gui.h"
 
 CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	: QWidget(parent)
@@ -55,6 +58,16 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
   
 	radio_button_flag_ = SELECT_BRIGHTNESS_FLAG_;
 	showImage();
+
+	ui.comboBox_ip->hide();
+	ui.pushButton_refresh->hide();
+
+	m_pMaskLayer = new WaitingGui(this);
+	m_pMaskLayer->setFixedSize(this->size());//设置窗口大小
+	m_pMaskLayer->setVisible(false);//初始状态下隐藏，待需要显示时使用
+	this->stackUnder(m_pMaskLayer);//其中pWrapper为当前窗口的QWidget
+ 
+	
 }
 
 CameraCaptureGui::~CameraCaptureGui()
@@ -62,9 +75,42 @@ CameraCaptureGui::~CameraCaptureGui()
 }
 
 
+
 void CameraCaptureGui::setOnDrop(int (*p_function)(void*))
 {
 	m_p_OnDropped_ = p_function;
+}
+
+
+void CameraCaptureGui::resizeEvent(QResizeEvent* event)
+{
+	//if (event) {}//消除警告提示
+
+	if (m_pMaskLayer != nullptr)
+	{
+		m_pMaskLayer->setAutoFillBackground(true); //这个很重要，否则不会显示遮罩层
+		QPalette pal = m_pMaskLayer->palette();
+		pal.setColor(QPalette::Background, QColor(0x00, 0x00, 0x00, 0x20));
+		m_pMaskLayer->setPalette(pal);
+		m_pMaskLayer->setFixedSize(this->size());
+	}
+}
+ 
+//显示
+void CameraCaptureGui::showLoadingForm()
+{
+	if (m_pMaskLayer != nullptr)
+	{
+		m_pMaskLayer->setVisible(true);
+	}
+}
+//隐藏
+void CameraCaptureGui::hideLoadingForm()
+{
+	if (m_pMaskLayer != nullptr)
+	{
+		m_pMaskLayer->setVisible(false);
+	}
 }
 
 
@@ -153,6 +199,7 @@ bool CameraCaptureGui::initializeFunction()
 	/********************************************************************************************************************/
 
 
+	connect(this, SIGNAL(send_log_update(QString)), this, SLOT(do_handleLogMessage(QString)));
 	/*******************************************************************************************************************/
 
 	connect(ui.spinBox_exposure_num, SIGNAL(valueChanged(int)), this, SLOT(do_spin_exposure_num_changed(int)));
@@ -175,7 +222,7 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.checkBox_hdr, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_hdr(bool)));
 	connect(ui.checkBox_over_exposure, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_over_exposure(bool)));
 
-	connect(ui.pushButton_connect, SIGNAL(clicked()), this, SLOT(do_pushButton_connect()));
+	connect(ui.pushButton_connect, SIGNAL(clicked()), this, SLOT(do_pushButton_connect_async()));
 	connect(ui.pushButton_refresh, SIGNAL(clicked()), this, SLOT(do_pushButton_refresh()));
 	connect(ui.pushButton_capture_one_frame, SIGNAL(clicked()), this, SLOT(do_pushButton_capture_one_frame()));
 	connect(ui.pushButton_capture_continuous, SIGNAL(clicked()), this, SLOT(do_pushButton_capture_continuous()));
@@ -225,10 +272,8 @@ bool CameraCaptureGui::initializeFunction()
 }
 
 
-
-void CameraCaptureGui::addLogMessage(QString str)
+void CameraCaptureGui::do_handleLogMessage(QString str)
 {
-
 	QString StrCurrentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
 
 	QString log = StrCurrentTime + " " + str;
@@ -236,6 +281,18 @@ void CameraCaptureGui::addLogMessage(QString str)
 	ui.textBrowser_log->append(log);
 
 	ui.textBrowser_log->repaint();
+}
+
+void CameraCaptureGui::addLogMessage(QString str)
+{
+	send_log_update(str);
+	//QString StrCurrentTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz");
+
+	//QString log = StrCurrentTime + " " + str;
+
+	//ui.textBrowser_log->append(log);
+
+	//ui.textBrowser_log->repaint();
 }
 
 
@@ -1027,25 +1084,41 @@ void CameraCaptureGui::sleep(int sectime)
 
 void CameraCaptureGui::updateOutlierRemovalConfigParam(struct FirmwareConfigParam param)
 {
-	if (param.use_reflect_filter != firmware_config_param_.use_reflect_filter)
-	{
-		if (DF_SUCCESS == DfSetParamReflectFilter(param.use_reflect_filter))
-		{
-			firmware_config_param_.use_reflect_filter = param.use_reflect_filter;
-			QString str = u8"设置反射点滤除： "+QString::number(param.use_reflect_filter);
-			addLogMessage(str);
-		}
-	}
+	//if (param.use_reflect_filter != firmware_config_param_.use_reflect_filter)
+	//{
+	//	if (DF_SUCCESS == DfSetParamReflectFilter(param.use_reflect_filter))
+	//	{
+	//		firmware_config_param_.use_reflect_filter = param.use_reflect_filter;
+	//		QString str = u8"设置反射点滤除： "+QString::number(param.use_reflect_filter);
+	//		addLogMessage(str);
+	//	}
+	//}
 
-	if (param.use_radius_filter != firmware_config_param_.use_radius_filter)
-	{
+	//if (param.use_radius_filter != firmware_config_param_.use_radius_filter)
+	//{
 		if (DF_SUCCESS == DfSetParamRadiusFilter(param.use_radius_filter, param.radius_filter_r, param.radius_filter_threshold_num));
 		{
 			firmware_config_param_.use_radius_filter = param.use_radius_filter;
-			QString str = u8"设置半径滤波： " + QString::number(param.use_radius_filter);
+			firmware_config_param_.radius_filter_r = param.radius_filter_r;
+			firmware_config_param_.radius_filter_threshold_num = param.radius_filter_threshold_num;
+
+			QString cmd = (param.use_radius_filter ? u8"打开" : u8"关闭");
+			QString str = cmd + u8"半径滤波";
+			if (param.use_radius_filter)
+			{
+				str += u8"，";
+				str += u8"半径： " + QString::number(param.radius_filter_r, 'f', 1) + "mm";
+				str += u8"，";
+				str += u8"点数： " + QString::number(param.radius_filter_threshold_num);
+			}
+			else
+			{
+				str += u8"！";
+
+			}
 			addLogMessage(str);
 		}
-	}
+	//}
 	 
 }
 
@@ -1318,6 +1391,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 	}
 	capturing_flag_ = true;
 
+	addLogMessage(u8"采集数据：");
 
 	int width = camera_width_;
 	int height = camera_height_;
@@ -1370,6 +1444,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 		capture_show_flag_ = true;
 
 
+		addLogMessage(u8"采集完成！");
 		emit send_images_update();
 
 
@@ -1377,6 +1452,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 	else
 	{
 		start_timer_flag_ = false;
+		addLogMessage(u8"采集失败！");
 	}
 
 	capturing_flag_ = false;
@@ -1511,180 +1587,215 @@ void CameraCaptureGui::do_pushButton_refresh()
 
 }
 
+
+void CameraCaptureGui::do_pushButton_connect_async()
+{
+	showLoadingForm();
+	QFuture<void> fut = QtConcurrent::run(this, &CameraCaptureGui::do_pushButton_connect);
+	while (!fut.isFinished())
+	{
+		QApplication::processEvents(QEventLoop::AllEvents, 100);
+		qDebug() << "timeout";
+ 
+	}
+
+	hideLoadingForm();
+
+}
+
 void  CameraCaptureGui::do_pushButton_connect()
 {
+	ui.pushButton_connect->setDisabled(true);    
 
-	if (!connected_flag_)
-	{
+	do {
 
-		camera_ip_ = ui.lineEdit_ip->text();
-		if (camera_ip_.isEmpty())
+		if (!connected_flag_)
 		{
-			addLogMessage(u8"请设置IP！");
-			return;
-		}
 
-		 
-		addLogMessage(u8"连接相机：");
-		int ret_code = DfConnect(camera_ip_.toStdString().c_str());
-
-		DfRegisterOnDropped(m_p_OnDropped_);
-
-		 
-		if (DF_SUCCESS == ret_code)
-		{
-			//必须连接相机成功后，才可获取相机分辨率
-			ret_code = DfGetCameraResolution(&camera_width_, &camera_height_);
-			std::cout << "Width: " << camera_width_ << "    Height: " << camera_height_ << std::endl;
-
-			//获取相机标定参数
-			ret_code = DfGetCalibrationParam(camera_calibration_param_);
-			if (0 != ret_code)
+			camera_ip_ = ui.lineEdit_ip->text();
+			if (camera_ip_.isEmpty())
 			{
-				qDebug() << "Get Calibration Param Error!;";
-				return;
+				addLogMessage(u8"请设置IP！");
+				break;
 			}
 
-			//获取相机型号参数
-			//ret_code = DfGetCameraVersion(camera_version_);
-			//if (0 != ret_code)
-			//{
-			//	qDebug() << "Get Calibration Param Error!;";
-			//	return;
-			//}
 
-			//switch (camera_version_)
+			addLogMessage(u8"连接相机：");
+			int ret_code = DfConnect(camera_ip_.toStdString().c_str());
+			//int ret_code = -1;
+			//QFuture<int> fut = QtConcurrent::run(DfConnect, camera_ip_.toStdString().c_str());
+			//while (!fut.isFinished())
 			//{
-			//case 800:
-			//{
-			//	addLogMessage(u8"连接DFX800成功！");
+			//	QApplication::processEvents(QEventLoop::AllEvents, 100);
+			//	qDebug() << "timeout";
 			//}
-			//break;
-			//case 1800:
-			//{
-			//	addLogMessage(u8"连接DFX1800成功！");
-			//}
-			//break;
-			//default:
-			//	break;
-			//}
+			//ret_code = fut.result();
+  
+			DfRegisterOnDropped(m_p_OnDropped_);
 
 
-			addLogMessage(u8"连接相机成功！");
-			//保存ip配置
-			processing_gui_settings_data_.Instance().ip = camera_ip_;
-
-			//ret_code = DfGetSystemConfigParam(system_config_param_);
-			//if (0 != ret_code)
-			//{
-			//	qDebug() << "Get Param Error;";
-			//	//return;
-			//}
-
-			//设置配置参数
-			ret_code = DfSetSystemConfigParam(system_config_param_);
-			if (0 != ret_code)
+			if (DF_SUCCESS == ret_code)
 			{
-				qDebug() << "Set Param Error;";
-				//return;
+				//必须连接相机成功后，才可获取相机分辨率
+				ret_code = DfGetCameraResolution(&camera_width_, &camera_height_);
+				std::cout << "Width: " << camera_width_ << "    Height: " << camera_height_ << std::endl;
+
+				//获取相机标定参数
+				ret_code = DfGetCalibrationParam(camera_calibration_param_);
+				if (DF_SUCCESS != ret_code)
+				{
+					qDebug() << "Get Calibration Param Error!;";
+					 
+					break;
+				}
+
+				//获取相机型号参数
+				//ret_code = DfGetCameraVersion(camera_version_);
+				//if (0 != ret_code)
+				//{
+				//	qDebug() << "Get Calibration Param Error!;";
+				//	return;
+				//}
+
+				//switch (camera_version_)
+				//{
+				//case 800:
+				//{
+				//	addLogMessage(u8"连接DFX800成功！");
+				//}
+				//break;
+				//case 1800:
+				//{
+				//	addLogMessage(u8"连接DFX1800成功！");
+				//}
+				//break;
+				//default:
+				//	break;
+				//}
+
+
+				addLogMessage(u8"连接相机成功！");
+				//保存ip配置
+				processing_gui_settings_data_.Instance().ip = camera_ip_;
+
+				//ret_code = DfGetSystemConfigParam(system_config_param_);
+				//if (0 != ret_code)
+				//{
+				//	qDebug() << "Get Param Error;";
+				//	//return;
+				//}
+
+				//设置配置参数
+				ret_code = DfSetSystemConfigParam(system_config_param_);
+				if (DF_SUCCESS != ret_code)
+				{
+					qDebug() << "Set Param Error;";
+					//return;
+				}
+
+				if (!setCameraConfigParam())
+				{
+					qDebug() << "Set Signal Param Error;";
+				}
+
+				undateSystemConfigUiData();
+
+				int network_speed = 0;
+				ret_code = DfGetNetworkBandwidth(network_speed);
+				if (DF_SUCCESS != ret_code)
+				{
+					qDebug() << "Get Network Speed Error;";
+					//return;
+				}
+				else
+				{
+					if (1000 != network_speed)
+					{
+						addLogMessage(u8"请注意网络带宽:" + QString::number(network_speed) + "M");
+
+					}
+				}
+
 			}
-
-			if (!setCameraConfigParam())
+			else if (DF_BUSY == ret_code)
 			{
-				qDebug() << "Set Signal Param Error;";
+				addLogMessage(u8"相机忙！");
+				 
+				break;
 			}
-
-			undateSystemConfigUiData();
-
-			int network_speed = 0;
-			ret_code = DfGetNetworkBandwidth(network_speed);
-			if (0 != ret_code)
+			else if (DF_ERROR_2D_CAMERA == ret_code)
 			{
-				qDebug() << "Get Network Speed Error;";
-				//return;
+				addLogMessage(u8"2D相机故障！");
+				 
+				break;
 			}
 			else
 			{
-				if (1000 != network_speed)
-				{
-					addLogMessage(u8"请注意网络带宽:" + QString::number(network_speed) + "M");
-
-				}
+				std::cout << "Connect Camera Error!";
+				addLogMessage(u8"连接相机失败，请确认相机IP！");
+				 
+				break;
 			}
 
-		}
-		else if (DF_BUSY == ret_code)
-		{
-			addLogMessage(u8"相机忙！");
-			return;
-		}
-		else if (DF_ERROR_2D_CAMERA == ret_code)
-		{
-			addLogMessage(u8"2D相机故障！");
-			return;
-		}
-		else 
-		{
-			std::cout << "Connect Camera Error!";
-			addLogMessage(u8"连接相机失败，请确认相机IP！");
-			return;
-		}
 
+			connected_flag_ = true;
+			ui.lineEdit_ip->setDisabled(true);
 
-		connected_flag_ = true;
-		ui.lineEdit_ip->setDisabled(true);
+			CalibrationParam calib_param;
+			ret_code = DfGetCalibrationParam(&calib_param);
 
-		CalibrationParam calib_param;
-		ret_code = DfGetCalibrationParam(&calib_param);
-
-		if (0 == ret_code)
-		{
-			std::cout << "intrinsic: " << std::endl;
-			for (int r = 0; r < 3; r++)
+			if (0 == ret_code)
 			{
-				for (int c = 0; c < 3; c++)
+				std::cout << "intrinsic: " << std::endl;
+				for (int r = 0; r < 3; r++)
 				{
-					std::cout << calib_param.intrinsic[3 * r + c] << "\t";
+					for (int c = 0; c < 3; c++)
+					{
+						std::cout << calib_param.intrinsic[3 * r + c] << "\t";
+					}
+					std::cout << std::endl;
 				}
-				std::cout << std::endl;
+
+				std::cout << "extrinsic: " << std::endl;
+				for (int r = 0; r < 4; r++)
+				{
+					for (int c = 0; c < 4; c++)
+					{
+						std::cout << calib_param.extrinsic[4 * r + c] << "\t";
+					}
+					std::cout << std::endl;
+				}
+
+				std::cout << "distortion: " << std::endl;
+				for (int r = 0; r < 1; r++)
+				{
+					for (int c = 0; c < 12; c++)
+					{
+						std::cout << calib_param.distortion[1 * r + c] << "\t";
+					}
+					std::cout << std::endl;
+				}
+			}
+			else
+			{
+				std::cout << "Get Calibration Data Error!"; 
+				break;
 			}
 
-			std::cout << "extrinsic: " << std::endl;
-			for (int r = 0; r < 4; r++)
-			{
-				for (int c = 0; c < 4; c++)
-				{
-					std::cout << calib_param.extrinsic[4 * r + c] << "\t";
-				}
-				std::cout << std::endl;
-			}
-
-			std::cout << "distortion: " << std::endl;
-			for (int r = 0; r < 1; r++)
-			{
-				for (int c = 0; c < 12; c++)
-				{
-					std::cout << calib_param.distortion[1 * r + c] << "\t";
-				}
-				std::cout << std::endl;
-			}
+			ui.pushButton_connect->setIcon(QIcon(":/dexforce_camera_gui/image/disconnect.png"));
 		}
 		else
 		{
-			std::cout << "Get Calibration Data Error!";
-			return;
+			//断开相机
+			do_pushButton_disconnect();
+
 		}
+		 
 
-		ui.pushButton_connect->setIcon(QIcon(":/dexforce_camera_gui/image/disconnect.png"));
-	}
-	else
-	{
-		//断开相机
-		do_pushButton_disconnect();
+	} while (0);
 
-	}
-
-
+	 
+	ui.pushButton_connect->setEnabled(true); 
 
 }
 

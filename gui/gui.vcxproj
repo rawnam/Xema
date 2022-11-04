@@ -35,9 +35,9 @@
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
-    <QtInstall>msvc2015_64</QtInstall>
-    <QtModules>core;gui;printsupport;widgets;xml</QtModules>
+    <QtModules>core;xml;gui;widgets;printsupport;concurrent</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
+    <QtInstall>msvc2017_64</QtInstall>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
     <Message Importance="High" Text="QtMsBuild: could not locate qt.targets, qt.props; project may not build correctly." />
@@ -67,7 +67,10 @@
       <AdditionalDependencies>$(TargetDir)open_cam3d_sdk.lib;opencv_calib3d420.lib;opencv_core420.lib;opencv_dnn420.lib;opencv_features2d420.lib;opencv_flann420.lib;opencv_gapi420.lib;opencv_highgui420.lib;opencv_imgcodecs420.lib;opencv_imgproc420.lib;opencv_ml420.lib;opencv_objdetect420.lib;opencv_photo420.lib;opencv_stitching420.lib;opencv_ts420.lib;opencv_video420.lib;opencv_videoio420.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>mkdir $(TargetDir)platforms
+      <Command>mkdir $(TargetDir)imageformats
+copy $(ProjectDir)..\3rdparty\Qt5.9.3\bin\imageformats\*.dll $(TargetDir)imageformats
+del $(TargetDir)imageformats\*d.dll
+mkdir $(TargetDir)platforms
 copy $(ProjectDir)..\3rdparty\Qt5.9.3\bin\platforms\qdirect2d.dll $(TargetDir)platforms
 copy $(ProjectDir)..\3rdparty\Qt5.9.3\bin\platforms\qminimal.dll $(TargetDir)platforms
 copy $(ProjectDir)..\3rdparty\Qt5.9.3\bin\platforms\qoffscreen.dll $(TargetDir)platforms
@@ -140,6 +143,7 @@ copy $(ProjectDir)..\3rdparty\opencv420\bin\opencv_flann420.dll $(TargetDir)</Co
     <ClCompile Include="settings_file_function.cpp" />
     <ClCompile Include="update_firmware_gui.cpp" />
     <ClCompile Include="update_opencam3d.cpp" />
+    <ClCompile Include="waiting_gui.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="calibration_param_gui.ui" />
@@ -148,6 +152,7 @@ copy $(ProjectDir)..\3rdparty\opencv420\bin\opencv_flann420.dll $(TargetDir)</Co
     <QtUic Include="outlier_removal_gui.ui" />
     <QtUic Include="select_calibration_board_gui.ui" />
     <QtUic Include="update_firmware_gui.ui" />
+    <QtUic Include="waiting_gui.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="camera_gui.h" />
@@ -155,6 +160,7 @@ copy $(ProjectDir)..\3rdparty\opencv420\bin\opencv_flann420.dll $(TargetDir)</Co
   <ItemGroup>
     <ClInclude Include="..\firmware\easylogging++.h" />
     <ClInclude Include="update_opencam3d.h" />
+    <QtMoc Include="waiting_gui.h" />
     <ClInclude Include="x64\Release\uic\ui_update_firmware_gui.h" />
     <QtMoc Include="update_firmware_gui.h" />
     <QtMoc Include="select_calibration_board_gui.h" />

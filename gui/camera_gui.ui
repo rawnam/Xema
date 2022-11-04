@@ -17,7 +17,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>DFSense</string>
+   <string>XEMA</string>
   </property>
   <property name="windowIcon">
    <iconset resource="dexforce_camera_gui.qrc">
@@ -27,6 +27,9 @@
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <widget class="QTabWidget" name="tabWidget_view">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
         <horstretch>0</horstretch>
@@ -41,14 +44,12 @@
       <property name="currentIndex">
        <number>0</number>
       </property>
+      <property name="tabBarAutoHide">
+       <bool>true</bool>
+      </property>
       <widget class="CameraCaptureGui" name="tab_capture">
        <attribute name="title">
         <string>采集</string>
-       </attribute>
-      </widget>
-      <widget class="QWidget" name="tab_settings">
-       <attribute name="title">
-        <string>高级</string>
        </attribute>
       </widget>
      </widget>
@@ -61,7 +62,7 @@
      <x>0</x>
      <y>0</y>
      <width>1600</width>
-     <height>26</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_help">

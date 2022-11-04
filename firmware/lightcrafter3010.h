@@ -209,7 +209,9 @@ public:
 
 	~LightCrafter3010();
 
-	void init();
+	void init(); 
+    
+    void set_trigger_out_delay(int delay_time);
 		
 	void start_pattern_sequence();
 
@@ -259,6 +261,7 @@ public:
 	void read_dmd_device_id(int& version);
 
     void set_camera_min_exposure(float min);
+
 private:
 	float camera_exposure_;
     float dlp_min_exposure_;

@@ -227,7 +227,7 @@ bool Scan3D::setProjectorVersion(int version)
     case DF_PROJECTOR_3010:
     {
         cuda_set_projector_version(DF_PROJECTOR_3010);
-        max_camera_exposure_ = 60000;
+        max_camera_exposure_ = 100000;
         min_camera_exposure_ = 1700;
         return true;
     }
@@ -237,7 +237,7 @@ bool Scan3D::setProjectorVersion(int version)
     {
 
         cuda_set_projector_version(DF_PROJECTOR_4710);
-        max_camera_exposure_ = 60000; 
+        max_camera_exposure_ = 28000; 
         min_camera_exposure_ = 1700;
         return true;
     }
@@ -1655,6 +1655,11 @@ void Scan3D::removeOutlierBaseRadiusFilter()
     {
         float r = system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r;
         int num = system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num;
+        LOG(INFO)<<"radius_filter_r: "<<r;
+        LOG(INFO)<<"num: "<<num;
+
         cuda_remove_points_base_radius_filter(0.5,r,num);
+
+        cuda_copy_depth_from_memory(buff_depth_);
     }
 }
