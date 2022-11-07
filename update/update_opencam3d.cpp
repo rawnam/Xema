@@ -261,6 +261,7 @@ int chmod_camera_server(int client_sock)
 	    return DF_FAILED;
     }
 
+    system("sudo chown dexforce:dexforce camera_server");
     system("chmod +x camera_server");
 
     int feedback = 2020;
