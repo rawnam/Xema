@@ -1595,7 +1595,7 @@ void CameraCaptureGui::do_pushButton_connect_async()
 	while (!fut.isFinished())
 	{
 		QApplication::processEvents(QEventLoop::AllEvents, 100);
-		qDebug() << "timeout";
+		//qDebug() << "timeout";
  
 	}
 
@@ -2450,7 +2450,7 @@ void CameraCaptureGui::do_undate_show_slot()
 void  CameraCaptureGui::do_timeout_capture_slot()
 {
 
-	std::cout << "capture timeout" << std::endl;
+	//std::cout << "capture timeout" << std::endl;
 
 	capture_timer_.stop();
 

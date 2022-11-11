@@ -334,6 +334,55 @@ DF_SDK_API int DfGetAllDeviceBaseInfo(DeviceBaseInfo* pDeviceInfo, int* pBufferS
 
 	return 0;
 }
+  
+void rolloutHandler(const char* filename, std::size_t size)
+{
+#ifdef _WIN32 
+	/// 备份日志
+	system("mkdir xemaLog"); 
+	system("DIR .\\xemaLog\\ .log / B > LIST.TXT"); 
+	ifstream name_in("LIST.txt",ios_base::in);//文件流
+ 
+	int num = 0;
+	std::vector<std::string> name_list;
+	char buf[1024] = { 0 };
+	while (name_in.getline(buf, sizeof(buf)))
+	{ 
+		//std::cout << "name: " << buf << std::endl;
+		num++;
+		name_list.push_back(std::string(buf));
+	}
+
+	if (num < 10)
+	{
+		num++;
+	}
+	else
+	{
+		num = 10;
+		name_list.pop_back();
+	}
+ 
+
+	for (int i = num; i > 0 && !name_list.empty(); i--)
+	{
+		std::stringstream ss;
+		std::string path = ".\\xemaLog\\" + name_list.back();
+		name_list.pop_back();
+		ss << "move " << path << " xemaLog\\log_" << i-1 << ".log";
+		std::cout << ss.str() << std::endl;
+		system(ss.str().c_str());
+	}
+
+	std::stringstream ss;
+	ss << "move " << filename << " xemaLog\\log_0" <<".log";
+	system(ss.str().c_str());
+#elif __linux 
+
+#endif 
+
+}
+ 
 
 //函数名： DfConnect
 //功能： 连接相机
@@ -352,16 +401,17 @@ DF_SDK_API int DfConnect(const char* camera_id)
 
 #ifdef _WIN32 
 	//conf.setGlobally(el::ConfigurationType::Filename, "log\\log_%datetime{%Y%M%d}.log");
-	conf.setGlobally(el::ConfigurationType::Filename, "sdk_myeasylog.log");
+	conf.setGlobally(el::ConfigurationType::Filename, "xema_log.log");
 #elif __linux 
 	//conf.setGlobally(el::ConfigurationType::Filename, "log/log_%datetime{%Y%M%d}.log");
-	conf.setGlobally(el::ConfigurationType::Filename, "sdk_myeasylog.log");
+	conf.setGlobally(el::ConfigurationType::Filename, "xema_log.log");
 #endif 
 	conf.setGlobally(el::ConfigurationType::Enabled, "true");
 	conf.setGlobally(el::ConfigurationType::ToFile, "true");
-	conf.setGlobally(el::ConfigurationType::MaxLogFileSize, "1073741824");//1024*1024*1024=1073741824
+	//conf.setGlobally(el::ConfigurationType::MaxLogFileSize, "204800");//1024*1024*1024=1073741824 
 	el::Loggers::reconfigureAllLoggers(conf);
-	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
+	//el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
+ 
 
 	/*******************************************************************************************************************/
 
@@ -459,9 +509,18 @@ DF_SDK_API int DfConnect(const char* camera_id)
 		}
 
 	}
+	/*****************************************************************************************************************/
+	 
+	el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
+	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::MaxLogFileSize, "104857600");//100MB 104857600
+
+	/// 注册回调函数
+	el::Helpers::installPreRollOutCallback(rolloutHandler);
 
 
 	/********************************************************************************************************/
+
+
 	  
 	return 0;
 }
@@ -966,6 +1025,9 @@ DF_SDK_API int DfDisconnect(const char* camera_id)
 	
 
 	connected_flag_ = false;
+
+	/// 注销回调函数
+	el::Helpers::uninstallPreRollOutCallback();
 
 	return DF_SUCCESS;
 }
