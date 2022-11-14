@@ -14,6 +14,12 @@
 #include "../firmware/system_config_settings.h"
 #include <configuring_network.h>
 
+#ifdef _WIN32 
+ 
+#elif __linux 
+#include <dirent.h> 
+#endif 
+
 using namespace std;
 using namespace std::chrono;
 
@@ -378,6 +384,68 @@ void rolloutHandler(const char* filename, std::size_t size)
 	ss << "move " << filename << " xemaLog\\log_0" <<".log";
 	system(ss.str().c_str());
 #elif __linux 
+
+	/// 备份日志
+	if (access("xemaLog", F_OK) != 0)
+	{
+		system("mkdir xemaLog");
+	}
+
+	std::vector<std::string> name_list;
+	std::string suffix = "log";
+	DIR* dir;
+	struct dirent* ent;
+	if ((dir = opendir("xemaLog")) != NULL)
+	{
+		while ((ent = readdir(dir)) != NULL)
+		{
+			/* print all the files and directories within directory */
+			// printf("%s\n", ent->d_name);
+
+			std::string name = ent->d_name;
+
+			if (name.size() < 3)
+			{
+				continue;
+			}
+
+			std::string curSuffix = name.substr(name.size() - 3);
+
+			if (suffix == curSuffix)
+			{
+				name_list.push_back(name);
+			}
+		}
+		closedir(dir);
+	}
+
+	sort(name_list.begin(), name_list.end());
+
+	int num = name_list.size();
+	if (num < 10)
+	{
+		num++;
+	}
+	else
+	{
+		num = 10;
+		name_list.pop_back();
+	}
+
+
+	for (int i = num; i > 0 && !name_list.empty(); i--)
+	{
+		std::stringstream ss;
+		std::string path = "./xemaLog/" + name_list.back();
+		name_list.pop_back();
+		ss << "mv " << path << " xemaLog/log_" << i - 1 << ".log";
+		std::cout << ss.str() << std::endl;
+		system(ss.str().c_str());
+	}
+
+	std::stringstream ss;
+	ss << "mv " << filename << " xemaLog/log_0" << ".log";
+	system(ss.str().c_str());
 
 #endif 
 
