@@ -26,6 +26,7 @@ set(HEADERS
     outlier_removal_gui.h
     update_firmware_gui.h
     update_opencam3d.h
+    waiting_gui.h
 )
 
 set(SOURCES 
@@ -37,6 +38,7 @@ set(SOURCES
     outlier_removal_gui.cpp
     update_firmware_gui.cpp
     update_opencam3d.cpp
+    waiting_gui.cpp
 )
 
 set(RESOURCES 
@@ -59,7 +61,7 @@ link_libraries(${PROJECT_SOURCE_DIR}/../example/libopen_cam3d_sdk.so)
 #print message
 message(${PROJECT_SOURCE_DIR})   
 
-find_package(Qt5 COMPONENTS Core Widgets Xml REQUIRED) 
+find_package(Qt5 COMPONENTS Core Widgets Concurrent Xml REQUIRED)
 
 #添加预编译宏
 ADD_DEFINITIONS(-DTORRENT_LIBRARY)

@@ -18,6 +18,7 @@
  
 #elif __linux 
 #include <dirent.h> 
+#include <unistd.h>
 #endif 
 
 using namespace std;
@@ -359,13 +360,13 @@ void rolloutHandler(const char* filename, std::size_t size)
 		name_list.push_back(std::string(buf));
 	}
 
-	if (num < 10)
+	if (num < 5)
 	{
 		num++;
 	}
 	else
 	{
-		num = 10;
+		num = 5;
 		name_list.pop_back();
 	}
  
@@ -422,13 +423,13 @@ void rolloutHandler(const char* filename, std::size_t size)
 	sort(name_list.begin(), name_list.end());
 
 	int num = name_list.size();
-	if (num < 10)
+	if (num < 5)
 	{
 		num++;
 	}
 	else
 	{
-		num = 10;
+		num = 5;
 		name_list.pop_back();
 	}
 

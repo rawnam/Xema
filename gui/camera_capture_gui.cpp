@@ -12,7 +12,7 @@
 #include <qdesktopservices.h>
 #include <thread> 
 #include <QFuture>
-#include <QtConcurrent>
+#include <QtConcurrent/qtconcurrentrun.h>
 #include "waiting_gui.h"
 
 CameraCaptureGui::CameraCaptureGui(QWidget* parent)
