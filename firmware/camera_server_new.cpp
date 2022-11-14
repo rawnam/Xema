@@ -19,6 +19,8 @@
 #include <JetsonGPIO.h>
 #include "scan3d.h"
 #include "socket_tcp.h"
+#include <dirent.h>
+
 
 INITIALIZE_EASYLOGGINGPP
 #define INPUT_PIN           5           // BOARD pin 29, BCM pin 5
@@ -4367,9 +4369,94 @@ int init()
 
     return DF_SUCCESS;
 }
+  
+void rolloutHandler(const char* filename, std::size_t size)
+{ 
+	/// 备份日志
+    if (access("xemaLog", F_OK) != 0)
+    {
+        system("mkdir xemaLog");
+    }
+
+    std::vector<std::string> name_list;
+    std::string suffix = "log";
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir("xemaLog")) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            /* print all the files and directories within directory */
+            // printf("%s\n", ent->d_name);
+
+            std::string name = ent->d_name;
+
+            if(name.size()< 3)
+            {
+                continue;
+            }
+
+           std::string curSuffix = name.substr(name.size() - 3);
+
+           if (suffix == curSuffix)
+           {
+               name_list.push_back(name);
+           }
+       }
+       closedir(dir);
+   }
+
+   sort(name_list.begin(), name_list.end());
+
+    int num = name_list.size(); 
+	if (num < 10)
+	{
+		num++;
+	}
+	else
+	{
+		num = 10;
+		name_list.pop_back();
+	}
+ 
+
+	for (int i = num; i > 0 && !name_list.empty(); i--)
+	{
+		std::stringstream ss;
+		std::string path = "./xemaLog/" + name_list.back();
+		name_list.pop_back();
+		ss << "mv " << path << " xemaLog/log_" << i-1 << ".log";
+		std::cout << ss.str() << std::endl;
+		system(ss.str().c_str());
+	}
+
+	std::stringstream ss;
+	ss << "mv " << filename << " xemaLog/log_0" <<".log";
+	system(ss.str().c_str());
+ 
+
+}
+ 
+
 
 int main()
 {
+
+    	//关闭log输出
+	el::Configurations conf;
+	conf.setToDefault();  
+	conf.setGlobally(el::ConfigurationType::Filename, "xema_log.log"); 
+	conf.setGlobally(el::ConfigurationType::Enabled, "true");
+	conf.setGlobally(el::ConfigurationType::ToFile, "true"); 
+	el::Loggers::reconfigureAllLoggers(conf); 
+    //log configure
+	el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
+	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::MaxLogFileSize, "10485760");//10MB 10485760 
+	/// 注册回调函数
+	el::Helpers::installPreRollOutCallback(rolloutHandler);
+
+    /***************************************************************************/
+
     LOG(INFO)<<"server started";
     int ret = init();
     if(DF_SUCCESS!= ret)
