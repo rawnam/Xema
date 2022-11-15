@@ -44,6 +44,8 @@ int (*p_OnDropped)(void*) = 0;
 
 //int camera_version = 0;
 
+int multiple_exposure_model_ = 1;
+int repetition_exposure_model_ = 2;
 /**************************************************************************************************************/
 
 
@@ -718,19 +720,38 @@ DF_SDK_API int DfCaptureData(int exposure_num, char* timestamp)
 
 	if (exposure_num > 1)
 	{
-		ret = DfGetFrameHdr(depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
-		if (DF_FAILED == ret)
+		switch (multiple_exposure_model_)
 		{
-			return DF_FAILED;
+		case 1:
+		{
+			ret = DfGetFrameHdr(depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
+			if (DF_SUCCESS != ret)
+			{
+				return ret;
+			}
 		}
+		break;
+		case 2:
+		{
+			ret = DfGetRepetitionFrame04(repetition_exposure_model_, depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
+			if (DF_SUCCESS != ret)
+			{
+				return ret;
+			}
+
+		}
+		default:
+			break;
+		}
+		 
 	}
 	else
 	{
 		 
 		ret = DfGetFrame04(depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
-		if (DF_FAILED == ret)
+		if (DF_SUCCESS != ret)
 		{
-			return DF_FAILED;
+			return ret;
 		}
 	}
 
@@ -744,7 +765,7 @@ DF_SDK_API int DfCaptureData(int exposure_num, char* timestamp)
 	transform_pointcloud_flag_ = false;
 
 
-	return 0;
+	return DF_SUCCESS;
 }
 
 //函数名： DfGetDepthData
@@ -3714,6 +3735,39 @@ DF_SDK_API int DfGetParamOutlierFilter(float& threshold)
 	}
 
 	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+//函数名： DfSetParamMultipleExposureModel
+//功能： 设置多曝光模式
+//输入参数： model(1：HDR(默认值)、2：重复曝光)
+//输出参数：无
+//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+DF_SDK_API int DfSetParamMultipleExposureModel(int model)
+{
+	if (model != 1 && model != 2)
+	{
+		return DF_ERROR_INVALID_PARAM;
+	}
+	multiple_exposure_model_ = model;
+
+	return DF_SUCCESS;
+}
+
+//函数名： DfSetParamRepetitionExposureNum
+//功能： 设置重复曝光数
+//输入参数： num(2-10)
+//输出参数：无
+//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+DF_SDK_API int DfSetParamRepetitionExposureNum(int num)
+{
+	if (num < 2 || num >10)
+	{ 
+		return DF_ERROR_INVALID_PARAM;
+	}
+
+	repetition_exposure_model_ = num;
+
 	return DF_SUCCESS;
 }
 
