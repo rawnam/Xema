@@ -60,6 +60,8 @@ public:
     bool captureFrame04Hdr();
     
     bool captureFrame04HdrBaseConfidence(); 
+    
+    void mergeBrightness();
 
     bool captureFrame04Repetition01(int repetition_count); 
 

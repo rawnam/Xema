@@ -884,6 +884,10 @@ bool Scan3D::captureFrame04BaseConfidence()
     return true;
 }
 
+void Scan3D::mergeBrightness()
+{
+    cuda_merge_brigntness(hdr_num_, buff_brightness_);  
+}
 
 bool Scan3D::captureFrame04HdrBaseConfidence()
 {

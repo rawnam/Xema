@@ -164,6 +164,9 @@ bool cuda_copy_result_to_hdr(int serial_flag,int brigntness_serial);
 
 
 bool cuda_merge_hdr_data(int hdr_num,float* depth_map, unsigned char* brightness);
+
+
+bool cuda_merge_brigntness(int hdr_num, unsigned char* brightness);
 /***********************************************************************************/
 
 

@@ -1322,10 +1322,11 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
     scan3d_.captureFrame04HdrBaseConfidence(); 
+    std::thread  t_merge_brightness(&Scan3D::mergeBrightness, &scan3d_);
+ 
     scan3d_.removeOutlierBaseRadiusFilter();
 
-         
-    scan3d_.copyBrightnessData(brightness);
+          
     scan3d_.copyDepthData(depth_map);
 
  
@@ -1356,6 +1357,9 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
 
         return DF_FAILED;
     }
+
+    t_merge_brightness.join();
+    scan3d_.copyBrightnessData(brightness);
 
     LOG(INFO) << "start send brightness, buffer_size= "<<brightness_buf_size;
     ret = send_buffer(client_sock, (const char *)brightness, brightness_buf_size);
