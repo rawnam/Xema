@@ -14,6 +14,7 @@
 #include <QFuture>
 #include <QtConcurrent/qtconcurrentrun.h>
 #include "waiting_gui.h"
+#include <enumerate.h>
 
 CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	: QWidget(parent)

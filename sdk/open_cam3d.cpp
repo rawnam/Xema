@@ -26,7 +26,7 @@ using namespace std::chrono;
 
 /**********************************************************************************************************************/
 //socket
-//INITIALIZE_EASYLOGGINGPP
+INITIALIZE_EASYLOGGINGPP
 
 //const int image_width = 1920;
 //const int image_height = 1200;
@@ -295,55 +295,7 @@ int depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 
 	return DF_SUCCESS;
 }
-
-
-
-/**************************************************************************************************************************/
-//函数名： DfUpdateDeviceList
-//功能： 连接相机
-//输入参数： device_num(设备数)
-//输出参数： 无
-//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
-DF_SDK_API int DfUpdateDeviceList(int& device_num)
-{
-	mac_list_.clear();
-	ip_list_.clear();
-
-	int ret = GetCameraList(mac_list_, ip_list_);
-
-	if (mac_list_.empty())
-	{
-		return -1;
-	}
-
-	device_num = mac_list_.size();
-
-	return 0;
-}
-
-//函数名： DfGetAllDeviceBaseInfo
-//功能： 获取设备基本信息
-//输入参数： pDeviceInfo(设备信息)、pBufferSize（设备结构体内存尺寸）
-//输出参数： 无
-//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
-DF_SDK_API int DfGetAllDeviceBaseInfo(DeviceBaseInfo* pDeviceInfo, int* pBufferSize)
-{
-	int nSize =  sizeof(DeviceBaseInfo);
-	int camera_num = *pBufferSize/ nSize;
-
-	for (int i = 0; i < camera_num && i < mac_list_.size(); i++)
-	{
-		DeviceBaseInfo info;
-
-		memcpy(info.mac, mac_list_[i].c_str(), nSize/2);
-		memcpy(info.ip, ip_list_[i].c_str(), nSize / 2);
-		memcpy(pDeviceInfo+i, &info, nSize);
-	}
-
-
-	return 0;
-}
-  
+ 
 void rolloutHandler(const char* filename, std::size_t size)
 {
 #ifdef _WIN32 
