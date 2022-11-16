@@ -46,8 +46,8 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	setUiData();
 	undateSystemConfigUiData();
 
-	last_path_ = "../TestData";
-	sys_path_ = "../TestData";
+	last_path_ = processing_gui_settings_data_.last_path;
+	sys_path_ = processing_gui_settings_data_.last_path;
 	QDir dir(last_path_);
 	QString path = dir.absolutePath();
 
@@ -2350,6 +2350,8 @@ void CameraCaptureGui::do_pushButton_save_as()
 	last_path_ = fileInfo.absolutePath();
 
 
+	processing_gui_settings_data_.Instance().last_path = last_path_; 
+ 
 
 	std::thread t_s(&CameraCaptureGui::saveOneFrameData, this, path);
 	t_s.detach();

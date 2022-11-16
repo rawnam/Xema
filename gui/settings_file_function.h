@@ -16,6 +16,8 @@ struct  GuiConfigDataStruct
 	int calibration_board;
 	int repetition_count;
 
+	QString last_path;
+
 
 	bool loadFromSettings(const QString& f);
 	bool saveToSettings(const QString& f);
