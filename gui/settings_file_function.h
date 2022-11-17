@@ -17,6 +17,7 @@ struct  GuiConfigDataStruct
 	int repetition_count;
 
 	QString last_path;
+	int exposure_model;
 
 
 	bool loadFromSettings(const QString& f);

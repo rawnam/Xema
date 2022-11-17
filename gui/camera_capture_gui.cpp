@@ -219,8 +219,7 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.radioButton_depth_color, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_color_depth(bool)));
 	connect(ui.radioButton_depth_grey, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_gray_depth(bool)));
 	 
-	connect(ui.comboBox_ip, SIGNAL(activated(int)), this, SLOT(do_comboBox_activated_ip(int)));
-	connect(ui.checkBox_hdr, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_hdr(bool)));
+	connect(ui.comboBox_ip, SIGNAL(activated(int)), this, SLOT(do_comboBox_activated_ip(int))); 
 	connect(ui.checkBox_over_exposure, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_over_exposure(bool)));
 
 	connect(ui.pushButton_connect, SIGNAL(clicked()), this, SLOT(do_pushButton_connect_async()));
@@ -513,13 +512,33 @@ void CameraCaptureGui::setUiData()
 	ui.doubleSpinBox_max_z->setValue(processing_gui_settings_data_.Instance().high_z_value);
 	ui.lineEdit_ip->setText(processing_gui_settings_data_.Instance().ip);
 	ui.spinBox_repetition_count->setValue(processing_gui_settings_data_.Instance().repetition_count);
-
-	ui.checkBox_hdr->setChecked(processing_gui_settings_data_.Instance().use_hdr_model);
+	 
 
 	setCalibrationBoard(processing_gui_settings_data_.Instance().calibration_board);
 	qDebug() << "processing_gui_settings_data_.Instance().calibration_board: " << processing_gui_settings_data_.Instance().calibration_board;
 	//ui.spinBox_exposure_num->setDisabled(true);
 	//ui.spinBox_led->setDisabled(true);
+
+	switch (processing_gui_settings_data_.Instance().exposure_model)
+	{
+	case 0:
+	{
+		ui.radioButton_single_exposure->setChecked(true);
+	}
+	break;
+	case 1:
+	{
+		ui.radioButton_hdr_exposure->setChecked(true);
+	}
+	break;
+	case 2:
+	{
+		ui.radioButton_repetition_exposure->setChecked(true);
+	}
+	break;
+	default:
+		break;
+	}
 }
 
 
@@ -560,7 +579,7 @@ void CameraCaptureGui::add_exposure_item(int row, int exposure, int led)
 	}
 
 	QSpinBox* exposureSpinBoxItem = new QSpinBox();
-	exposureSpinBoxItem->setRange(1000, 60000);//设置数值显示范围
+	exposureSpinBoxItem->setRange(EXPOSURE_TIME_MIN_, EXPOSURE_TIME_MAX_);//设置数值显示范围
 	exposureSpinBoxItem->setValue(exposure);
 	exposureSpinBoxItem->setButtonSymbols(QAbstractSpinBox::NoButtons);
 	exposureSpinBoxItem->setAlignment(Qt::AlignHCenter);
@@ -967,6 +986,7 @@ bool CameraCaptureGui::setCameraConfigParam()
 	if (0 != ret_code)
 	{
 		qDebug() << "Set Led Curretn Error;";
+		addLogMessage(u8"设置亮度失败！");
 		return false;
 	}
 
@@ -976,6 +996,7 @@ bool CameraCaptureGui::setCameraConfigParam()
 	if (0 != ret_code)
 	{
 		qDebug() << "Set HDR Param Error;";
+		addLogMessage(u8"设置高动态参数失败！");
 		return false;
 	}
 
@@ -1408,13 +1429,60 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 
 	int ret_code = -1;
 
-	if (hdr)
+	//if (hdr)
+	//{
+	//	ret_code = DfGetFrameHdr((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+	//}
+	//else
+	//{
+	//	ret_code = DfGetFrame04((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+	//}
+
+	if (ui.radioButton_single_exposure->isChecked())
 	{
+		exposure_model_ = EXPOSURE_MODEL_SINGLE_;
+	}
+	else if (ui.radioButton_hdr_exposure->isChecked())
+	{
+		exposure_model_ = EXPOSURE_MODEL_HDR_;
+	}
+	else if (ui.radioButton_repetition_exposure->isChecked())
+	{
+		exposure_model_ = EXPOSURE_MODEL_REPETITION_;
+	}
+
+	switch (exposure_model_)
+	{
+	case EXPOSURE_MODEL_SINGLE_:
+	{
+		//单曝光
+		ret_code = DfGetFrame04((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+	}
+	break;
+	case EXPOSURE_MODEL_HDR_:
+	{
+		//HDR
+		bool changed = manyExposureParamHasChanged();
+
+		if (changed)
+		{
+			updateManyExposureParam();
+		}
+
+
 		ret_code = DfGetFrameHdr((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
 	}
-	else
+	break;
+	case EXPOSURE_MODEL_REPETITION_:
 	{
-		ret_code = DfGetFrame04((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+		//重复曝光
+		ret_code = DfGetRepetitionFrame04(processing_gui_settings_data_.Instance().repetition_count, (float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+
+	}
+	break;
+
+	default:
+		break;
 	}
 
 
@@ -1482,35 +1550,55 @@ bool CameraCaptureGui::captureOneFrameData()
 	int depth_buf_size = image_size * 1 * 4;
 	int brightness_bug_size = image_size;
 
+	if (ui.radioButton_single_exposure->isChecked())
+	{
+		exposure_model_ = EXPOSURE_MODEL_SINGLE_;
+	}
+	else if (ui.radioButton_hdr_exposure->isChecked())
+	{ 
+		exposure_model_ = EXPOSURE_MODEL_HDR_;
+	}
+	else if (ui.radioButton_repetition_exposure->isChecked())
+	{
+		exposure_model_ = EXPOSURE_MODEL_REPETITION_;
+	}
+
 	int ret_code = 0;
 
-	//重复曝光
-	if (processing_gui_settings_data_.Instance().repetition_count > 1)
+	switch (exposure_model_)
 	{
-		ret_code = DfGetRepetitionFrame04(processing_gui_settings_data_.Instance().repetition_count, (float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
-	}
-	else//单曝光
-	{
-		if (ui.checkBox_hdr->isChecked())
+	case EXPOSURE_MODEL_SINGLE_:
 		{
-			if (connected_flag_)
-			{
-				bool changed = manyExposureParamHasChanged();
+			//单曝光
+			ret_code = DfGetFrame04((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+		}
+		break;
+	case EXPOSURE_MODEL_HDR_:
+		{
+			//HDR
+			bool changed = manyExposureParamHasChanged();
 
-				if (changed)
-				{
-					updateManyExposureParam();
-				}
+			if (changed)
+			{
+				updateManyExposureParam();
 			}
+
 
 			ret_code = DfGetFrameHdr((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
 		}
-		else
+		break;
+	case EXPOSURE_MODEL_REPETITION_:
 		{
-			ret_code = DfGetFrame04((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
-		}
-	}
+			//重复曝光
+			ret_code = DfGetRepetitionFrame04(processing_gui_settings_data_.Instance().repetition_count, (float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
 
+		}
+		break;
+
+		default:
+			break;
+	}
+	 
 
 
 	/***************************************************************************/
@@ -1518,6 +1606,7 @@ bool CameraCaptureGui::captureOneFrameData()
 	{
 
 
+		processing_gui_settings_data_.Instance().exposure_model = exposure_model_;
 
 
 		brightness_map_ = brightness.clone();
@@ -1623,14 +1712,7 @@ void  CameraCaptureGui::do_pushButton_connect()
 
 			addLogMessage(u8"连接相机：");
 			int ret_code = DfConnect(camera_ip_.toStdString().c_str());
-			//int ret_code = -1;
-			//QFuture<int> fut = QtConcurrent::run(DfConnect, camera_ip_.toStdString().c_str());
-			//while (!fut.isFinished())
-			//{
-			//	QApplication::processEvents(QEventLoop::AllEvents, 100);
-			//	qDebug() << "timeout";
-			//}
-			//ret_code = fut.result();
+ 
   
 			DfRegisterOnDropped(m_p_OnDropped_);
 
@@ -1679,12 +1761,6 @@ void  CameraCaptureGui::do_pushButton_connect()
 				//保存ip配置
 				processing_gui_settings_data_.Instance().ip = camera_ip_;
 
-				//ret_code = DfGetSystemConfigParam(system_config_param_);
-				//if (0 != ret_code)
-				//{
-				//	qDebug() << "Get Param Error;";
-				//	//return;
-				//}
 
 				//设置配置参数
 				ret_code = DfSetSystemConfigParam(system_config_param_);
@@ -2470,7 +2546,7 @@ void  CameraCaptureGui::do_timeout_capture_slot()
 		//	capture_timer_.start();
 		//}
 		 
-		std::thread t_s(&CameraCaptureGui::captureOneFrameBaseThread, this, ui.checkBox_hdr->isChecked());
+		std::thread t_s(&CameraCaptureGui::captureOneFrameBaseThread, this, false);
 		t_s.detach();
 		capture_timer_.start();
 	}
@@ -2502,6 +2578,10 @@ void  CameraCaptureGui::do_pushButton_capture_continuous()
 			capturing_flag_ = false;
 			capture_timer_.start();
 			ui.pushButton_capture_continuous->setIcon(QIcon(":/dexforce_camera_gui/image/video_stop.png"));
+		}
+		else
+		{ 
+			addLogMessage(u8"请先连接相机");
 		}
 
 	}

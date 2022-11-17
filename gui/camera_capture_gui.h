@@ -20,6 +20,14 @@
 #define GENERATE_BRIGHTNESS_ILLUMINATION_ 2;
 #define GENERATE_BRIGHTNESS_DARKNESS_ 3;
 
+const int EXPOSURE_MODEL_SINGLE_ = 0;
+const int EXPOSURE_MODEL_HDR_ = 1;
+const int EXPOSURE_MODEL_REPETITION_ = 2;
+
+
+const int EXPOSURE_TIME_MIN_ = 1700;
+const int EXPOSURE_TIME_MAX_ = 100000;
+
 class CameraCaptureGui : public QWidget
 {
 	Q_OBJECT
@@ -271,4 +279,8 @@ private:
 
 
 	int (*m_p_OnDropped_)(void*);
+
+
+	int exposure_model_;
+
 };
