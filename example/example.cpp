@@ -148,23 +148,60 @@ int main()
 		}
 		else
 		{
-			//采集HDR模式数据 
-			int num = 2;
-			int led_param[6] = { 100,1023,1023,1023,1023,1023 };
-			int exposure_param[6] = { 6000,30000,60000,60000,60000,60000 };
+			//多曝光模式
+			// 
+			
+			if (false)
+			{ 
+				//采集HDR模式数据 
+				int num = 2;
+				int led_param[6] = { 100,1023,1023,1023,1023,1023 };
+				int exposure_param[6] = { 6000,30000,60000,60000,60000,60000 };
 
-			//设置多曝光参数
-			ret_code = DfSetParamMixedHdr(num, exposure_param, led_param);
+				//设置多曝光参数
+				ret_code = DfSetParamMixedHdr(num, exposure_param, led_param);
 
-			if (0 != ret_code)
-			{
-				std::cout << "Set HDR Param Error;" << std::endl;
+				if (0 != ret_code)
+				{
+					std::cout << "Set HDR Param Error;" << std::endl;
+				}
+
+				//采集一帧HDR的数据 
+				ret_code = DfSetParamMultipleExposureModel(1);
+				if (0 != ret_code)
+				{
+					std::cout << "Set Multiple Exposure Model Error;" << std::endl;
+				}
+
+				ret_code = DfCaptureData(num, timestamp_data);
+				std::cout << "Capture HDR Data" << std::endl;
+				std::cout << "timestamp: " << timestamp_data << std::endl;
+
+			}
+			else
+			{ 
+				//采集重复曝光模式数据 
+							 
+				int num = 3;
+
+				ret_code = DfSetParamRepetitionExposureNum(num);
+				if (0 != ret_code)
+				{
+					std::cout << "Set Multiple Exposure Model Error;" << std::endl;
+				}
+
+				ret_code = DfSetParamMultipleExposureModel(2);
+				if (0 != ret_code)
+				{
+					std::cout << "Set Multiple Exposure Model Error;" << std::endl;
+				}
+				ret_code = DfCaptureData(num, timestamp_data);
+				std::cout << "Capture HDR Data" << std::endl;
+				std::cout << "timestamp: " << timestamp_data << std::endl;
+
 			}
 
-			//采集一帧多曝光的数据
-			ret_code = DfCaptureData(num, timestamp_data);
-			std::cout << "Capture HDR Data" << std::endl;
-			std::cout << "timestamp: " << timestamp_data << std::endl;
+
 		}
 
 

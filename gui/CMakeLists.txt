@@ -16,7 +16,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 project(open_cam3d_gui CXX)
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/bin)
 
-include_directories(${OpenCV_INCLUDE_DIRS}  ../test ../sdk)
+include_directories(${OpenCV_INCLUDE_DIRS}  ../test ../sdk ../example)
 
 set(HEADERS 
     camera_gui.h 
@@ -58,6 +58,7 @@ set(APP_SRC
  )
 
 link_libraries(${PROJECT_SOURCE_DIR}/../example/libopen_cam3d_sdk.so)
+link_libraries(${PROJECT_SOURCE_DIR}/../example/libenumerate.so)
 #print message
 message(${PROJECT_SOURCE_DIR})   
 
