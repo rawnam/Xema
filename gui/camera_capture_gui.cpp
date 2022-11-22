@@ -263,6 +263,10 @@ bool CameraCaptureGui::initializeFunction()
  
 
 	camera_version_ = 800;
+
+
+	exposure_time_min_ = 1700;
+	exposure_time_max_ = 100000;
 	/**********************************************************************************************************************/
 
 
@@ -504,6 +508,8 @@ void CameraCaptureGui::undateSystemConfigUiData()
 	float val = (50 + firmware_config_param_.fisher_confidence) / 2;
 	ui.doubleSpinBox_fisher->setValue(val);
 
+	ui.spinBox_camera_exposure->setMaximum(exposure_time_max_);
+	ui.spinBox_camera_exposure->setMinimum(exposure_time_min_);
 }
 
 void CameraCaptureGui::setUiData()
@@ -579,7 +585,7 @@ void CameraCaptureGui::add_exposure_item(int row, int exposure, int led)
 	}
 
 	QSpinBox* exposureSpinBoxItem = new QSpinBox();
-	exposureSpinBoxItem->setRange(EXPOSURE_TIME_MIN_, EXPOSURE_TIME_MAX_);//设置数值显示范围
+	exposureSpinBoxItem->setRange(exposure_time_min_, exposure_time_max_);//设置数值显示范围
 	exposureSpinBoxItem->setValue(exposure);
 	exposureSpinBoxItem->setButtonSymbols(QAbstractSpinBox::NoButtons);
 	exposureSpinBoxItem->setAlignment(Qt::AlignHCenter);
@@ -1046,6 +1052,33 @@ bool CameraCaptureGui::setCameraConfigParam()
 	if (0 != ret_code)
 	{
 		addLogMessage(u8"设置过滤噪点参数失败！");
+	}
+
+	int projector_version = 3010;
+	ret_code = DfGetProjectorVersion(projector_version);
+	if (0 != ret_code)
+	{
+		addLogMessage(u8"获取光机型号失败！");
+	}
+	else
+	{
+		switch (projector_version)
+		{
+		case DF_PROJECTOR_3010:
+		{
+			exposure_time_max_ = 100000;
+			exposure_time_min_ = 1700;
+		}
+		break;
+		case DF_PROJECTOR_4710:
+		{
+			exposure_time_max_ = 28000;
+			exposure_time_min_ = 1700;
+		}
+		break;
+		default:
+			break;
+		}
 	}
 
 	if (DF_UNKNOWN == ret_code)

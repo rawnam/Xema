@@ -25,8 +25,8 @@ const int EXPOSURE_MODEL_HDR_ = 1;
 const int EXPOSURE_MODEL_REPETITION_ = 2;
 
 
-const int EXPOSURE_TIME_MIN_ = 1700;
-const int EXPOSURE_TIME_MAX_ = 100000;
+//const int EXPOSURE_TIME_MIN_ = 1700;
+//const int EXPOSURE_TIME_MAX_ = 100000;
 
 class CameraCaptureGui : public QWidget
 {
@@ -283,4 +283,6 @@ private:
 
 	int exposure_model_;
 
+	int exposure_time_min_ = 1700;
+	int exposure_time_max_ = 100000;
 };
