@@ -1930,7 +1930,8 @@ void  CameraCaptureGui::do_pushButton_disconnect()
 		connected_flag_ = false; 
 		ui.lineEdit_ip->setDisabled(false);
 
-		ui.pushButton_connect->setIcon(QIcon(":/dexforce_camera_gui/image/connect.png"));
+		ui.pushButton_connect->setIcon(QIcon(":/dexforce_camera_gui/image/connect.png")); 
+		ui.pushButton_capture_continuous->setIcon(QIcon(":/dexforce_camera_gui/image/video_start.png"));
 	}
 
 
