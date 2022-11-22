@@ -1533,7 +1533,8 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 		brightness_map_ = brightness.clone();
 		depth_map_ = depth.clone();
 
-		depthTransformPointcloud((float*)depth.data, (float*)point_cloud.data);
+		depthTransformPointcloud((float*)depth.data, (float*)point_cloud.data); 
+		pointcloud_map_ = point_cloud.clone();
 		transformPointcloud((float*)point_cloud.data, (float*)point_cloud.data, system_config_param_.standard_plane_external_param, &system_config_param_.standard_plane_external_param[9]);
 
 		std::vector<cv::Mat> channels;
