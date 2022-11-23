@@ -46,6 +46,9 @@ int (*p_OnDropped)(void*) = 0;
 
 int multiple_exposure_model_ = 1;
 int repetition_exposure_model_ = 2;
+
+
+std::timed_mutex command_mutex_;
 /**************************************************************************************************************/
 
 
@@ -555,6 +558,12 @@ DF_SDK_API int DfConnect(const char* camera_id)
 //返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
 DF_SDK_API int DfGetCameraResolution(int* width, int* height)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "DfGetCameraResolution:";
 	*width = camera_width_;
 	*height = camera_height_;
@@ -837,6 +846,11 @@ DF_SDK_API int DfGetBrightnessData(unsigned char* brightness)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetStandardPlaneParam(float* R, float* T)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfGetStandardPlaneParam: ";
 
@@ -1126,6 +1140,12 @@ DF_SDK_API int DfGetCalibrationParam(struct CalibrationParam* calibration_param)
 
 int HeartBeat()
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(TRACE) << "heart beat: ";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock_heartbeat);
 	if (ret == DF_FAILED)
@@ -1199,6 +1219,12 @@ int HeartBeat_loop()
 
 DF_SDK_API int DfConnectNet(const char* ip)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "DfConnectNet: ";
 	/*******************************************************************************************************************/
 	//关闭log输出
@@ -1278,6 +1304,12 @@ DF_SDK_API int DfConnectNet(const char* ip)
 
 DF_SDK_API int DfDisconnectNet()
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "token " << token << " try to disconnection";
 
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -1328,6 +1360,12 @@ DF_SDK_API int DfDisconnectNet()
 //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfGetFocusingImage(unsigned char* image, int image_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "DfGetFocusingImage";
 	assert(image_buf_size >= image_size_ * sizeof(unsigned char));
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -1372,6 +1410,12 @@ DF_SDK_API int DfGetFocusingImage(unsigned char* image, int image_buf_size)
 
 DF_SDK_API int GetBrightness(unsigned char* brightness, int brightness_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "GetBrightness";
 	assert(brightness_buf_size >= image_size_ * sizeof(unsigned char));
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -1462,6 +1506,12 @@ DF_SDK_API int DfGetCameraData(
 DF_SDK_API int DfGetFrameHdr(float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "GetFrameHdr";
 	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
 	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
@@ -1527,6 +1577,12 @@ DF_SDK_API int DfGetFrameHdr(float* depth, int depth_buf_size,
 DF_SDK_API int DfGetRepetitionPhase02(int count, float* phase_x, float* phase_y, int phase_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "DfGetRepetitionPhase02";
 	assert(phase_buf_size == image_size_ * sizeof(float) * 1);
 	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
@@ -1615,6 +1671,12 @@ DF_SDK_API int DfGetRepetitionPhase02(int count, float* phase_x, float* phase_y,
 DF_SDK_API int DfGetRepetitionFrame04(int count, float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "GetRepetition01Frame04";
 	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
 	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
@@ -1688,6 +1750,11 @@ DF_SDK_API int DfGetRepetitionFrame04(int count, float* depth, int depth_buf_siz
 DF_SDK_API int DfGetRepetitionFrame03(int count, float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 	LOG(INFO) << "GetRepetitionFrame03";
 	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
 	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
@@ -1760,6 +1827,11 @@ DF_SDK_API int DfGetRepetitionFrame03(int count, float* depth, int depth_buf_siz
 DF_SDK_API int DfGetFrame03(float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 	LOG(INFO) << "GetFrame03";
 	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
 	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
@@ -1821,6 +1893,11 @@ DF_SDK_API int DfGetFrame03(float* depth, int depth_buf_size,
 DF_SDK_API int DfGetFrame04(float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 	LOG(INFO) << "GetFrame04";
 	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
 	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
@@ -1881,6 +1958,11 @@ DF_SDK_API int DfGetFrame04(float* depth, int depth_buf_size,
 DF_SDK_API int DfGetFrame05(float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 	LOG(INFO) << "GetFrame05";
 	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
 	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
@@ -1941,6 +2023,12 @@ DF_SDK_API int DfGetFrame05(float* depth, int depth_buf_size,
 DF_SDK_API int DfGetFrame01(float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "GetFrame01";
 	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
 	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
@@ -2000,6 +2088,12 @@ DF_SDK_API int DfGetFrame01(float* depth, int depth_buf_size,
 
 DF_SDK_API int DfGetPointCloud(float* point_cloud, int point_cloud_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "GetPointCloud";
 	assert(point_cloud_buf_size == image_size_ * sizeof(float) * 3);
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -2050,6 +2144,12 @@ DF_SDK_API int DfGetPointCloud(float* point_cloud, int point_cloud_buf_size)
 //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfGetCameraRawData04Repetition(unsigned char* raw, int raw_buf_size, int repetition_count)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	if (raw)
 	{
 		LOG(INFO) << "GetRaw04Repetition";
@@ -2111,6 +2211,12 @@ DF_SDK_API int DfGetCameraRawData04Repetition(unsigned char* raw, int raw_buf_si
 //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfGetCameraRawData04(unsigned char* raw, int raw_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	if (raw)
 	{
 		LOG(INFO) << "GetRaw04";
@@ -2160,6 +2266,12 @@ DF_SDK_API int DfGetCameraRawData04(unsigned char* raw, int raw_buf_size)
 
 DF_SDK_API int DfGetCameraRawData03(unsigned char* raw, int raw_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	if (raw)
 	{
 		LOG(INFO) << "GetRaw03";
@@ -2209,6 +2321,12 @@ DF_SDK_API int DfGetCameraRawData03(unsigned char* raw, int raw_buf_size)
 
 DF_SDK_API int DfGetCameraRawData02(unsigned char* raw, int raw_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	if (raw)
 	{
 		LOG(INFO) << "GetRawTest";
@@ -2258,6 +2376,12 @@ DF_SDK_API int DfGetCameraRawData02(unsigned char* raw, int raw_buf_size)
 
 DF_SDK_API int DfGetCameraRawDataTest(unsigned char* raw, int raw_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	if (raw)
 	{
 		LOG(INFO) << "GetRawTest";
@@ -2309,6 +2433,12 @@ DF_SDK_API int DfGetCameraRawDataTest(unsigned char* raw, int raw_buf_size)
 
 DF_SDK_API int DfGetCameraRawData01(unsigned char* raw, int raw_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	if (raw)
 	{
 		LOG(INFO) << "Get Raw 01";
@@ -2358,6 +2488,12 @@ DF_SDK_API int DfGetCameraRawData01(unsigned char* raw, int raw_buf_size)
 
 DF_SDK_API int DfGetDeviceTemperature(float& temperature)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -2398,6 +2534,12 @@ DF_SDK_API int DfGetDeviceTemperature(float& temperature)
 // -- Enable and disable checkerboard, by wantong, 2022-01-27
 DF_SDK_API int DfEnableCheckerboard(float& temperature)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -2436,6 +2578,12 @@ DF_SDK_API int DfEnableCheckerboard(float& temperature)
 
 DF_SDK_API int DfDisableCheckerboard(float& temperature)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -2474,6 +2622,12 @@ DF_SDK_API int DfDisableCheckerboard(float& temperature)
 // --------------------------------------------------------------
 DF_SDK_API int DfLoadPatternData(int buildDataSize, char* LoadBuffer)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -2519,6 +2673,12 @@ DF_SDK_API int DfLoadPatternData(int buildDataSize, char* LoadBuffer)
 
 DF_SDK_API int DfProgramPatternData(char* org_buffer, char* back_buffer, unsigned int pattern_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -2571,6 +2731,12 @@ DF_SDK_API int DfProgramPatternData(char* org_buffer, char* back_buffer, unsigne
 // --------------------------------------------------------------
 DF_SDK_API int DfGetNetworkBandwidth(int& speed)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -2610,6 +2776,12 @@ DF_SDK_API int DfGetNetworkBandwidth(int& speed)
 // --------------------------------------------------------------
 DF_SDK_API int DfSelfTest(char* pTest, int length)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -2649,6 +2821,12 @@ DF_SDK_API int DfSelfTest(char* pTest, int length)
 // --------------------------------------------------------------
 DF_SDK_API int DfGetFirmwareVersion(char* pVersion, int length)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -2687,6 +2865,12 @@ DF_SDK_API int DfGetFirmwareVersion(char* pVersion, int length)
 
 DF_SDK_API int DfGetProjectorTemperature(float& temperature)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -2726,6 +2910,12 @@ DF_SDK_API int DfGetProjectorTemperature(float& temperature)
 // --------------------------------------------------------------
 DF_SDK_API int DfGetSystemConfigParam(struct SystemConfigParam& config_param)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -2764,6 +2954,12 @@ DF_SDK_API int DfGetSystemConfigParam(struct SystemConfigParam& config_param)
 
 DF_SDK_API int DfSetSystemConfigParam(const struct SystemConfigParam& config_param)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -2802,6 +2998,12 @@ DF_SDK_API int DfSetSystemConfigParam(const struct SystemConfigParam& config_par
 
 DF_SDK_API int DfGetCalibrationParam(struct CameraCalibParam& calibration_param)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -2846,6 +3048,12 @@ DF_SDK_API int DfGetCalibrationParam(struct CameraCalibParam& calibration_param)
 DF_SDK_API int DfSetCalibrationLookTable(const struct CameraCalibParam& calibration_param, float* rotate_x,
 	float* rotate_y, float* rectify_r1, float* mapping, float* mini_mapping, int width, int height)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -2932,6 +3140,12 @@ DF_SDK_API int DfSetCalibrationLookTable(const struct CameraCalibParam& calibrat
 DF_SDK_API int DfSetCalibrationMiniLookTable(const struct CameraCalibParam& calibration_param, float* rotate_x,
 	float* rotate_y, float* rectify_r1, float* mapping)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -3004,6 +3218,12 @@ DF_SDK_API int DfSetCalibrationMiniLookTable(const struct CameraCalibParam& cali
 
 DF_SDK_API int DfSetCalibrationParam(const struct CameraCalibParam& calibration_param)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -3049,11 +3269,21 @@ DF_SDK_API int DfRegisterOnDropped(int (*p_function)(void*))
 
 DF_SDK_API int DfSetAutoExposure(int flag, int& exposure, int& led)
 {
+
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+
 	if (flag != 1 && flag != 2)
 	{
 		LOG(INFO) << "error flag:  " << flag << std::endl;
 		return DF_FAILED;
 	}
+
+ 
 
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
@@ -3176,6 +3406,12 @@ DF_SDK_API int DfGetParamSmoothing(int& smoothing)
 //返回值： 类型（int）:返回0表示获取标定参数成功;返回-1表示获取标定参数失败.
 DF_SDK_API int DfSetParamBilateralFilter(int use, int param_d)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	if (use != 1 && use != 0)
 	{
 		std::cout << "use param should be 1 or 0:  " << use << std::endl;
@@ -3238,6 +3474,12 @@ DF_SDK_API int DfSetParamBilateralFilter(int use, int param_d)
 //返回值： 类型（int）:返回0表示获取标定参数成功;返回-1表示获取标定参数失败.
 DF_SDK_API int DfGetParamBilateralFilter(int& use, int& param_d)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -3294,6 +3536,11 @@ DF_SDK_API int DfGetParamBilateralFilter(int& use, int& param_d)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfSetParamRadiusFilter(int use, float radius, int num)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfSetParamRadiusFilter:";
 	if (use != 1 && use != 0)
@@ -3365,6 +3612,11 @@ DF_SDK_API int DfSetParamRadiusFilter(int use, float radius, int num)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetParamRadiusFilter(int& use, float& radius, int& num)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfGetParamRadiusFilter:";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -3430,7 +3682,11 @@ DF_SDK_API int DfGetParamRadiusFilter(int& use, float& radius, int& num)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfSetParamReflectFilter(int use)
 {
-
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 	if (use != 1 && use != 0)
 	{
 		std::cout << "use param should be 1 or 0:  " << use << std::endl;
@@ -3485,7 +3741,11 @@ DF_SDK_API int DfSetParamReflectFilter(int use)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfSetBoardInspect(bool enable)
 {
-
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -3547,6 +3807,12 @@ DF_SDK_API int DfSetBoardInspect(bool enable)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetParamReflectFilter(int& use)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -3597,6 +3863,11 @@ DF_SDK_API int DfGetParamReflectFilter(int& use)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfSetParamOutlierFilter(float threshold)
 { 
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfSetParamOutlierFilter:";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -3647,6 +3918,12 @@ DF_SDK_API int DfSetParamOutlierFilter(float threshold)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetParamOutlierFilter(float& threshold)
 { 
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "DfGetParamOutlierFilter:";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
@@ -3730,6 +4007,11 @@ DF_SDK_API int DfSetParamRepetitionExposureNum(int num)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetParamOffset(float& offset)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -3779,6 +4061,11 @@ DF_SDK_API int DfGetParamOffset(float& offset)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfSetParamOffset(float offset)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	if (offset < 0)
 	{
@@ -3835,7 +4122,11 @@ DF_SDK_API int DfSetParamOffset(float offset)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfSetParamCameraConfidence(float confidence)
 {
-
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfSetParamCameraConfidence:";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -3886,6 +4177,11 @@ DF_SDK_API int DfSetParamCameraConfidence(float confidence)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetParamCameraConfidence(float& confidence)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfGetParamCameraConfidence:";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -3937,6 +4233,11 @@ DF_SDK_API int DfGetParamCameraConfidence(float& confidence)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfSetParamCameraGain(float gain)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfSetParamCameraGain:";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -3988,7 +4289,11 @@ DF_SDK_API int DfSetParamCameraGain(float gain)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetParamCameraGain(float& gain)
 {
-
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 	LOG(INFO) << "DfGetParamCameraGain:";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
@@ -4039,6 +4344,12 @@ DF_SDK_API int DfGetParamCameraGain(float& gain)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfSetParamCameraExposure(float exposure)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "DfSetParamCameraExposure:";
 
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -4090,6 +4401,11 @@ DF_SDK_API int DfSetParamCameraExposure(float exposure)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetParamCameraExposure(float& exposure)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfGetParamCameraExposure:";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -4141,6 +4457,11 @@ DF_SDK_API int DfGetParamCameraExposure(float& exposure)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfSetParamGenerateBrightness(int model, float exposure)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfSetParamGenerateBrightness: ";
 	if (exposure < 20 || exposure> 1000000)
@@ -4204,6 +4525,11 @@ DF_SDK_API int DfSetParamGenerateBrightness(int model, float exposure)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetParamGenerateBrightness(int& model, float& exposure)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfGetParamGenerateBrightness: ";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -4264,6 +4590,12 @@ DF_SDK_API int DfGetParamGenerateBrightness(int& model, float& exposure)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfSetParamStandardPlaneExternal(float* R, float* T)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "DfSetParamStandardPlaneExternal: ";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
@@ -4323,6 +4655,12 @@ DF_SDK_API int DfSetParamStandardPlaneExternal(float* R, float* T)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetParamStandardPlaneExternal(float* R, float* T)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "DfGetParamStandardPlaneExternal: ";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
@@ -4381,6 +4719,11 @@ DF_SDK_API int DfGetParamStandardPlaneExternal(float* R, float* T)
 //返回值： 类型（int）:返回0表示获取标定参数成功;返回-1表示获取标定参数失败.
 DF_SDK_API int DfSetParamMixedHdr(int num, int exposure_param[6], int led_param[6])
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfSetParamMixedHdr:";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -4437,6 +4780,11 @@ DF_SDK_API int DfSetParamMixedHdr(int num, int exposure_param[6], int led_param[
 //返回值： 类型（int）:返回0表示获取标定参数成功;返回-1表示获取标定参数失败.
 DF_SDK_API int DfGetParamMixedHdr(int& num, int exposure_param[6], int led_param[6])
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfGetParamMixedHdr:";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -4496,6 +4844,12 @@ DF_SDK_API int DfGetParamMixedHdr(int& num, int exposure_param[6], int led_param
 //返回值： 类型（int）:返回0表示获取标定参数成功;返回-1表示获取标定参数失败.
 DF_SDK_API int DfSetParamHdr(int num, int exposure_param[6])
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -4550,6 +4904,12 @@ DF_SDK_API int DfSetParamHdr(int num, int exposure_param[6])
 //返回值： 类型（int）:返回0表示获取标定参数成功;返回-1表示获取标定参数失败.
 DF_SDK_API int DfGetParamHdr(int& num, int exposure_param[6])
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -4606,6 +4966,11 @@ DF_SDK_API int DfGetParamHdr(int& num, int exposure_param[6])
 //返回值： 类型（int）:返回0表示获取标定参数成功;返回-1表示获取标定参数失败.
 DF_SDK_API int DfSetParamLedCurrent(int led)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfSetParamLedCurrent: "<<led;
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -4657,6 +5022,11 @@ DF_SDK_API int DfSetParamLedCurrent(int led)
 //返回值： 类型（int）:返回0表示获取标定参数成功;返回-1表示获取标定参数失败.
 DF_SDK_API int DfGetParamLedCurrent(int& led)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
 
 	LOG(INFO) << "DfGetParamLedCurrent: ";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -4708,6 +5078,12 @@ DF_SDK_API int DfGetParamLedCurrent(int& led)
 //返回值：  类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfGetProjectorVersion(int& version)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -4756,6 +5132,12 @@ DF_SDK_API int DfGetProjectorVersion(int& version)
 //返回值：  类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfGetCameraVersion(int& version)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
 	{
@@ -4805,6 +5187,12 @@ DF_SDK_API int DfGetCameraVersion(int& version)
 DF_SDK_API int DfGetTestFrame01(unsigned char* raw, int raw_buf_size, float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
 	LOG(INFO) << "GetTestFrame01";
 	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
 	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
