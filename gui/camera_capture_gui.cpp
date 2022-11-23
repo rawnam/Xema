@@ -2515,8 +2515,7 @@ void  CameraCaptureGui::do_pushButton_capture_one_frame()
 	//	do_pushButton_disconnect();
 	//	return;
 	//}
-
-
+	 
 
 	captureOneFrameAndRender();
 
@@ -2604,6 +2603,10 @@ void  CameraCaptureGui::do_pushButton_capture_continuous()
 		capture_timer_.stop();
 
 		ui.pushButton_capture_continuous->setIcon(QIcon(":/dexforce_camera_gui/image/video_start.png"));
+
+		ui.pushButton_capture_one_frame->setEnabled(true);
+		ui.pushButton_calibrate_external_param->setEnabled(true);
+		ui.pushButton_test_accuracy->setEnabled(true);
 	}
 	else
 	{
@@ -2613,6 +2616,10 @@ void  CameraCaptureGui::do_pushButton_capture_continuous()
 			capturing_flag_ = false;
 			capture_timer_.start();
 			ui.pushButton_capture_continuous->setIcon(QIcon(":/dexforce_camera_gui/image/video_stop.png"));
+			//开始连续采集
+			ui.pushButton_capture_one_frame->setDisabled(true);
+			ui.pushButton_calibrate_external_param->setDisabled(true);
+			ui.pushButton_test_accuracy->setDisabled(true);
 		}
 		else
 		{ 
