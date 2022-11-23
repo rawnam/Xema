@@ -1353,6 +1353,8 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
         LOG(INFO) << "send error, close this connection!";
         // delete [] buffer;
         delete[] depth_map;
+        
+        t_merge_brightness.join();
         delete[] brightness;
 
         return DF_FAILED;
