@@ -1140,11 +1140,11 @@ DF_SDK_API int DfGetCalibrationParam(struct CalibrationParam* calibration_param)
 
 int HeartBeat()
 {
-	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
-	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-	{
-		LOG(INFO) << "--";
-	}
+	//std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	//while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	//{
+	//	LOG(INFO) << "--";
+	//}
 
 	LOG(TRACE) << "heart beat: ";
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock_heartbeat);
@@ -1304,13 +1304,15 @@ DF_SDK_API int DfConnectNet(const char* ip)
 
 DF_SDK_API int DfDisconnectNet()
 {
+
+	LOG(INFO) << "token " << token << " try to disconnection";
 	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
 	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
 	{
 		LOG(INFO) << "--";
+		 
 	}
 
-	LOG(INFO) << "token " << token << " try to disconnection";
 
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
 	if (ret == DF_FAILED)
