@@ -471,6 +471,7 @@ void CameraCaptureGui::undateSystemConfigUiData()
 	ui.spinBox_led->setValue(system_config_param_.led_current);
 
 	ui.spinBox_exposure_num->setValue(firmware_config_param_.mixed_exposure_num);
+	do_spin_exposure_num_changed(firmware_config_param_.mixed_exposure_num);
 
 	ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
 
