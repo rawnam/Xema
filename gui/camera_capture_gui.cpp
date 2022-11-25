@@ -45,6 +45,8 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	initializeFunction();
 	setUiData();
 	undateSystemConfigUiData();
+	//修复默认值不触发hdr表更新
+	do_spin_exposure_num_changed(firmware_config_param_.mixed_exposure_num);
 
 	last_path_ = processing_gui_settings_data_.last_path;
 	sys_path_ = processing_gui_settings_data_.last_path;
@@ -467,11 +469,10 @@ void CameraCaptureGui::setGuiSettingData(GuiConfigDataStruct& settings_data_)
 
 
 void CameraCaptureGui::undateSystemConfigUiData()
-{
+{  
 	ui.spinBox_led->setValue(system_config_param_.led_current);
 
-	ui.spinBox_exposure_num->setValue(firmware_config_param_.mixed_exposure_num);
-	do_spin_exposure_num_changed(firmware_config_param_.mixed_exposure_num);
+	ui.spinBox_exposure_num->setValue(firmware_config_param_.mixed_exposure_num); 
 
 	ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
 
