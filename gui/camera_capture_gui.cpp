@@ -337,9 +337,13 @@ bool CameraCaptureGui::loadSettingData(QString path)
 		return false;
 	}
 
+	QString old_ip = ui.lineEdit_ip->text();
+
 	config_system_param_machine_.getSystemConfigData(system_config_param_);
 	config_system_param_machine_.getFirmwareConfigData(firmware_config_param_);
 	config_system_param_machine_.getGuiConfigData(processing_gui_settings_data_);
+
+	processing_gui_settings_data_.Instance().ip = old_ip;
 
 	setUiData();
 	undateSystemConfigUiData();
@@ -1742,6 +1746,15 @@ void  CameraCaptureGui::do_pushButton_connect()
 				addLogMessage(u8"请设置IP！");
 				break;
 			}
+
+			QRegExp rx2("((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?)");
+			if (!rx2.exactMatch(camera_ip_))
+			{
+
+				addLogMessage(u8"IP无效，请确认相机IP！");
+				break;
+			}
+ 
 
 
 			addLogMessage(u8"连接相机：");
