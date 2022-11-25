@@ -11,6 +11,7 @@
 #include <QThread>
 #include <QDebug>
 #include <QtCore/QTimer>
+#include "../firmware/version.h"
 
 #define SELECT_BRIGHTNESS_FLAG_ 1;
 #define SELECT_HEIGHT_MAP_FLAG_ 2;
@@ -35,6 +36,8 @@ class CameraCaptureGui : public QWidget
 public:
 	CameraCaptureGui(QWidget* parent = Q_NULLPTR);
 	~CameraCaptureGui();
+
+	void getFirmwareVersion(QString& version);
 
 	void setOnDrop(int (*p_function)(void*));
 
@@ -285,4 +288,6 @@ private:
 
 	int exposure_time_min_ = 1700;
 	int exposure_time_max_ = 100000;
+
+	char firmware_version_[_VERSION_LENGTH_] = { "Please connect the camera first." };
 };

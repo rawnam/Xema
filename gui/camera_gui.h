@@ -43,6 +43,8 @@ public slots:
 	void do_slot_handle_network();
 
 	void do_action_update_firmware();
+
+	void do_action_about();
 protected:
 	void closeEvent(QCloseEvent* e);
 

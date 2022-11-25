@@ -140,6 +140,7 @@ copy $(ProjectDir)..\3rdparty\ConfiguringIP\enumerated.dll $(TargetDir)</Command
     <ClCompile Include="..\firmware\easylogging++.cc" />
     <ClCompile Include="..\firmware\system_config_settings.cpp" />
     <ClCompile Include="..\sdk\socket_tcp.cpp" />
+    <ClCompile Include="about_gui.cpp" />
     <ClCompile Include="calibration_param_gui.cpp" />
     <ClCompile Include="camera_capture_gui.cpp" />
     <ClCompile Include="camera_gui.cpp" />
@@ -154,6 +155,7 @@ copy $(ProjectDir)..\3rdparty\ConfiguringIP\enumerated.dll $(TargetDir)</Command
     <ClCompile Include="waiting_gui.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <QtUic Include="about.ui" />
     <QtUic Include="calibration_param_gui.ui" />
     <QtUic Include="camera_capture_gui.ui" />
     <QtUic Include="camera_gui.ui" />
@@ -167,6 +169,8 @@ copy $(ProjectDir)..\3rdparty\ConfiguringIP\enumerated.dll $(TargetDir)</Command
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\firmware\easylogging++.h" />
+    <ClInclude Include="about.h" />
+    <QtMoc Include="about_gui.h" />
     <ClInclude Include="update_opencam3d.h" />
     <QtMoc Include="waiting_gui.h" />
     <ClInclude Include="x64\Release\uic\ui_update_firmware_gui.h" />

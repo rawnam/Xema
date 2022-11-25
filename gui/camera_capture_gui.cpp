@@ -15,6 +15,7 @@
 #include <QtConcurrent/qtconcurrentrun.h>
 #include "waiting_gui.h"
 #include <enumerate.h>
+#include "about_gui.h"
 
 CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	: QWidget(parent)
@@ -118,6 +119,11 @@ void CameraCaptureGui::hideLoadingForm()
 void CameraCaptureGui::getCameraIp(QString& ip)
 {
 	ip = ui.lineEdit_ip->text();
+}
+
+void CameraCaptureGui::getFirmwareVersion(QString& version)
+{
+	version = QString(firmware_version_);
 }
 
 void CameraCaptureGui::setCalibrationBoard(int flag)
@@ -1763,6 +1769,13 @@ void  CameraCaptureGui::do_pushButton_connect()
 				{
 					qDebug() << "Get Calibration Param Error!;";
 					 
+					break;
+				}
+
+				ret_code = DfGetFirmwareVersion(firmware_version_, _VERSION_LENGTH_);
+				if (DF_SUCCESS != ret_code)
+				{
+					qDebug() << "Get Firmware Version Error!;";
 					break;
 				}
 
