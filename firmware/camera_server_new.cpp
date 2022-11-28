@@ -3890,6 +3890,43 @@ int handle_get_firmware_version(int client_sock)
     return DF_SUCCESS;
 }
 
+void load_txt(std::string filename, char* info, int length)
+{
+	FILE* fr = fopen(filename.c_str(), "rb");
+
+	if (fr != NULL) {
+		fread(info, 1, length, fr);
+		fclose(fr);
+	}
+	else {
+		std::cout << "open file error" << std::endl;
+	}
+}
+
+int handle_cmd_get_product_info(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED) {
+	    return DF_FAILED;
+    }
+
+    LOG(INFO)<<"get product info!";
+
+    char *info = new char[INFO_SIZE];
+    memset(info, 0, INFO_SIZE);
+    load_txt("../product_info.txt", info, INFO_SIZE);
+	std::cout << "INFO:\n" << info << std::endl;
+
+    int ret = send_buffer(client_sock, info, INFO_SIZE);    
+    delete [] info;
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+    
+    return DF_SUCCESS;
+}
+
 bool check_trigger_line()
 {
     bool ret = false;
@@ -4312,7 +4349,12 @@ int handle_commands(int client_sock)
         LOG(INFO)<<"DF_CMD_SET_INSPECT_MODEL_FIND_BOARD"; 
         ret = handle_cmd_set_board_inspect(client_sock);
         break;
-        
+    case DF_CMD_GET_PRODUCT_INFO:
+        LOG(INFO)<<"DF_CMD_GET_PRODUCT_INFO"; 
+        ret = handle_cmd_get_product_info(client_sock);
+        break;
+
+
 	default:
 	    LOG(INFO)<<"DF_CMD_UNKNOWN";
         ret = handle_cmd_unknown(client_sock);

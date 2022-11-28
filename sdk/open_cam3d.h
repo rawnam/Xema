@@ -662,3 +662,10 @@ DF_SDK_API int DfGetParamReflectFilter(int& use);
 //输出参数： 无
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfSetBoardInspect(bool enable);
+
+//函数名： DfGetProductInfo
+//功能： 设置标定板检测
+//输入参数：info(信息)，lenth(信息长度) 
+//输出参数： 无
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfGetProductInfo(char* info, int length);

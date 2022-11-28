@@ -39,6 +39,8 @@ public:
 
 	void getFirmwareVersion(QString& version);
 
+	void getProductInfo(QString& info);
+
 	void setOnDrop(int (*p_function)(void*));
 
 	bool setShowImages(cv::Mat brightness, cv::Mat depth);
@@ -289,5 +291,6 @@ private:
 	int exposure_time_min_ = 1700;
 	int exposure_time_max_ = 100000;
 
-	char firmware_version_[_VERSION_LENGTH_] = { "Please connect the camera first." };
+	char firmware_version_[_VERSION_LENGTH_] = { "请先连接相机" };
+	char info_[INFO_SIZE] = {'\0'};
 };

@@ -38,9 +38,14 @@ void AboutGui::updateVersion()
 	ui.label_firmware_version->setText(firmware_version);
 }
 
+void AboutGui::setProductInfo(QString info)
+{
+	product_info = info;
+}
+
 void AboutGui::updateProductInfo()
 {
-	print_log(u8"...");
+	ui.textBrowser->setText(product_info);
 }
 
 void AboutGui::print_log(QString str)

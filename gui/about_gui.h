@@ -14,9 +14,11 @@ public:
 
 	void setFirmwareVersion(QString version);
 
-	void AboutGui::updateVersion();
+	void updateVersion();
 
-	void AboutGui::updateProductInfo();
+	void setProductInfo(QString info);
+
+	void updateProductInfo();
 
 private slots:
 	void print_log(QString str);
@@ -25,5 +27,6 @@ private:
 	Ui::AboutGui ui;
 
 	QString firmware_version;
+	QString product_info;
 };
 

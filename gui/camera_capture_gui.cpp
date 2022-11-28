@@ -126,6 +126,11 @@ void CameraCaptureGui::getFirmwareVersion(QString& version)
 	version = QString(firmware_version_);
 }
 
+void CameraCaptureGui::getProductInfo(QString& info)
+{
+	info = QString(info_);
+}
+
 void CameraCaptureGui::setCalibrationBoard(int flag)
 {
 
@@ -1773,6 +1778,13 @@ void  CameraCaptureGui::do_pushButton_connect()
 				}
 
 				ret_code = DfGetFirmwareVersion(firmware_version_, _VERSION_LENGTH_);
+				if (DF_SUCCESS != ret_code)
+				{
+					qDebug() << "Get Firmware Version Error!;";
+					break;
+				}
+
+				ret_code = DfGetProductInfo(info_, INFO_SIZE);
 				if (DF_SUCCESS != ret_code)
 				{
 					qDebug() << "Get Firmware Version Error!;";
