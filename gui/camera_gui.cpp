@@ -193,6 +193,9 @@ void camera_gui::do_action_about()
 	ui.tab_capture->getFirmwareVersion(version);
 	about_gui.setFirmwareVersion(version);
 	about_gui.updateVersion();
+	QString info;
+	ui.tab_capture->getProductInfo(info);
+	about_gui.setProductInfo(info);
 	about_gui.updateProductInfo();
 
 	if (QDialog::Accepted == about_gui.exec())

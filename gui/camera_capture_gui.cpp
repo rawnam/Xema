@@ -128,7 +128,10 @@ void CameraCaptureGui::getFirmwareVersion(QString& version)
 
 void CameraCaptureGui::getProductInfo(QString& info)
 {
-	info = QString(info_);
+	QTextCodec* codec = QTextCodec::codecForName("gbk");
+	QTextCodec::setCodecForLocale(codec);
+
+	info = QString::fromLocal8Bit(info_);
 }
 
 void CameraCaptureGui::setCalibrationBoard(int flag)
