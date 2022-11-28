@@ -745,7 +745,7 @@
                     <enum>QAbstractSpinBox::UpDownArrows</enum>
                    </property>
                    <property name="minimum">
-                    <number>1</number>
+                    <number>2</number>
                    </property>
                    <property name="maximum">
                     <number>6</number>
@@ -1030,7 +1030,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_image"/>
   <buttongroup name="buttonGroup_exposure"/>
+  <buttongroup name="buttonGroup_image"/>
  </buttongroups>
 </ui>

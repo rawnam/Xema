@@ -46,6 +46,8 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	initializeFunction();
 	setUiData();
 	undateSystemConfigUiData();
+	//修复默认值不触发hdr表更新
+	do_spin_exposure_num_changed(firmware_config_param_.mixed_exposure_num);
 
 	last_path_ = processing_gui_settings_data_.last_path;
 	sys_path_ = processing_gui_settings_data_.last_path;
@@ -351,9 +353,13 @@ bool CameraCaptureGui::loadSettingData(QString path)
 		return false;
 	}
 
+	QString old_ip = ui.lineEdit_ip->text();
+
 	config_system_param_machine_.getSystemConfigData(system_config_param_);
 	config_system_param_machine_.getFirmwareConfigData(firmware_config_param_);
 	config_system_param_machine_.getGuiConfigData(processing_gui_settings_data_);
+
+	processing_gui_settings_data_.Instance().ip = old_ip;
 
 	setUiData();
 	undateSystemConfigUiData();
@@ -477,10 +483,10 @@ void CameraCaptureGui::setGuiSettingData(GuiConfigDataStruct& settings_data_)
 
 
 void CameraCaptureGui::undateSystemConfigUiData()
-{
+{  
 	ui.spinBox_led->setValue(system_config_param_.led_current);
 
-	ui.spinBox_exposure_num->setValue(firmware_config_param_.mixed_exposure_num);
+	ui.spinBox_exposure_num->setValue(firmware_config_param_.mixed_exposure_num); 
 
 	ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
 
@@ -1756,6 +1762,15 @@ void  CameraCaptureGui::do_pushButton_connect()
 				addLogMessage(u8"请设置IP！");
 				break;
 			}
+
+			QRegExp rx2("((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?)");
+			if (!rx2.exactMatch(camera_ip_))
+			{
+
+				addLogMessage(u8"IP无效，请确认相机IP！");
+				break;
+			}
+ 
 
 
 			addLogMessage(u8"连接相机：");
