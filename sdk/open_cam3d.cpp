@@ -73,8 +73,7 @@ unsigned char* brightness_buf_ = NULL;
 float* undistort_map_x_ = NULL;
 float* undistort_map_y_ = NULL;
 
-std::vector<std::string> mac_list_;
-std::vector<std::string> ip_list_;
+ 
 /**************************************************************************************************************************/
 
 std::time_t getTimeStamp(long long& msec)
