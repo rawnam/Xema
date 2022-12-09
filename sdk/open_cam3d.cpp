@@ -434,9 +434,8 @@ DF_SDK_API int DfConnect(const char* camera_id)
 	conf.setGlobally(el::ConfigurationType::Enabled, "true");
 	conf.setGlobally(el::ConfigurationType::ToFile, "true");
 	//conf.setGlobally(el::ConfigurationType::MaxLogFileSize, "204800");//1024*1024*1024=1073741824 
-	el::Loggers::reconfigureAllLoggers(conf);
-	//el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
- 
+	el::Loggers::reconfigureAllLoggers(conf); 
+	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
 
 	/*******************************************************************************************************************/
 
