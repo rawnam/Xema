@@ -182,6 +182,20 @@ int main()
 			{ 
 				//采集重复曝光模式数据 
 							 
+				//设置投影亮度参数
+				ret_code = DfSetParamLedCurrent(1023);
+				if (0 != ret_code)
+				{
+					std::cout << "Set LED Current Error!" << std::endl;
+				}
+
+				//设置相机曝光时间（us）
+				ret_code = DfSetParamCameraExposure(30000);
+				if (0 != ret_code)
+				{
+					std::cout << "Set Camera Exposure Error!" << std::endl;
+				}
+
 				int num = 3;
 
 				ret_code = DfSetParamRepetitionExposureNum(num);
