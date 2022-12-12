@@ -32,4 +32,5 @@ __global__ void kernel_filter_radius_outlier_removal(uint32_t img_height, uint32
 
 __global__ void kernel_removal_points_base_mask(uint32_t img_height, uint32_t img_width,float* const point_cloud_map,float* const depth_map,uchar* remove_mask);
 
+  
 #endif

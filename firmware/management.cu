@@ -915,30 +915,46 @@ bool cuda_compute_merge_repetition_02_phase(int repetition_count,int phase_num)
 
 	return true;
 }
+
 /********************************************************************************************************************************************/
 //filter
 void cuda_remove_points_base_radius_filter(float dot_spacing,float radius,int threshold_num)
 {
-	LOG(INFO)<<"remove_base_radius_filter start:"; 
- 
-	// //相机像素为5.4um、焦距12mm。dot_spacing = 5.4*distance/12000 mm，典型值0.54mm（1200） 
 
-	float d2 = dot_spacing*dot_spacing;
-	float r2 = radius*radius;
-	
-    // cudaFuncSetCacheConfig (cuda_filter_radius_outlier_removal, cudaFuncCachePreferL1);
-	kernel_filter_radius_outlier_removal << <blocksPerGrid, threadsPerBlock >> > (h_image_height_,h_image_width_,d_point_cloud_map_,d_mask_map_,d2,r2,threshold_num); 
-	
+	// cv::Mat pointcloud(1200, 1920, CV_32FC3, cv::Scalar(0));
+	// CHECK(cudaMemcpy(pointcloud.data, d_point_cloud_map_, 3 * h_image_height_ * h_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+	// std::vector<cv::Mat> channels;
+	// cv::split(pointcloud, channels);
+	// cv::imwrite("depth_f.tiff", channels[2]);
+
+	cudaDeviceSynchronize();
+	LOG(INFO)<<"kernel_reconstruct_pointcloud_base_depth:"; 
+	kernel_reconstruct_pointcloud_base_depth << <blocksPerGrid, threadsPerBlock >> > (h_image_width_,h_image_height_,d_xL_rotate_x_,d_xL_rotate_y_,
+	d_camera_intrinsic_,d_camera_distortion_,d_depth_map_,d_point_cloud_map_);
+
 	cudaDeviceSynchronize();
 
-	// cv::Mat mask(1200, 1920, CV_8U, cv::Scalar(0));
-	// CHECK(cudaMemcpy(mask.data, d_mask_map_, 1 * h_image_height_ * h_image_width_ * sizeof(uchar), cudaMemcpyDeviceToHost));
-	// cv::imwrite("mask.bmp", mask);
-	LOG(INFO)<<"remove start:";
-	kernel_removal_points_base_mask << <blocksPerGrid, threadsPerBlock >> > (h_image_height_,h_image_width_,d_point_cloud_map_,d_depth_map_,d_mask_map_); 
+	// CHECK(cudaMemcpy(pointcloud.data, d_point_cloud_map_, 3 * h_image_height_ * h_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+	// channels.clear();
+	// cv::split(pointcloud, channels);
+	// cv::imwrite("depth_e.tiff", channels[2]);
 
-    cudaDeviceSynchronize();
- 
+	LOG(INFO) << "remove_base_radius_filter start:";
+
+	// //相机像素为5.4um、焦距12mm。dot_spacing = 5.4*distance/12000 mm，典型值0.54mm（1200）
+
+	float d2 = dot_spacing * dot_spacing;
+	float r2 = radius * radius;
+
+	// cudaFuncSetCacheConfig (cuda_filter_radius_outlier_removal, cudaFuncCachePreferL1);
+
+	kernel_filter_radius_outlier_removal<<<blocksPerGrid, threadsPerBlock>>>(h_image_height_, h_image_width_, d_point_cloud_map_, d_mask_map_, d2, r2, threshold_num);
+	cudaDeviceSynchronize();
+
+	LOG(INFO) << "remove start:";
+	kernel_removal_points_base_mask<<<blocksPerGrid, threadsPerBlock>>>(h_image_height_, h_image_width_, d_point_cloud_map_, d_depth_map_, d_mask_map_);
+
+	cudaDeviceSynchronize();
 
 	LOG(INFO)<<"remove_base_radius_filter finished!";
 }

@@ -393,6 +393,4 @@ __global__ void kernel_removal_points_base_mask(uint32_t img_height, uint32_t im
 	}
 
 }
-
-
-
+ 
