@@ -176,6 +176,35 @@ void LightCrafter3010::SetLedCurrent(unsigned short R, unsigned short G, unsigne
     buffer[0] = (R & 0xff);
 
     write(0x54, buffer, 6);
+
+    
+    char read_buffer[6];
+    read(0x55, read_buffer, 6);
+
+    int ret = memcmp(buffer,read_buffer,6*sizeof(char));
+
+    if (0 != ret)
+    {
+
+        LOG(ERROR) << "SetLedCurrent Falied!";
+
+        for (int i = 0; i < 6; i++)
+        {
+            std::cout << (int)buffer[i] << " , ";
+        }
+        std::cout << std::endl;
+
+        for (int i = 0; i < 6; i++)
+        {
+            std::cout << (int)read_buffer[i] << " , ";
+        }
+        std::cout << std::endl;
+
+        init();
+        disable_solid_field();
+
+        exit(-1);
+    }
 } 
 
 
