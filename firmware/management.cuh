@@ -132,7 +132,7 @@ void cuda_copy_brightness_from_memory(unsigned char* brightness);
 
 void cuda_copy_brightness_to_memory(unsigned char* brightness);
 
-
+void cuda_clear_reconstruct_cache();
 /***********************************************************************************/
 
 bool cuda_compute_phase_shift(int serial_flag); 

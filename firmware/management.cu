@@ -372,6 +372,14 @@ void cuda_copy_brightness_to_memory(unsigned char* brightness)
 	CHECK(cudaMemcpyAsync(d_brightness_map_, brightness, d_image_height_*d_image_width_* sizeof(unsigned char), cudaMemcpyHostToDevice)); 
 }
 
+
+void cuda_clear_reconstruct_cache()
+{
+	
+	CHECK(cudaMemset(d_brightness_map_,0, d_image_height_*d_image_width_ * sizeof(char))); 
+	CHECK(cudaMemset(d_depth_map_,0, d_image_height_*d_image_width_ * sizeof(float))); 
+	CHECK(cudaMemset(d_point_cloud_map_,0,3* d_image_height_*d_image_width_ * sizeof(float))); 
+}
 /********************************************************************************************/
 
 
