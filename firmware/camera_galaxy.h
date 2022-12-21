@@ -37,7 +37,7 @@ private:
     GX_DEV_HANDLE hDevice_;
     
     PGX_FRAME_BUFFER pFrameBuffer_; 
-
-	std::timed_mutex stream_mutex_;
+ 
+	std::mutex operate_mutex_;
   
 };

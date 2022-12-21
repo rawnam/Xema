@@ -45,6 +45,6 @@ private:
     PYLON_STREAMGRABBER_HANDLE  hGrabber_;                 /* Handle for the pylon stream grabber. */
     PYLON_WAITOBJECT_HANDLE     hWait_;                    /* Handle used for waiting for a grab to be finished. */
 
-	
-	std::timed_mutex stream_mutex_;
+	 
+	std::mutex operate_mutex_;
 };
