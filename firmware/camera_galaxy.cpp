@@ -66,18 +66,24 @@ bool CameraGalaxy::streamOn()
 
 void CameraGalaxy::streamOffThread()
 {
-    std::lock_guard<std::mutex> my_guard(operate_mutex_);
- 
+    std::lock_guard<std::mutex> my_guard(operate_mutex_); 
   
+    stream_off_flag_ = true;
     GXStreamOff(hDevice_);
     LOG(INFO) << "Thread GXStreamOff"; 
 }
 
 bool CameraGalaxy::streamOff()
 {
+    stream_off_flag_ = false;
 
     std::thread stop_thread(&CameraGalaxy::streamOffThread, this);
     stop_thread.detach();
+
+    while (!stream_off_flag_)
+    { 
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 
     return true;
 }
@@ -200,35 +206,27 @@ bool CameraGalaxy::switchToInternalTriggerMode()
  
 
     GX_STATUS status;
-    status = GXSetEnum(hDevice_, GX_ENUM_LINE_SOURCE, GX_ENUM_LINE_SOURCE_STROBE);
+    // status = GXSetEnum(hDevice_, GX_ENUM_LINE_SOURCE, GX_ENUM_LINE_SOURCE_STROBE); 
+    // if (GX_STATUS_SUCCESS != status)
+    // {
+    //     LOG(INFO) << "GX_ENUM_LINE_SOURCE Error: " << status;
+    //     return false;
+    // }
 
-    if (GX_STATUS_SUCCESS != status)
-    {
-        LOG(INFO) << "GX_ENUM_LINE_SOURCE Error: " << status;
-        return false;
-    }
-
-    status = GXSetEnum(hDevice_, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_OFF);
-    if (status != GX_STATUS_SUCCESS)
-    {
-
-        LOG(INFO) << "GXSetEnum Error: " << status;
-        return false;
-    }
-
+    status = GXSetEnum(hDevice_, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_OFF);  
     if (GX_STATUS_SUCCESS != status)
     {
         LOG(INFO) << "GX_ENUM_TRIGGER_MODE Error: " << status;
         return false;
     }
 
-    status = GXSendCommand(hDevice_, GX_COMMAND_TRIGGER_SOFTWARE);
-    if (GX_STATUS_SUCCESS != status)
-    {
+    // status = GXSendCommand(hDevice_, GX_COMMAND_TRIGGER_SOFTWARE);
+    // if (GX_STATUS_SUCCESS != status)
+    // {
 
-        LOG(INFO) << "GX_COMMAND_TRIGGER_SOFTWARE Error: " << status;
-        return false;
-    }
+    //     LOG(INFO) << "GX_COMMAND_TRIGGER_SOFTWARE Error: " << status;
+    //     return false;
+    // }
 
     return true;
 }

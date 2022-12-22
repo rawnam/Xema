@@ -207,6 +207,8 @@ void CameraBasler::streamOffThread()
 {
     std::lock_guard<std::mutex> my_guard(operate_mutex_);
  
+ 
+    stream_off_flag_ = true;
 
  GENAPIC_RESULT              res;                      /* Return value of pylon methods. */ 
     _Bool                       isReady;                  /* Used as an output parameter. */ 
@@ -263,8 +265,15 @@ void CameraBasler::streamOffThread()
 
 bool CameraBasler::streamOff()
 {
+    stream_off_flag_ = false;
     std::thread stop_thread(&CameraBasler::streamOffThread,this);
     stop_thread.detach(); 
+
+
+    while (!stream_off_flag_)
+    { 
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 
     return true;
 }
