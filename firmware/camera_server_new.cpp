@@ -512,7 +512,11 @@ int handle_cmd_set_auto_exposure_base_roi_half(int client_sock)
     if (brightness_current < 1023 && current_exposure != min_camera_exposure_)
     {
         brightness_current = 1023;
-        lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current);
+        if (DF_SUCCESS != lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current))
+        {
+            LOG(ERROR) << "Set Led Current";
+             
+        }
         system_config_settings_machine_.Instance().config_param_.led_current = brightness_current;
     }
 
@@ -643,7 +647,11 @@ int handle_cmd_set_auto_exposure_base_roi_half(int client_sock)
         int adjust_led_val = current_led;
 
         brightness_current = current_led;
-        lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current); 
+
+        if (DF_SUCCESS != lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current))
+        {
+            LOG(ERROR) << "Set Led Current";
+        }
 
         // capture_one_ret = camera.captureSingleExposureImage(current_exposure, (char *)brightness_mat.data);
         capture_one_ret = scan3d_.captureTextureImage(1, current_exposure, (unsigned char *)brightness_mat.data);
@@ -674,7 +682,10 @@ int handle_cmd_set_auto_exposure_base_roi_half(int client_sock)
         }
 
         brightness_current = current_led;
-        lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current); 
+        if (DF_SUCCESS != lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current))
+        {
+            LOG(ERROR) << "Set Led Current";
+        }
         // capture_one_ret = camera.captureSingleExposureImage(current_exposure, (char*)brightness_mat.data); 
         capture_one_ret = scan3d_.captureTextureImage(1, current_exposure, (unsigned char *)brightness_mat.data);
         auto_exposure_machine.evaluateBrightnessParam(brightness_mat,cv::Mat(),average_pixel,over_exposure_rate);
@@ -791,7 +802,11 @@ int handle_cmd_set_auto_exposure_base_roi_pid(int client_sock)
         if (brightness_current < 1023 && current_exposure != min_camera_exposure_)
         {
             brightness_current = 1023;
-            lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current);
+
+            if (DF_SUCCESS != lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current))
+            {
+            LOG(ERROR) << "Set Led Current";
+            }
             system_config_settings_machine_.Instance().config_param_.led_current = brightness_current;
         }
 
@@ -873,9 +888,12 @@ int handle_cmd_set_auto_exposure_base_roi_pid(int client_sock)
                 current_led = 0;
             }
 
-
             led_iterations_num++;
-            lc3010.SetLedCurrent(current_led, current_led, current_led);
+
+            if (DF_SUCCESS != lc3010.SetLedCurrent(current_led, current_led, current_led))
+            {
+                LOG(ERROR) << "Set Led Current";
+            }
             // capture_one_ret = camera.captureSingleExposureImage(current_exposure, (char *)brightness_mat.data);
             capture_one_ret = scan3d_.captureTextureImage(2, current_exposure, (unsigned char *)brightness_mat.data);
             auto_exposure_machine.evaluateBrightnessParam(brightness_mat, cv::Mat(), average_pixel, over_exposure_rate);
@@ -1780,6 +1798,8 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
         return DF_FAILED;	
     }
 
+    int ret = DF_SUCCESS;
+
     int depth_buf_size = camera_width_*camera_height_*4;
     float* depth_map = new float[depth_buf_size];
 
@@ -1788,7 +1808,11 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
  
 
     LOG(INFO)<<"captureFrame04"; 
-    scan3d_.captureFrame04BaseConfidence();
+    ret = scan3d_.captureFrame04BaseConfidence();
+    if(DF_SUCCESS != ret)
+    { 
+         LOG(ERROR)<<"captureFrame04BaseConfidence code: "<<ret;
+    }
     scan3d_.removeOutlierBaseRadiusFilter();
      
     LOG(INFO)<<"Reconstruct Frame04 Finished!";
@@ -1809,7 +1833,7 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
   
 
     LOG(INFO) << "start send depth, buffer_size= "<< depth_buf_size;
-    int ret = send_buffer(client_sock, (const char *)depth_map, depth_buf_size);
+    ret = send_buffer(client_sock, (const char *)depth_map, depth_buf_size);
     LOG(INFO) << "depth ret= "<<ret;
 
     if (ret == DF_FAILED)
@@ -2314,7 +2338,10 @@ bool set_system_config(SystemConfigParam &rect_config_param)
         if(0<= rect_config_param.led_current && rect_config_param.led_current< 1024)
         {
             brightness_current = rect_config_param.led_current;
-            lc3010.SetLedCurrent(brightness_current,brightness_current,brightness_current);
+            if(DF_SUCCESS != lc3010.SetLedCurrent(brightness_current,brightness_current,brightness_current))
+            {
+                LOG(ERROR)<<"Set Led Current";
+            }
 
             system_config_settings_machine_.Instance().config_param_.led_current = brightness_current;
         }
@@ -3167,25 +3194,28 @@ int handle_cmd_set_param_led_current(int client_sock)
     int ret = recv_buffer(client_sock, (char*)(&led), sizeof(led));
     if(ret == DF_FAILED)
     {
-        LOG(INFO)<<"send error, close this connection!\n";
-    	return DF_FAILED;
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
     }
 
+    // set led current
 
-      //set led current
-    
-        if(0<= led && led< 1024)
+    if (0 <= led && led < 1024)
+    {
+        brightness_current = led;
+
+        if (DF_SUCCESS != lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current))
         {
-            brightness_current = led;
-            lc3010.SetLedCurrent(brightness_current,brightness_current,brightness_current); 
-            system_config_settings_machine_.Instance().config_param_.led_current = brightness_current;
+                LOG(ERROR) << "Set Led Current";
 
-            scan3d_.setParamLedCurrent(led);
-            return DF_SUCCESS;
+                return DF_FAILED;
         }
- 
-     
- 
+        system_config_settings_machine_.Instance().config_param_.led_current = brightness_current;
+
+        scan3d_.setParamLedCurrent(led);
+        return DF_SUCCESS;
+    }
+
         return DF_FAILED; 
 }
 
