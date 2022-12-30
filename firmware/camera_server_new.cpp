@@ -515,6 +515,7 @@ int handle_cmd_set_auto_exposure_base_roi_half(int client_sock)
         if (DF_SUCCESS != lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current))
         {
             LOG(ERROR) << "Set Led Current";
+             
         }
         system_config_settings_machine_.Instance().config_param_.led_current = brightness_current;
     }
@@ -3206,6 +3207,8 @@ int handle_cmd_set_param_led_current(int client_sock)
         if (DF_SUCCESS != lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current))
         {
                 LOG(ERROR) << "Set Led Current";
+
+                return DF_FAILED;
         }
         system_config_settings_machine_.Instance().config_param_.led_current = brightness_current;
 
