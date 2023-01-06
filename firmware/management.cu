@@ -157,6 +157,7 @@ bool cuda_malloc_basic_memory()
 	cudaMalloc((void**)&d_fisher_confidence_map, d_image_height_*d_image_width_ * sizeof(float));
 	cudaMalloc((void**)&d_point_cloud_map_, 3*d_image_height_*d_image_width_ * sizeof(float));
 	cudaMalloc((void**)&d_depth_map_, d_image_height_*d_image_width_ * sizeof(float));
+	cudaMalloc((void**)&d_depth_map_temp_, d_image_height_*d_image_width_ * sizeof(float));
 	cudaMalloc((void**)&d_triangulation_error_map_, d_image_height_*d_image_width_ * sizeof(float));
  
  	cudaMalloc((void**)&d_single_pattern_mapping_, 4000*2000 * sizeof(float)); 
@@ -216,6 +217,7 @@ bool cuda_free_basic_memory()
     cudaFree(d_brightness_map_);
     cudaFree(d_point_cloud_map_);
     cudaFree(d_depth_map_);
+	cudaFree(d_depth_map_temp_);
     cudaFree(d_triangulation_error_map_);
 
     cudaFree(d_camera_intrinsic_);
@@ -1014,7 +1016,27 @@ void fisher_filter(float fisher_confidence_val)
 	LOG(INFO)<<"fisher end"; 
 }
 
-
+void depth_filter(float depth_threshold_val)
+{
+	dim3 threadsPerBlock_p(4, 4);
+    dim3 blocksPerGrid_p;
+	if(1200 == h_image_height_)
+	{
+		blocksPerGrid_p.x = (40 + threadsPerBlock_p.x - 1) / threadsPerBlock_p.x;
+		blocksPerGrid_p.y = (30 + threadsPerBlock_p.y - 1) / threadsPerBlock_p.y;
+	}
+	else if(2048 == h_image_height_)
+	{
+		blocksPerGrid_p.x = (64 + threadsPerBlock_p.x - 1) / threadsPerBlock_p.x;
+		blocksPerGrid_p.y = (32 + threadsPerBlock_p.y - 1) / threadsPerBlock_p.y;
+	}
+	LOG(INFO)<<"depth filter start"; 
+	kernel_depth_filter_step_1 <<< blocksPerGrid_p, threadsPerBlock_p >>> (h_image_height_, h_image_width_, depth_threshold_val, d_depth_map_, d_depth_map_temp_, d_fisher_mask_);//
+	cudaDeviceSynchronize();
+	kernel_depth_filter_step_2 <<< blocksPerGrid_p, threadsPerBlock_p >>> (h_image_height_, h_image_width_, depth_threshold_val, d_depth_map_, d_depth_map_temp_, d_fisher_mask_);
+	cudaDeviceSynchronize();
+	LOG(INFO)<<"depth filter end"; 
+}
 
 /*****************************************************************************************************************************************************/
 //repetition

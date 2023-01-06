@@ -285,6 +285,147 @@ __global__ void kernel_fisher_filter(uint32_t img_height, uint32_t img_width, fl
 	}
 }
 
+__global__ void kernel_depth_filter_step_1(uint32_t img_height, uint32_t img_width, float depth_threshold, float * const depth_map, float * const depth_map_temp, unsigned char* mask_temp)
+{
+    const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+  
+    // int offset_y = idy * 64 + idx; 
+	int offset_y = idy * blockDim.x * gridDim.x + idx;  
+ 
+    int nr = img_height;
+    int nc = img_width;
+
+	if (offset_y < img_height - 1 && offset_y > 1)
+	{
+        //读数据
+
+		float* depthPtr = depth_map + (offset_y*img_width);
+		float* beforeDepthPtr = depth_map + ((offset_y - 1)*img_width);
+		float* nextDepthPtr = depth_map + ((offset_y + 1)*img_width);
+
+		float* featureTemp = depth_map_temp + (offset_y*img_width);
+		unsigned char * maskPtr = mask_temp + (offset_y*img_width);
+
+		float depth_diff[9];
+		for (int col = 1; col < img_width; col += 1)
+		{
+			maskPtr[col] = 255;
+			if (depthPtr[col] <= 0)
+			{
+				featureTemp[col] = -1;
+				continue;
+			}
+
+			// 总共是0-7八个点的计算
+			depth_diff[0] = beforeDepthPtr[col - 1] > 0 ? abs(beforeDepthPtr[col - 1] - depthPtr[col]) * 2. / (beforeDepthPtr[col - 1] + depthPtr[col]) : -1;
+			depth_diff[1] = beforeDepthPtr[col] > 0 ? abs(beforeDepthPtr[col] - depthPtr[col]) * 2. / (beforeDepthPtr[col] + depthPtr[col]) : -1;
+			depth_diff[2] = beforeDepthPtr[col + 1] > 0 ? abs(beforeDepthPtr[col + 1] - depthPtr[col]) * 2. / (beforeDepthPtr[col + 1] + depthPtr[col]) : -1;
+			depth_diff[3] = depthPtr[col - 1] > 0 ? abs(depthPtr[col - 1] - depthPtr[col]) * 2. / (depthPtr[col - 1] + depthPtr[col]) : -1;
+			depth_diff[4] = depthPtr[col + 1] > 0 ? abs(depthPtr[col + 1] - depthPtr[col]) * 2. / (depthPtr[col + 1] + depthPtr[col]) : -1;
+			depth_diff[5] = nextDepthPtr[col - 1] > 0 ? abs(nextDepthPtr[col - 1] - depthPtr[col]) * 2. / (nextDepthPtr[col - 1] + depthPtr[col]) : -1;
+			depth_diff[6] = nextDepthPtr[col] > 0 ? abs(nextDepthPtr[col] - depthPtr[col]) * 2. / (nextDepthPtr[col] + depthPtr[col]) : -1;
+			depth_diff[7] = nextDepthPtr[col + 1] > 0 ? abs(nextDepthPtr[col + 1] - depthPtr[col]) * 2. / (nextDepthPtr[col + 1] + depthPtr[col]) : -1;
+
+			// 这个点的值等于depth的最大值
+			float maxDepthDiff = -1;
+			for (int i = 0; i < 8; i += 1)
+			{
+				if (depth_diff[i] > maxDepthDiff)
+				{
+					maxDepthDiff = depth_diff[i];
+				}
+			}
+			// 孤立点直接过滤
+			if (maxDepthDiff == -1)
+			{
+				depthPtr[col] = 0;
+				continue;
+			}
+
+			featureTemp[col] = abs(maxDepthDiff);
+			
+			if (featureTemp[col] > depth_threshold)
+			{
+				maskPtr[col] = 0;
+			}
+		}
+	}
+}
+
+__global__ void kernel_depth_filter_step_2(uint32_t img_height, uint32_t img_width, float depth_threshold, float * const depth_map, float * const depth_map_temp, unsigned char* mask_temp)
+{
+    const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+  
+    // int offset_y = idy * 64 + idx; 
+	int offset_y = idy * blockDim.x * gridDim.x + idx;  
+ 
+    int nr = img_height;
+    int nc = img_width;
+
+	if (offset_y < img_height - 2 && offset_y > 2)
+	{ 
+        //读数据
+
+		unsigned char* maskPtr = mask_temp + (offset_y*img_width);
+
+		float* depthPtr = depth_map + (offset_y*img_width);
+
+		float* featureTempBeforePtr = depth_map_temp + ((offset_y - 1)*img_width);
+		float* featureTempPtr = depth_map_temp + (offset_y*img_width);
+		float* featureTempNextPtr = depth_map_temp + ((offset_y + 1)*img_width);
+
+		float depthFeatureResult;
+		float depthDiff[8];
+
+		for (int col = 0; col < img_width; col += 1)
+		{
+			if (maskPtr[col] == 255)
+			{
+				maskPtr[col] = 0;
+				continue;
+			}
+			// 比较相邻9个点的值，然后获取
+			depthDiff[0] = featureTempBeforePtr[col - 1];
+			depthDiff[1] = featureTempBeforePtr[col];
+			depthDiff[2] = featureTempBeforePtr[col + 1];
+			depthDiff[3] = featureTempPtr[col - 1];
+
+			depthDiff[4] = featureTempPtr[col + 1];
+			depthDiff[5] = featureTempNextPtr[col - 1];
+			depthDiff[6] = featureTempNextPtr[col];
+			depthDiff[7] = featureTempNextPtr[col + 1];
+
+			float compareTemp;
+			for (int i = 0; i < DEPTH_DIFF_NUM_THRESHOLD; i += 1)
+			{
+				for (int j = i + 1; j < 8; j += 1)
+				{
+					if (depthDiff[j] == -1)
+					{
+						continue;
+					}
+					if (depthDiff[i] > depthDiff[j])
+					{
+						compareTemp = depthDiff[i];
+						depthDiff[i] = depthDiff[j];
+						depthDiff[j] = compareTemp;
+					}
+				}
+			}
+
+			depthFeatureResult = depthDiff[DEPTH_DIFF_NUM_THRESHOLD - 1];
+
+			if (depthFeatureResult > depth_threshold || depthFeatureResult == -1)
+			{
+				depthPtr[col] = 0;
+			}
+
+		}
+	}
+}
+
 
 //滤波
 __global__ void kernel_filter_radius_outlier_removal(uint32_t img_height, uint32_t img_width,float* const point_cloud_map,unsigned char* remove_mask,
