@@ -36,6 +36,7 @@ long long token = 0;
 //const char* camera_id_;
 std::string camera_id_;
 std::thread heartbeat_thread;
+int heartbeat_error_count_ = 0;
 
 extern SOCKET g_sock_heartbeat;
 extern SOCKET g_sock;
@@ -1193,15 +1194,30 @@ int HeartBeat()
 
 int HeartBeat_loop()
 {
+	heartbeat_error_count_ = 0;
 	while (connected)
 	{
 		int ret = HeartBeat();
 		if (ret == DF_FAILED)
 		{
-			connected = false;
-			//close_socket(g_sock); 
-			p_OnDropped(0);
+			heartbeat_error_count_++; 
+			LOG(ERROR) << "heartbeat error count: " << heartbeat_error_count_;
+
+			if (heartbeat_error_count_ > 2)
+			{
+				LOG(ERROR) << "close connect";
+				connected = false;
+				//close_socket(g_sock); 
+				p_OnDropped(0);
+			}
+
 		}
+		else if (DF_SUCCESS == ret)
+		{
+			heartbeat_error_count_ = 0;
+		}
+
+
 		for (int i = 0; i < 100; i++)
 		{
 			if (!connected)
