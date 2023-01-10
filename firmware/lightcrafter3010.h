@@ -226,7 +226,7 @@ public:
 	
 	void write_pattern_table(unsigned char* pattern_index, int len);
 	
-	int write_pattern_table(unsigned char* pattern_index, int len,float camera_exposure);
+	int write_pattern_table(unsigned char* pattern_index, unsigned char* pattern_nums, int len,float camera_exposure);
 
 	void pattern_mode01();
 	void pattern_mode02();
