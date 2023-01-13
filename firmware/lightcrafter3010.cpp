@@ -444,7 +444,7 @@ void LightCrafter3010::reload_pattern_order_table_from_flash()
 }
 
 
-int LightCrafter3010::write_pattern_table(unsigned char* pattern_index, int len,float camera_exposure)
+int LightCrafter3010::write_pattern_table(unsigned char* pattern_index, unsigned char* pattern_nums, int len,float camera_exposure)
 {
     unsigned char buffer[24];
     memset(buffer,0,24*sizeof(char));
@@ -537,6 +537,7 @@ int LightCrafter3010::write_pattern_table(unsigned char* pattern_index, int len,
     for (int i = 0; i < len; i++)
     {
         buffer[1] = pattern_index[i];
+	buffer[2] = pattern_nums[i];
         write(Write_Pattern_Order, buffer, 24);
 
         // usleep(100);
@@ -611,25 +612,29 @@ void LightCrafter3010::pattern_mode01()
 {
     // unsigned char pattern_index[] = {12,13,15,16};
     unsigned char pattern_index[] = {0,1,3,4};
-    write_pattern_table(pattern_index, 4, camera_exposure_);
+    unsigned char pattern_nums[] = {6,6,6,6};
+    write_pattern_table(pattern_index, pattern_nums, 4, camera_exposure_);
 }
 
 void LightCrafter3010::pattern_mode02()
 {
     unsigned char pattern_index[] = {0,1,2,3,4,5,6};
-    write_pattern_table(pattern_index, 7, camera_exposure_);
+    unsigned char pattern_nums[] = {6,6,6,6,6,6,6};
+    write_pattern_table(pattern_index, pattern_nums, 7, camera_exposure_);
 }
 
 void LightCrafter3010::pattern_mode_brightness()
 {
     unsigned char pattern_index[] = {6};
-    write_pattern_table(pattern_index, 1, camera_exposure_);
+    unsigned char pattern_nums[] = {6};
+    write_pattern_table(pattern_index, pattern_nums, 1, camera_exposure_);
 }
 
 void LightCrafter3010::pattern_mode03()
 {
     unsigned char pattern_index[] = {0,1,2,3,4,6};
-    write_pattern_table(pattern_index, 6, camera_exposure_);
+    unsigned char pattern_nums[] = {6,6,6,6,6,6};
+    write_pattern_table(pattern_index, pattern_nums, 6, camera_exposure_);
 }
 
 
@@ -643,6 +648,11 @@ int LightCrafter3010::pattern_mode04_repetition(int repetition_count)
     int group_count = 3+repetition_count;
 
     unsigned char pattern_index[group_count];
+    unsigned char pattern_nums[group_count];
+    for(int i=0; i<group_count; i++)
+    {
+	pattern_nums[i] = 6;
+    }
     pattern_index[0] = 0;
     pattern_index[1] = 1;
 
@@ -652,7 +662,7 @@ int LightCrafter3010::pattern_mode04_repetition(int repetition_count)
     }
   
     pattern_index[group_count-1] = 6;
-    return write_pattern_table(pattern_index, group_count, camera_exposure_);
+    return write_pattern_table(pattern_index, pattern_nums, group_count, camera_exposure_);
 
  
 }
@@ -667,6 +677,11 @@ void LightCrafter3010::pattern_mode03_repetition(int repetition_count)
     int group_count = 5+repetition_count;
 
     unsigned char pattern_index[group_count];
+    unsigned char pattern_nums[group_count];
+    for(int i=0; i<group_count; i++)
+    {
+	pattern_nums[i] = 6;
+    }
 
     pattern_index[0] = 0;
     pattern_index[1] = 1;
@@ -679,14 +694,15 @@ void LightCrafter3010::pattern_mode03_repetition(int repetition_count)
     pattern_index[2+repetition_count] = 3;
     pattern_index[3+repetition_count] = 4;
     pattern_index[4+repetition_count] = 6;
-    write_pattern_table(pattern_index, group_count, camera_exposure_);
+    write_pattern_table(pattern_index, pattern_nums, group_count, camera_exposure_);
 
 }	
 
 int LightCrafter3010::pattern_mode04()
 {
     unsigned char pattern_index[] = {0,1,2,6};
-    return write_pattern_table(pattern_index, 4, camera_exposure_);
+    unsigned char pattern_nums[] = {6,6,6,1};
+    return write_pattern_table(pattern_index, pattern_nums, 4, camera_exposure_);
 }
 
 
