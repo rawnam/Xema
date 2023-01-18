@@ -675,4 +675,4 @@ DF_SDK_API int DfGetProductInfo(char* info, int length);
 //输入参数：无
 //输出参数： status（状态码）
 //返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
-DF_SDK_API int DfGetFrameStatus(int status);
+DF_SDK_API int DfGetFrameStatus(int& status);
