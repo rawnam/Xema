@@ -1342,9 +1342,9 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
     scan3d_.captureFrame04HdrBaseConfidence(); 
     std::thread  t_merge_brightness(&Scan3D::mergeBrightness, &scan3d_);
  
+    scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
-
-          
+         
     scan3d_.copyDepthData(depth_map);
 
  
@@ -1551,7 +1551,9 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
     }
 
     scan3d_.captureFrame04Repetition02BaseConfidence(repetition_count);
+    scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
+
              
     scan3d_.copyBrightnessData(brightness);
     scan3d_.copyDepthData(depth_map); 
@@ -1656,7 +1658,9 @@ int handle_cmd_get_frame_04_repetition_01_parallel(int client_sock)
     }
 
     scan3d_.captureFrame04Repetition01(repetition_count);
+    scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
+
 
     scan3d_.copyBrightnessData(brightness);
     scan3d_.copyDepthData(depth_map);
@@ -1813,7 +1817,9 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
     { 
          LOG(ERROR)<<"captureFrame04BaseConfidence code: "<<ret;
     }
+    scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
+
      
     LOG(INFO)<<"Reconstruct Frame04 Finished!";
     scan3d_.copyBrightnessData(brightness);
@@ -2757,6 +2763,72 @@ int handle_cmd_get_param_radius_filter(int client_sock)
     LOG(INFO)<<"use_radius_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter;
     LOG(INFO)<<"radius_filter_r: "<<system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r;
     LOG(INFO)<<"radius_filter_threshold_num: "<<system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num;
+         
+
+    return DF_SUCCESS;
+}
+
+int handle_cmd_set_param_depth_filter(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+
+
+    int switch_val = 0;
+    float depth_throshold = 2;
+
+    int ret = recv_buffer(client_sock, (char*)(&switch_val), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+ 
+
+    ret = recv_buffer(client_sock, (char*)(&depth_throshold), sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+
+
+    system_config_settings_machine_.Instance().firwmare_param_.depth_filter_threshold = depth_throshold;
+    system_config_settings_machine_.Instance().firwmare_param_.use_depth_filter = switch_val;
+
+ 
+    LOG(INFO)<<"use_depth_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_depth_filter;
+    LOG(INFO)<<"depth_filter_threshold: "<<system_config_settings_machine_.Instance().firwmare_param_.depth_filter_threshold;
+         
+
+    return DF_SUCCESS;
+}
+
+int handle_cmd_get_param_depth_filter(int client_sock)
+{
+   if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+     
+    int ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.use_depth_filter), sizeof(int) );
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+ 
+    ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.depth_filter_threshold), sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+    
+    LOG(INFO)<<"use_depth_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_depth_filter;
+    LOG(INFO)<<"depth_filter_threshold: "<<system_config_settings_machine_.Instance().firwmare_param_.depth_filter_threshold;
          
 
     return DF_SUCCESS;
@@ -4338,6 +4410,14 @@ int handle_commands(int client_sock)
 	    break;
 	case DF_CMD_GET_PARAM_RADIUS_FILTER:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_RADIUS_FILTER";   
+    	ret = handle_cmd_get_param_radius_filter(client_sock);
+	    break;
+    case DF_CMD_SET_PARAM_DEPTH_FILTER:
+	    LOG(INFO)<<"DF_CMD_SET_PARAM_DEPTH_FILTER";   
+    	ret = handle_cmd_set_param_radius_filter(client_sock);
+	    break;
+	case DF_CMD_GET_PARAM_DEPTH_FILTER:
+	    LOG(INFO)<<"DF_CMD_GET_PARAM_DEPTH_FILTER";   
     	ret = handle_cmd_get_param_radius_filter(client_sock);
 	    break;
 	case DF_CMD_SET_PARAM_BILATERAL_FILTER:
