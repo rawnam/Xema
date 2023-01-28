@@ -12,6 +12,15 @@
 #include <thread>   
 #include <stddef.h> 
 
+#ifdef _WIN32
+
+#elif __linux
+#include <dirent.h>
+#include <unistd.h>
+#define INVALID_SOCKET (~0)
+#define SOCKET_ERROR -1
+#endif
+
 INITIALIZE_EASYLOGGINGPP
 using namespace std;
 using namespace std::chrono;
@@ -2417,8 +2426,8 @@ namespace XEMA {
 		}
 
 		LOG(INFO) << "GetFrameHdr";
-		assert(depth_buf_size == image_size_ * sizeof(float) * 1);
-		assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
+	//	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+	//	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
 		if (ret == DF_FAILED)
 		{

@@ -4,6 +4,7 @@
 
 #include "xcamera.h"
 #include <mutex>
+#include <thread>
 #include "../sdk/socket_tcp.h" 
 #include "../firmware/camera_param.h" 
 #include "../firmware/system_config_settings.h"
