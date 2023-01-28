@@ -224,6 +224,7 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.doubleSpinBox_max_z, SIGNAL(valueChanged(double)), this, SLOT(do_spin_max_z_changed(double)));
 	connect(ui.doubleSpinBox_confidence, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_confidence(double)));
 	connect(ui.doubleSpinBox_fisher, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_fisher(double)));
+	connect(ui.doubleSpinBox_depth_filter, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_depth_fisher(double)));
 	connect(ui.doubleSpinBox_gain, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_gain(double)));
 	connect(ui.spinBox_repetition_count, SIGNAL(valueChanged(int)), this, SLOT(do_spin_repetition_count_changed(int)));
 
@@ -261,6 +262,9 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.radioButton_generate_brightness_darkness_define, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_generate_brightness_darkness(bool)));
 
 	connect(ui.spinBox_camera_exposure_define, SIGNAL(valueChanged(int)), this, SLOT(do_spin_generate_brightness_exposure_changed(int)));
+
+	connect(ui.checkBox_depth_filter, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_depth_filter(bool)));
+
 
 	min_depth_value_ = 300;
 	max_depth_value_ = 3000;
@@ -564,6 +568,18 @@ void CameraCaptureGui::setUiData()
 	break;
 	default:
 		break;
+	}
+
+	ui.doubleSpinBox_depth_filter->setValue(firmware_config_param_.depth_filter_threshold);
+	if (1 == firmware_config_param_.use_depth_filter)
+	{
+
+		ui.checkBox_depth_filter->setChecked(true);
+	}
+	else
+	{ 
+		ui.checkBox_depth_filter->setChecked(false);
+		ui.doubleSpinBox_depth_filter->setDisabled(true);
 	}
 }
 
@@ -882,6 +898,88 @@ void CameraCaptureGui::do_doubleSpin_gain(double val)
 }
 
 
+void CameraCaptureGui::updateDepthFilter(int use, float threshold)
+{
+
+	if (camera_setting_flag_)
+	{
+		return;
+	}
+
+
+	//设置参数时加锁
+	camera_setting_flag_ = true;
+	if (connected_flag_)
+	{
+		  
+		int ret_code = -1;
+		//如果连续采集在用、先暂停
+		if (start_timer_flag_)
+		{
+
+			stopCapturingOneFrameBaseThread();
+
+			ret_code = DfSetParamDepthFilter(use, threshold);
+			if (0 == ret_code)
+			{
+				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
+				if (1 == use)
+				{
+					addLogMessage(u8"打开深度图滤波！");
+					QString str = u8"阈值: " + QString::number(threshold);
+					addLogMessage(str);
+				}
+				else
+				{
+					addLogMessage(u8"关闭深度图滤波！");
+				}
+
+
+			}
+
+
+			do_pushButton_capture_continuous();
+
+		}
+		else
+		{
+			ret_code = DfSetParamDepthFilter(use, threshold);
+
+			if (0 == ret_code)
+			{
+				if (1 == use)
+				{
+					addLogMessage(u8"打开深度图滤波！");
+					//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
+					QString str = u8"设置噪点过滤: " + QString::number(threshold);
+					addLogMessage(str);
+				}
+				else
+				{
+					addLogMessage(u8"关闭深度图滤波！");
+				}
+
+			}
+			else
+			{
+				addLogMessage(u8"设置深度图滤波失败！");
+			}
+
+		}
+
+	}
+
+	camera_setting_flag_ = false;
+}
+
+
+void CameraCaptureGui::do_doubleSpin_depth_fisher(double val)
+{
+	firmware_config_param_.depth_filter_threshold = val;
+	updateDepthFilter(firmware_config_param_.use_depth_filter, firmware_config_param_.depth_filter_threshold);
+ 
+}
+
 void CameraCaptureGui::do_doubleSpin_fisher(double val)
 {
 
@@ -1072,6 +1170,12 @@ bool CameraCaptureGui::setCameraConfigParam()
 	if (0 != ret_code)
 	{
 		addLogMessage(u8"设置过滤噪点参数失败！");
+	}
+
+	ret_code = DfSetParamDepthFilter(firmware_config_param_.use_depth_filter, firmware_config_param_.depth_filter_threshold);
+	if (0 != ret_code)
+	{
+		addLogMessage(u8"设置深度去噪参数失败！");
 	}
 
 	int projector_version = 3010;
@@ -2718,6 +2822,24 @@ void CameraCaptureGui::do_checkBox_toggled_over_exposure(bool state)
 {
 	renderBrightnessImage(brightness_map_); 
 	showImage();
+}
+
+
+void CameraCaptureGui::do_checkBox_toggled_depth_filter(bool state)
+{
+	if (state)
+	{
+		ui.doubleSpinBox_depth_filter->setEnabled(true);
+		firmware_config_param_.use_depth_filter = 1;
+	}
+	else
+	{
+		ui.doubleSpinBox_depth_filter->setDisabled(true);
+		firmware_config_param_.use_depth_filter = 0;
+	}
+
+
+	updateDepthFilter(firmware_config_param_.use_depth_filter, firmware_config_param_.depth_filter_threshold);
 }
 
 void CameraCaptureGui::do_checkBox_toggled_hdr(bool state)
