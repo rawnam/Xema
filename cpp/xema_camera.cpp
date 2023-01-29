@@ -2079,6 +2079,132 @@ namespace XEMA {
 		return DF_SUCCESS;
 	}
 
+ 
+	int XemaCamera::setParamDepthFilter(int use, float depth_filter_threshold)
+	{
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		LOG(INFO) << "DfSetParamDepthFilter:";
+		if (use != 1 && use != 0)
+		{
+			std::cout << "use param should be 1 or 0:  " << use << std::endl;
+			return DF_FAILED;
+		}
+
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		ret = send_command(DF_CMD_SET_PARAM_DEPTH_FILTER, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+
+			ret = send_buffer((char*)(&use), sizeof(int), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+			ret = send_buffer((char*)(&depth_filter_threshold), sizeof(float), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+
+
+	int XemaCamera::getParamDepthFilter(int& use, float& depth_filter_threshold)
+	{
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		LOG(INFO) << "DfGetParamDepthFilter:";
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_GET_PARAM_DEPTH_FILTER, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+
+			ret = recv_buffer((char*)(&use), sizeof(int), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+			ret = recv_buffer((char*)(&depth_filter_threshold), sizeof(float), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
 
 	int XemaCamera::setParamOutlierFilter(float threshold)
 	{

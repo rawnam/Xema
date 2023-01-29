@@ -14,38 +14,8 @@ extern "C" {
 #elif __linux
 #define XEMA_API 
 #endif
-		 
-#define MAX_CAM_SIZE 10
-
-        //typedef enum CameraStateEnum
-        //{
-        //    CS_Ready = 0,       //创建实例后转到此状态
-        //    CS_Connecting,      //调用connect后未连接成功时转到此状态
-        //    CS_Connected,       //连接成功后,未获取过帧数据时转到此状态
-        //    CS_Disconnected,    //主动调用disconnect且成功时转到此状态
-        //    CS_Working,         //连接成功且已获取过帧数据时转到此状态
-        //    CS_ProcessError,    //调用相机sdk失败且需要主动尝试恢复工作时转到此状态(一般在处理数据出现错误时)
-        //    CS_Error            //调用相机sdk失败且不需要主动尝试恢复工作时转到此状态
-        //}CameraStateEnum;
-
-        //typedef enum CameraErrorEnum
-        //{
-        //    CE_NONE = 0,        //无错误
-        //    CE_NOTSUPPORTED,    //不支持
-        //    CE_NOTINWORKING,    //未在连接状态
-        //    CE_SDKFAILED,       //调用sdk失败
-        //    CE_JSONFORMAT,      //json格式错误
-        //    CE_CAMNOTFOUND      //相机未找到
-        //}CameraErrorEnum;
-
-        //typedef struct CameraBaseInfo
-        //{
-        //    char id[50];
-        //    int port;
-        //    bool isIpType;
-        //    bool is2D;
-        //}CameraBaseInfo;
-		 
+		  
+  
             //相机标定参数结构体
         typedef struct CalibrationParam
         {
@@ -244,6 +214,20 @@ extern "C" {
 			//输出参数：use(开关：1开、0关)、radius(半径）、num（有效点）
 			//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
 			virtual  int getParamRadiusFilter(int& use, float& radius, int& num) = 0;
+
+			//函数名： setParamDepthFilter
+			//功能： 设置深度图滤波参数
+			//输入参数：use(开关：1开、0关)、depth_filterthreshold(深度图在1000mm距离过滤的噪声阈值)
+			//输出参数： 无
+			//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+			virtual int setParamDepthFilter(int use, float depth_filter_threshold) = 0;
+
+			//函数名： getParamDepthFilter
+			//功能： 设置深度图滤波参数
+			//输入参数：use(开关：1开、0关)、depth_filterthreshold(深度图在1000mm距离过滤的噪声阈值)
+			//输出参数： 无
+			//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
+			virtual int getParamDepthFilter(int& use, float& depth_filter_threshold) = 0;
 			 
 			//功能： 设置外点过滤阈值
 			//输入参数：threshold(阈值0-100)
