@@ -1586,14 +1586,8 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 
 	int ret_code = -1;
 
-	//if (hdr)
-	//{
-	//	ret_code = DfGetFrameHdr((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
-	//}
-	//else
-	//{
-	//	ret_code = DfGetFrame04((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
-	//}
+	int exposure_num = 1;
+ 
 
 	if (ui.radioButton_single_exposure->isChecked())
 	{
@@ -1613,7 +1607,8 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 	case EXPOSURE_MODEL_SINGLE_:
 	{
 		//单曝光
-		ret_code = DfGetFrame04((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+		//ret_code = DfGetFrame04((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+		exposure_num = 1;
 	}
 	break;
 	case EXPOSURE_MODEL_HDR_:
@@ -1627,14 +1622,33 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 		}
 
 
-		ret_code = DfGetFrameHdr((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+		//ret_code = DfGetFrameHdr((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+		exposure_num = firmware_config_param_.mixed_exposure_num;
+
+		ret_code = DfSetParamMultipleExposureModel(1);
+		if (0 != ret_code)
+		{
+			std::cout << "Set Multiple Exposure Model Error;" << std::endl;
+		}
 	}
 	break;
 	case EXPOSURE_MODEL_REPETITION_:
 	{
 		//重复曝光
-		ret_code = DfGetRepetitionFrame04(processing_gui_settings_data_.Instance().repetition_count, (float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+		//ret_code = DfGetRepetitionFrame04(processing_gui_settings_data_.Instance().repetition_count, (float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+		exposure_num = processing_gui_settings_data_.Instance().repetition_count;
 
+		ret_code = DfSetParamMultipleExposureModel(2);
+		if (0 != ret_code)
+		{
+			std::cout << "Set Multiple Exposure Model Error;" << std::endl;
+		}
+
+		ret_code = DfSetParamRepetitionExposureNum(exposure_num);
+		if (0 != ret_code)
+		{
+			std::cout << "Set Multiple Exposure Model Error;" << std::endl;
+		}
 	}
 	break;
 
@@ -1642,10 +1656,36 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 		break;
 	}
 
+	 
+
+	char c_time[100];
+
+	ret_code = DfCaptureData(exposure_num, c_time);
+
+	if (DF_SUCCESS != ret_code)
+	{
+		addLogMessage(u8"采集数据异常： " + QString::number(ret_code));
+		ret_code = 0;
+	}
+
 
 	/***************************************************************************/
 	if (0 == ret_code)
 	{
+		//获取亮度图数据
+		ret_code = DfGetBrightnessData(brightness.data);
+		if (DF_SUCCESS != ret_code)
+		{
+			std::cout << "Get Brightness Error!" << std::endl;
+		}
+
+		//获取深度图数据
+		ret_code = DfGetDepthDataFloat((float*)depth.data);
+
+		if (DF_SUCCESS != ret_code)
+		{
+			std::cout << "Get Depth Error!" << std::endl;
+		}
 
 		float temperature = 0;
 		ret_code = DfGetDeviceTemperature(temperature);
@@ -1723,12 +1763,15 @@ bool CameraCaptureGui::captureOneFrameData()
 
 	int ret_code = 0;
 
+	int exposure_num = 1;
+
 	switch (exposure_model_)
 	{
 	case EXPOSURE_MODEL_SINGLE_:
 		{
 			//单曝光
-			ret_code = DfGetFrame04((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+			//ret_code = DfGetFrame04((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+			exposure_num = 1;
 		}
 		break;
 	case EXPOSURE_MODEL_HDR_:
@@ -1741,27 +1784,70 @@ bool CameraCaptureGui::captureOneFrameData()
 				updateManyExposureParam();
 			}
 
+			exposure_num = firmware_config_param_.mixed_exposure_num;
 
-			ret_code = DfGetFrameHdr((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+			ret_code = DfSetParamMultipleExposureModel(1);
+			if (0 != ret_code)
+			{
+				std::cout << "Set Multiple Exposure Model Error;" << std::endl;
+			}
+
+			//ret_code = DfGetFrameHdr((float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
 		}
 		break;
 	case EXPOSURE_MODEL_REPETITION_:
 		{
 			//重复曝光
-			ret_code = DfGetRepetitionFrame04(processing_gui_settings_data_.Instance().repetition_count, (float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+			//ret_code = DfGetRepetitionFrame04(processing_gui_settings_data_.Instance().repetition_count, (float*)depth.data, depth_buf_size, (uchar*)brightness.data, brightness_bug_size);
+			exposure_num = processing_gui_settings_data_.Instance().repetition_count;
 
+			ret_code = DfSetParamMultipleExposureModel(2);
+			if (0 != ret_code)
+			{
+				std::cout << "Set Multiple Exposure Model Error;" << std::endl;
+			}
+
+			ret_code = DfSetParamRepetitionExposureNum(exposure_num);
+			if (0 != ret_code)
+			{
+				std::cout << "Set Multiple Exposure Model Error;" << std::endl;
+			}
 		}
 		break;
 
 		default:
 			break;
 	}
-	 
+
+	char c_time[100];
+	
+	ret_code = DfCaptureData(exposure_num, c_time);
+
+	if (DF_SUCCESS != ret_code)
+	{ 
+		addLogMessage(u8"采集数据异常： "+ QString::number(ret_code));
+		ret_code = 0;
+	}
 
 
 	/***************************************************************************/
 	if (0 == ret_code)
 	{
+
+		//获取亮度图数据
+		ret_code = DfGetBrightnessData(brightness.data);
+		if (DF_SUCCESS != ret_code)
+		{
+			std::cout << "Get Brightness Error!" << std::endl;
+		}
+
+		//获取深度图数据
+		ret_code = DfGetDepthDataFloat((float*)depth.data);
+
+		if (DF_SUCCESS != ret_code)
+		{
+			std::cout << "Get Depth Error!" << std::endl;
+		}
 
 
 		processing_gui_settings_data_.Instance().exposure_model = exposure_model_;

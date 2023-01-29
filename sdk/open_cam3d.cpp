@@ -724,6 +724,19 @@ DF_SDK_API int DfCaptureData(int exposure_num, char* timestamp)
 
 	transform_pointcloud_flag_ = false;
 
+	int status = DF_SUCCESS;
+	ret = DfGetFrameStatus(status);
+	if (DF_SUCCESS != ret && DF_UNKNOWN != ret)
+	{
+		LOG(INFO) << "DfGetFrameStatus Failed!";
+		//return ret;
+	}
+
+	LOG(INFO) << "Frame Status: " << status; 
+	if (DF_SUCCESS != status)
+	{
+		return status;
+	}
 
 	return DF_SUCCESS;
 }
@@ -810,7 +823,7 @@ DF_SDK_API int DfGetDepthDataFloat(float* depth)
 
 	LOG(INFO) << "Get Depth!";
 
-	return 0;
+	return DF_SUCCESS;
 }
 
 //函数名： DfGetBrightnessData
@@ -1580,8 +1593,28 @@ DF_SDK_API int DfGetFrameHdr(float* depth, int depth_buf_size,
 		return DF_BUSY;
 	}
 
-	LOG(INFO) << "Get frame success";
+
+
+
 	close_socket(g_sock);
+
+	//int status = -1;
+	//ret = DfGetFrameStatus(status);
+	//if (ret == DF_FAILED)
+	//{
+	//	LOG(ERROR) << "Failed to DfGetFrameStatus";
+	//	close_socket(g_sock);
+	//	return DF_ERROR_NETWORK;
+	//}
+
+	//LOG(INFO) << "Frame Status: " << status;
+	//if (DF_SUCCESS != ret)
+	//{
+	//	return status;
+	//}
+
+
+	LOG(INFO) << "Get frame success";
 	return DF_SUCCESS;
 }
 
@@ -1966,8 +1999,24 @@ DF_SDK_API int DfGetFrame04(float* depth, int depth_buf_size,
 		return DF_BUSY;
 	}
 
-	LOG(INFO) << "Get frame04 success";
 	close_socket(g_sock);
+
+	//int status = -1;
+	//ret = DfGetFrameStatus(status);
+	//if (ret == DF_FAILED)
+	//{
+	//	LOG(ERROR) << "Failed to DfGetFrameStatus";
+	//	close_socket(g_sock);
+	//	return DF_ERROR_NETWORK;
+	//}
+
+	//LOG(INFO) << "Frame Status: " << status;
+	//if (DF_SUCCESS != ret)
+	//{
+	//	return status;
+	//}
+
+	LOG(INFO) << "Get frame04 success";
 	return DF_SUCCESS;
 }
 
@@ -2920,6 +2969,65 @@ DF_SDK_API int DfGetProductInfo(char* info, int length)
 	}
 
 	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+//函数名： DfGetFrameStatus
+//功能： 获取当前帧数据状态
+//输入参数：无
+//输出参数： status（状态码）
+//返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
+DF_SDK_API int DfGetFrameStatus(int& status)
+{
+	//std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	//while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	//{
+	//	LOG(INFO) << "--";
+	//}
+
+	int get_status = 0;
+
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_ERROR_NETWORK;
+	}
+	ret = send_command(DF_CMD_GET_FRAME_STATUS, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_ERROR_NETWORK;
+	}
+
+	if (command == DF_CMD_OK)
+	{
+		ret = recv_buffer((char*)(&get_status), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_ERROR_NETWORK;
+		}
+
+		LOG(INFO) << "Frame Status: "<< status;
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock); 
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	status = get_status;
 	return DF_SUCCESS;
 }
 
