@@ -881,8 +881,8 @@ int Scan3D::captureFrame04BaseConfidence()
             cuda_normalize_phase(0);
 
             cuda_generate_pointcloud_base_table();
-
             LOG(INFO) << "cuda_generate_pointcloud_base_table";
+            // depth_filter(system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter / 1000.);
         }
 
         default:
@@ -1228,6 +1228,7 @@ bool Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
 
     LOG(INFO) << "parallel_cuda_unwrap_phase";
     cuda_generate_pointcloud_base_table();
+    // depth_filter(system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r / 1000.);
     LOG(INFO) << "generate_pointcloud_base_table";
 
 
@@ -1689,6 +1690,19 @@ void Scan3D::removeOutlierBaseRadiusFilter()
         LOG(INFO)<<"num: "<<num; 
 
         cuda_remove_points_base_radius_filter(0.5,r,num);
+
+        cuda_copy_depth_from_memory(buff_depth_);
+    }
+}
+
+void Scan3D::removeOutlierBaseDepthFilter()
+{
+    if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_depth_filter)
+    {
+        float depth_threshold = system_config_settings_machine_.Instance().firwmare_param_.depth_filter_threshold;
+        LOG(INFO)<<"depth_filter_threshold: "<<depth_threshold;
+
+        depth_filter(depth_threshold / 1000.);
 
         cuda_copy_depth_from_memory(buff_depth_);
     }

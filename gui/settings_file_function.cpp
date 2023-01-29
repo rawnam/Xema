@@ -222,6 +222,18 @@ bool SettingsFileFunction::loadProcessingSettingsFile(QString path)
 			qDebug() << "radius_filter_threshold_num is:" << firmware_Obj.value("radius_filter_threshold_num").toInt();
 			camera_config_.Instance().firwmare_param_.radius_filter_threshold_num = firmware_Obj.value("radius_filter_threshold_num").toInt();
 		}
+		
+		if (firmware_Obj.contains("use_depth_filter") && firmware_Obj["use_depth_filter"].isDouble())
+		{
+			qDebug() << "use_depth_filter is:" << firmware_Obj.value("use_depth_filter").toInt();
+			camera_config_.Instance().firwmare_param_.use_depth_filter = firmware_Obj.value("use_depth_filter").toInt();
+		}
+
+		if (firmware_Obj.contains("depth_filter_threshold") && firmware_Obj["depth_filter_threshold"].isDouble())
+		{
+			qDebug() << "depth_filter_threshold is:" << firmware_Obj.value("depth_filter_threshold").toDouble();
+			camera_config_.Instance().firwmare_param_.depth_filter_threshold = firmware_Obj.value("depth_filter_threshold").toDouble();
+		}
 
 		if (firmware_Obj.contains("confidence") && firmware_Obj["confidence"].isDouble())
 		{
@@ -366,6 +378,10 @@ bool SettingsFileFunction::saveProcessingSettingsFile(QString path)
 	jsonObject_firmware.insert("use_radius_filter", camera_config_.Instance().firwmare_param_.use_radius_filter);
 	jsonObject_firmware.insert("radius_filter_r", camera_config_.Instance().firwmare_param_.radius_filter_r);
 	jsonObject_firmware.insert("radius_filter_threshold_num", camera_config_.Instance().firwmare_param_.radius_filter_threshold_num);
+
+	jsonObject_firmware.insert("use_depth_filter", camera_config_.Instance().firwmare_param_.use_depth_filter);
+	jsonObject_firmware.insert("depth_filter_threshold", camera_config_.Instance().firwmare_param_.depth_filter_threshold);
+
 
 	jsonObject_firmware.insert("confidence", camera_config_.Instance().firwmare_param_.confidence);
 	jsonObject_firmware.insert("fisher_confidence", camera_config_.Instance().firwmare_param_.fisher_confidence);

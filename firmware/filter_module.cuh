@@ -22,9 +22,16 @@
 #include <vector>  
 
 
+#define DEPTH_DIFF_NUM_THRESHOLD 3
+
+
 __global__ void kernel_filter_reflect_noise(uint32_t img_height, uint32_t img_width,float * const unwrap_map);
 
 __global__ void kernel_fisher_filter(uint32_t img_height, uint32_t img_width, float fisher_confidence, float * const fisher_map, unsigned char* mask_output, float * const unwrap_map);
+
+__global__ void kernel_depth_filter_step_1(uint32_t img_height, uint32_t img_width, float depth_threshold, float * const depth_map, float * const depth_map_temp, unsigned char* mask_temp);
+
+__global__ void kernel_depth_filter_step_2(uint32_t img_height, uint32_t img_width, float depth_threshold, float * const depth_map, float * const depth_map_temp, unsigned char* mask_temp);
 
 //滤波
 __global__ void kernel_filter_radius_outlier_removal(uint32_t img_height, uint32_t img_width,float* const point_cloud_map,

@@ -102,6 +102,8 @@ public:
 	void hideLoadingForm();
 
 	void showLoadingForm();
+
+	void updateDepthFilter(int use, float threshold);
 private:
 	bool showImage();
 
@@ -168,6 +170,8 @@ private slots:
 
 	void do_checkBox_toggled_hdr(bool state);
 
+	void do_checkBox_toggled_depth_filter(bool state);
+
 	void do_checkBox_toggled_over_exposure(bool state);
 
 	void do_spin_smoothing_changed(int val);
@@ -187,6 +191,8 @@ private slots:
 	void do_doubleSpin_confidence(double val);
 
 	void do_doubleSpin_fisher(double val);
+
+	void do_doubleSpin_depth_fisher(double val);
 
 	void do_pushButton_capture_one_frame();
 

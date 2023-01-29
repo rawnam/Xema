@@ -94,6 +94,8 @@ public:
 
     void removeOutlierBaseRadiusFilter();
 
+    void removeOutlierBaseDepthFilter();
+
 private:
  
     Camera* camera_;

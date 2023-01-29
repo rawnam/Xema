@@ -54,6 +54,7 @@ __device__ unsigned char* d_mask_map_;
 __device__ unsigned char* d_brightness_map_;
 __device__ float* d_point_cloud_map_;
 __device__ float* d_depth_map_; 
+__device__ float* d_depth_map_temp_; 
 __device__ float* d_triangulation_error_map_;
  
 __device__ int load_calib_data_flag_ = 0;
@@ -144,6 +145,8 @@ bool cuda_unwrap_phase_shift_base_fisher_confidence(int serial_flag);
 bool cuda_normalize_phase(int serial_flag);
 
 void fisher_filter(float fisher_confidence_val);
+
+void depth_filter(float depth_threshold_val);
 
 
 /***********************************************************************************/
