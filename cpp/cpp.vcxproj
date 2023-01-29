@@ -78,6 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <TargetName>xemacppd</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -121,9 +122,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;CPP_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;CPP_EXPORTS;_WINDOWS;_USRDLL;_WINSOCK_DEPRECATED_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -132,6 +133,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
     </Link>
+    <PostBuildEvent>
+      <Command>copy $(TargetDir)\xemacppd.lib $(ProjectDir)..\cpp_example
+copy $(TargetDir)\xemacppd.dll $(ProjectDir)..\cpp_example
+copy $(ProjectDir)\xcamera.h $(ProjectDir)..\cpp_example</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -156,7 +162,8 @@
     <PostBuildEvent>
       <Command>copy $(TargetDir)\xemacpp.lib $(ProjectDir)..\cpp_example
 copy $(TargetDir)\xemacpp.dll $(ProjectDir)..\cpp_example
-copy $(ProjectDir)\xcamera.h $(ProjectDir)..\cpp_example</Command>
+copy $(ProjectDir)\xcamera.h $(ProjectDir)..\cpp_example
+copy $(ProjectDir)..\sdk\camera_status.h $(ProjectDir)..\cpp_example</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
