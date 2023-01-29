@@ -9,6 +9,21 @@ cmake ..
 make -j4
 cp libopen_cam3d_sdk.so ../../example
 
+cd ../../cpp
+rm -r build
+mkdir build
+cd build 
+cmake ..
+make -j4
+cp libxema_sdk.so ../../cpp_example
+
+cd ../../cpp_example
+rm -r build
+mkdir build
+cd build 
+cmake ..
+make -j4
+
 cd ../../example
 rm -r build
 mkdir build
