@@ -28,12 +28,11 @@ extern "C"
 		float distortion[1 * 12];//<k1,k2,p1,p2,k3,k4,k5,k6,s1,s2,s3,s4>
 
 	};
-	 
 	//函数名： DfConnect
-	//功能： 连接相机
-	//输入参数： camera_id（相机ip地址）
-	//输出参数： 无
-	//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+   //功能： 连接相机
+   //输入参数： camera_id（相机ip地址）
+   //输出参数： 无
+   //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
 	DF_SDK_API int DfConnect(const char* camera_id);
 
 	//函数名： DfGetCameraResolution
@@ -260,6 +259,20 @@ extern "C"
 	//输出参数：use(开关：1开、0关)、radius(半径）、num（有效点）
 	//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
 	DF_SDK_API int DfGetParamRadiusFilter(int& use, float& radius, int& num);
+
+	//函数名： DfSetParamRadiusFilter
+	//功能： 设置深度图滤波参数
+	//输入参数：use(开关：1开、0关)、depth_filterthreshold(深度图在1000mm距离过滤的噪声阈值)
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfSetParamDepthFilter(int use, float depth_filter_threshold);
+
+	//函数名： DfSetParamRadiusFilter
+	//功能： 设置深度图滤波参数
+	//输入参数：use(开关：1开、0关)、depth_filterthreshold(深度图在1000mm距离过滤的噪声阈值)
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
+	DF_SDK_API int DfGetParamDepthFilter(int& use, float& depth_filter_threshold);
 
 	//函数名： DfSetParamOutlierFilter
 	//功能： 设置外点过滤阈值

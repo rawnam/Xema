@@ -52,6 +52,8 @@ struct FirmwareConfigParam
 	int radius_filter_threshold_num; 
 	int use_reflect_filter;
 	float fisher_confidence;
+	int use_depth_filter;
+	float depth_filter_threshold;
 };
 
 

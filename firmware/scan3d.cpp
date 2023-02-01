@@ -881,8 +881,8 @@ int Scan3D::captureFrame04BaseConfidence()
             cuda_normalize_phase(0);
 
             cuda_generate_pointcloud_base_table();
-
             LOG(INFO) << "cuda_generate_pointcloud_base_table";
+            // depth_filter(system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter / 1000.);
         }
 
         default:
@@ -915,17 +915,22 @@ void Scan3D::mergeBrightness()
     cuda_merge_brigntness(hdr_num_, buff_brightness_);  
 }
 
-bool Scan3D::captureFrame04HdrBaseConfidence()
+int Scan3D::captureFrame04HdrBaseConfidence()
 {
 
     LOG(INFO)<<"Mixed HDR Exposure Base Confidence:";  
-    
+    int frame_status = DF_SUCCESS;
  
     for(int i= 0;i< hdr_num_;i++)
     {
         int led_current = led_current_list_[i];
-        lc3010_.SetLedCurrent(led_current,led_current,led_current); 
-        
+        int ret = lc3010_.SetLedCurrent(led_current, led_current, led_current);
+        if (DF_SUCCESS != ret)
+        {
+            LOG(ERROR) << "set led error: " << ret;
+            frame_status = DF_ERROR_LIGHTCRAFTER_SET_CURRENT;
+        }
+
         LOG(INFO)<<"Set LED: "<<led_current;
  
         float exposure = camera_exposure_list_[i];
@@ -946,7 +951,12 @@ bool Scan3D::captureFrame04HdrBaseConfidence()
             lc3010_.set_camera_exposure(exposure);
         } 
 
-        captureFrame04BaseConfidence(); 
+        ret = captureFrame04BaseConfidence();
+        if (DF_SUCCESS != ret)
+        {
+            LOG(ERROR) << "captureFrame04BaseConfidence code: " << ret;
+            frame_status = ret;
+        }
         cuda_copy_result_to_hdr(i,18); 
     }
  
@@ -961,12 +971,21 @@ bool Scan3D::captureFrame04HdrBaseConfidence()
     }
     /******************************************************************************************************/
  
-    lc3010_.SetLedCurrent(led_current_, led_current_, led_current_); 
+    int ret = lc3010_.SetLedCurrent(led_current_, led_current_, led_current_); 
+    if(DF_SUCCESS != ret)
+    {
+        LOG(ERROR)<<"set led error: "<<ret; 
+        frame_status = DF_ERROR_LIGHTCRAFTER_SET_CURRENT;
+    }
+    
+    LOG(INFO) << "Set Led: " << led_current_ << "\n"; 
     LOG(INFO) << "Set Camera Exposure Time: " << camera_exposure_ << "\n"; 
     if (camera_->setExposure(camera_exposure_))
     {
         lc3010_.set_camera_exposure(camera_exposure_);
     }
+
+    return frame_status;
 }
 
 bool Scan3D::captureFrame04Hdr()
@@ -1164,9 +1183,10 @@ bool Scan3D::captureFrame04Repetition01(int repetition_count)
 }
 
 
-bool Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
+int Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
 {
 
+    int frame_status = DF_SUCCESS;
     cuda_clear_repetition_02_patterns();
 
     unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
@@ -1176,12 +1196,17 @@ bool Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
         int n = 0;
   
         LOG(INFO) << "pattern_mode04";
-        lc3010_.pattern_mode04();
-
+        int ret = lc3010_.pattern_mode04();
+        if(DF_SUCCESS != ret)
+        {
+            frame_status = ret;
+            return ret;
+        }
         if (!camera_->streamOn())
         {
             LOG(INFO) << "Stream On Error";
-            return false;
+            frame_status = DF_ERROR_2D_CAMERA;
+            return DF_ERROR_2D_CAMERA;
         }
 
         lc3010_.start_pattern_sequence();
@@ -1204,7 +1229,9 @@ bool Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
                 LOG(INFO) << "grad failed!";
                 camera_->streamOff();
                 delete[] img_ptr;
-                return false;
+
+                frame_status = DF_ERROR_CAMERA_GRAP;
+                return DF_ERROR_CAMERA_GRAP;
             }
         }
 
@@ -1228,6 +1255,7 @@ bool Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
 
     LOG(INFO) << "parallel_cuda_unwrap_phase";
     cuda_generate_pointcloud_base_table();
+    // depth_filter(system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r / 1000.);
     LOG(INFO) << "generate_pointcloud_base_table";
 
 
@@ -1244,7 +1272,7 @@ bool Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
         captureTextureImage(generate_brightness_model_, generate_brightness_exposure_,buff_brightness_);
     }
 
-    return true;
+    return frame_status;
 }
 
 bool Scan3D::captureFrame04Repetition02(int repetition_count)
@@ -1689,6 +1717,19 @@ void Scan3D::removeOutlierBaseRadiusFilter()
         LOG(INFO)<<"num: "<<num; 
 
         cuda_remove_points_base_radius_filter(0.5,r,num);
+
+        cuda_copy_depth_from_memory(buff_depth_);
+    }
+}
+
+void Scan3D::removeOutlierBaseDepthFilter()
+{
+    if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_depth_filter)
+    {
+        float depth_threshold = system_config_settings_machine_.Instance().firwmare_param_.depth_filter_threshold;
+        LOG(INFO)<<"depth_filter_threshold: "<<depth_threshold;
+
+        depth_filter(depth_threshold / 1000.);
 
         cuda_copy_depth_from_memory(buff_depth_);
     }

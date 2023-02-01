@@ -261,6 +261,20 @@ extern "C"
 	//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
 	DF_SDK_API int DfGetParamRadiusFilter(int& use, float& radius, int& num);
 
+	//函数名： DfSetParamRadiusFilter
+	//功能： 设置深度图滤波参数
+	//输入参数：use(开关：1开、0关)、depth_filterthreshold(深度图在1000mm距离过滤的噪声阈值)
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfSetParamDepthFilter(int use, float depth_filter_threshold);
+
+	//函数名： DfSetParamRadiusFilter
+	//功能： 设置深度图滤波参数
+	//输入参数：use(开关：1开、0关)、depth_filterthreshold(深度图在1000mm距离过滤的噪声阈值)
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
+	DF_SDK_API int DfGetParamDepthFilter(int& use, float& depth_filter_threshold);
+
 	//函数名： DfSetParamOutlierFilter
 	//功能： 设置外点过滤阈值
 	//输入参数：threshold(阈值0-100)
@@ -646,26 +660,33 @@ DF_SDK_API int DfGetTestFrame01(unsigned char* raw, int raw_buf_size, float* dep
 //功能： 设置点云半径滤波参数
 //输入参数：use(开关：1开、0关) 
 //输出参数： 无
-//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+//返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
 DF_SDK_API int DfSetParamReflectFilter(int use);
 
 //函数名： DfGetParamReflectFilter
 //功能： 设置点云平滑参数
 //输入参数：无
 //输出参数：use(开关：1开、0关)
-//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+//返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
 DF_SDK_API int DfGetParamReflectFilter(int& use);
 
 //函数名： DfSetBoardInspect
 //功能： 设置标定板检测
 //输入参数：enable(开关) 
 //输出参数： 无
-//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+//返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
 DF_SDK_API int DfSetBoardInspect(bool enable);
 
 //函数名： DfGetProductInfo
 //功能： 设置标定板检测
 //输入参数：info(信息)，lenth(信息长度) 
 //输出参数： 无
-//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+//返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
 DF_SDK_API int DfGetProductInfo(char* info, int length);
+
+//函数名： DfGetFrameStatus
+//功能： 获取当前帧数据状态
+//输入参数：无
+//输出参数： status（状态码）
+//返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
+DF_SDK_API int DfGetFrameStatus(int& status);

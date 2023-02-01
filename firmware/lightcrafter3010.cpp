@@ -486,6 +486,11 @@ int LightCrafter3010::write_pattern_table(unsigned char* pattern_index, unsigned
     {
         pre_illumination_dark_time = camera_min_exposure_ - camera_exposure + 1000;
         illumination_time = camera_exposure;
+
+        if(pre_illumination_dark_time > 10000)
+        {
+            pre_illumination_dark_time= 10000; 
+        }
     }
 
     LOG(INFO) << "pre_illumination_dark_time: " << pre_illumination_dark_time;

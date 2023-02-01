@@ -53,6 +53,7 @@ float min_camera_exposure_ = 1000;
 int camera_width_ = 0;
 int camera_height_ = 0;
  
+int frame_status_ = DF_SUCCESS;
 
 SystemConfigDataStruct system_config_settings_machine_;
 
@@ -1331,6 +1332,7 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
     }
 
     LOG(INFO)<<"Mixed HDR Exposure:"; 
+    frame_status_ = DF_FRAME_CAPTURING;
 
 
     int depth_buf_size = camera_width_*camera_height_*4;
@@ -1339,12 +1341,19 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
     int brightness_buf_size = camera_width_*camera_height_*1;
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
-    scan3d_.captureFrame04HdrBaseConfidence(); 
+    int ret = scan3d_.captureFrame04HdrBaseConfidence(); 
+
+    if(DF_SUCCESS != ret)
+    { 
+         LOG(ERROR)<<"captureFrame04BaseConfidence code: "<<ret;
+         frame_status_ = ret;
+    }
+
     std::thread  t_merge_brightness(&Scan3D::mergeBrightness, &scan3d_);
  
+    scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
-
-          
+         
     scan3d_.copyDepthData(depth_map);
 
  
@@ -1363,7 +1372,7 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
 
    /***************************************************************************************************/
     LOG(INFO) << "start send depth, buffer_size= "<< depth_buf_size;
-    int ret = send_buffer(client_sock, (const char *)depth_map, depth_buf_size);
+    ret = send_buffer(client_sock, (const char *)depth_map, depth_buf_size);
     LOG(INFO) << "depth ret= "<<ret;
 
     if (ret == DF_FAILED)
@@ -1375,6 +1384,7 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
         t_merge_brightness.join();
         delete[] brightness;
 
+        frame_status_ = DF_ERROR_NETWORK;
         return DF_FAILED;
     }
 
@@ -1398,6 +1408,7 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
         delete[] depth_map;
         delete[] brightness;
 
+        frame_status_ = DF_ERROR_NETWORK;
         return DF_FAILED;
     }
     LOG(INFO) << "frame sent!";
@@ -1405,6 +1416,7 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
     delete[] depth_map;
     delete[] brightness;  
 
+    frame_status_ = DF_SUCCESS;
     return DF_SUCCESS;
 
 }
@@ -1521,6 +1533,7 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
 	return DF_FAILED;
     }
 	
+    frame_status_ = DF_FRAME_CAPTURING;
     
     int repetition_count = 1;
 
@@ -1528,6 +1541,7 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
     if(ret == DF_FAILED)
     {
         LOG(INFO)<<"send error, close this connection!\n";
+        frame_status_ = DF_ERROR_NETWORK;
     	return DF_FAILED;
     }
     LOG(INFO)<<"repetition_count: "<<repetition_count<<"\n";
@@ -1550,8 +1564,17 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
       repetition_count = 10;
     }
 
+    ret = scan3d_.captureFrame04Repetition02BaseConfidence(repetition_count);
+    if (DF_SUCCESS != ret)
+    {
+      LOG(ERROR) << "captureFrame04BaseConfidence code: " << ret;
+      frame_status_ = ret;
+    }
+
     scan3d_.captureFrame04Repetition02BaseConfidence(repetition_count);
+    scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
+
              
     scan3d_.copyBrightnessData(brightness);
     scan3d_.copyDepthData(depth_map); 
@@ -1582,6 +1605,7 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
         delete[] depth_map;
         delete[] brightness;
 
+        frame_status_ = DF_ERROR_NETWORK;
         return DF_FAILED;
     }
 
@@ -1602,13 +1626,15 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
         delete[] depth_map;
         delete[] brightness;
 
+        frame_status_ = DF_ERROR_NETWORK;
         return DF_FAILED;
     }
     LOG(INFO) << "frame sent!";
     // delete [] buffer;
     delete[] depth_map;
-    delete[] brightness;  
+    delete[] brightness;
 
+    frame_status_ = DF_SUCCESS;
     return DF_SUCCESS;
 
     
@@ -1656,7 +1682,9 @@ int handle_cmd_get_frame_04_repetition_01_parallel(int client_sock)
     }
 
     scan3d_.captureFrame04Repetition01(repetition_count);
+    scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
+
 
     scan3d_.copyBrightnessData(brightness);
     scan3d_.copyDepthData(depth_map);
@@ -1798,6 +1826,7 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
         return DF_FAILED;	
     }
 
+    frame_status_ = DF_FRAME_CAPTURING;
     int ret = DF_SUCCESS;
 
     int depth_buf_size = camera_width_*camera_height_*4;
@@ -1812,8 +1841,11 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
     if(DF_SUCCESS != ret)
     { 
          LOG(ERROR)<<"captureFrame04BaseConfidence code: "<<ret;
+         frame_status_ = ret;
     }
+    scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
+
      
     LOG(INFO)<<"Reconstruct Frame04 Finished!";
     scan3d_.copyBrightnessData(brightness);
@@ -1843,6 +1875,8 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
         delete[] depth_map;
         delete[] brightness;
 
+        frame_status_ = DF_ERROR_NETWORK;
+
         return DF_FAILED;
     }
 
@@ -1863,12 +1897,17 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
         delete[] depth_map;
         delete[] brightness;
 
+        frame_status_ = DF_ERROR_NETWORK;
+
         return DF_FAILED;
     }
     LOG(INFO) << "frame sent!";
     // delete [] buffer;
     delete[] depth_map;
     delete[] brightness;
+
+    frame_status_ = DF_SUCCESS;
+
     return DF_SUCCESS;
 }
 
@@ -2762,6 +2801,72 @@ int handle_cmd_get_param_radius_filter(int client_sock)
     return DF_SUCCESS;
 }
 
+int handle_cmd_set_param_depth_filter(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+
+
+    int switch_val = 0;
+    float depth_throshold = 2;
+
+    int ret = recv_buffer(client_sock, (char*)(&switch_val), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+ 
+
+    ret = recv_buffer(client_sock, (char*)(&depth_throshold), sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+
+
+    system_config_settings_machine_.Instance().firwmare_param_.depth_filter_threshold = depth_throshold;
+    system_config_settings_machine_.Instance().firwmare_param_.use_depth_filter = switch_val;
+
+ 
+    LOG(INFO)<<"use_depth_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_depth_filter;
+    LOG(INFO)<<"depth_filter_threshold: "<<system_config_settings_machine_.Instance().firwmare_param_.depth_filter_threshold;
+         
+
+    return DF_SUCCESS;
+}
+
+int handle_cmd_get_param_depth_filter(int client_sock)
+{
+   if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+     
+    int ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.use_depth_filter), sizeof(int) );
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+ 
+    ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.depth_filter_threshold), sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+    
+    LOG(INFO)<<"use_depth_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_depth_filter;
+    LOG(INFO)<<"depth_filter_threshold: "<<system_config_settings_machine_.Instance().firwmare_param_.depth_filter_threshold;
+         
+
+    return DF_SUCCESS;
+}
+
 //获取置信度参数
 int handle_cmd_get_param_fisher_filter(int client_sock)
 {
@@ -3238,6 +3343,27 @@ int handle_cmd_get_param_led_current(int client_sock)
  
        
 }
+
+//获取相机帧状态
+int handle_cmd_get_frame_status(int client_sock)
+{
+    if (check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;
+    }
+
+    LOG(INFO) << "Frame Status: "<<frame_status_;
+
+    int ret = send_buffer(client_sock, (char*)(&frame_status_), sizeof(frame_status_));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
+    }
+
+    return DF_SUCCESS;
+}
+
 /*************************************************************************************************************************/
 
 int write_calib_param()
@@ -4340,6 +4466,14 @@ int handle_commands(int client_sock)
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_RADIUS_FILTER";   
     	ret = handle_cmd_get_param_radius_filter(client_sock);
 	    break;
+    case DF_CMD_SET_PARAM_DEPTH_FILTER:
+	    LOG(INFO)<<"DF_CMD_SET_PARAM_DEPTH_FILTER";   
+    	ret = handle_cmd_set_param_radius_filter(client_sock);
+	    break;
+	case DF_CMD_GET_PARAM_DEPTH_FILTER:
+	    LOG(INFO)<<"DF_CMD_GET_PARAM_DEPTH_FILTER";   
+    	ret = handle_cmd_get_param_radius_filter(client_sock);
+	    break;
 	case DF_CMD_SET_PARAM_BILATERAL_FILTER:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_BILATERAL_FILTER";   
     	handle_cmd_set_param_bilateral_filter(client_sock);
@@ -4382,6 +4516,11 @@ int handle_commands(int client_sock)
     case DF_CMD_GET_PRODUCT_INFO:
         LOG(INFO)<<"DF_CMD_GET_PRODUCT_INFO"; 
         ret = handle_cmd_get_product_info(client_sock);
+        break;
+
+    case DF_CMD_GET_FRAME_STATUS:
+        LOG(INFO)<<"DF_CMD_GET_FRAME_STATUS"; 
+        ret = handle_cmd_get_frame_status(client_sock);
         break;
 
 
