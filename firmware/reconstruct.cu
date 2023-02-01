@@ -255,3 +255,90 @@ __global__ void kernel_reconstruct_pointcloud_base_minitable(uint32_t img_height
 
 	}
 }
+
+
+__device__ void undistortPoint(float x, float y,
+	float fc_x, float fc_y,
+	float cc_x, float cc_y,
+	float k1, float k2, float k3, float p1, float p2,
+	float& x_undistort, float& y_undistort)
+{
+	float x_distort = (x - cc_x) / fc_x;
+	float y_distort = (y - cc_y) / fc_y;
+
+	float x_iter = x_distort;
+	float y_iter = y_distort;
+
+	for (int i = 0; i < 20; i++)
+	{
+		float r_2 = x_iter * x_iter + y_iter * y_iter;
+		float r_4 = r_2 * r_2;
+		float r_6 = r_4 * r_2;
+		float k_radial = 1 + k1 * r_2 + k2 * r_4 + k3 * r_6;
+		float delta_x = 2 * p1 * x_iter * y_iter + p2 * (r_2 + 2 * x_iter * x_iter);
+		float delta_y = p1 * (r_2 + 2 * y_iter * y_iter) + 2 * p2 * x_iter * y_iter;
+		x_iter = (x_distort - delta_x) / k_radial;
+		y_iter = (y_distort - delta_y) / k_radial;
+	}
+	x_undistort = x_iter * fc_x + cc_x;
+	y_undistort = y_iter * fc_y + cc_y;
+
+	//x_undistort = x_iter;
+	//y_undistort = y_iter;
+
+	return;
+}
+
+
+__global__ void kernel_reconstruct_pointcloud_base_depth(int width,int height,float * const xL_rotate_x,float * const xL_rotate_y,
+float* const camera_intrinsic,float* const camera_distortion, float * const depth, float * const pointcloud)
+ {
+	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+
+
+	const unsigned int serial_id = idy * width + idx;
+
+	float camera_fx = camera_intrinsic[0];
+	float camera_fy = camera_intrinsic[4];
+
+	float camera_cx = camera_intrinsic[2];
+	float camera_cy = camera_intrinsic[5]; 
+
+	// float k1 = camera_distortion[0];
+	// float k2 = camera_distortion[1];
+	// float p1 = camera_distortion[2];
+	// float p2 = camera_distortion[3];
+	// float k3 = camera_distortion[4];
+
+	// printf("camera_fx: %f",camera_fx);
+	// printf("camera_fy: %f",camera_fy);
+	// printf("k1: %f",k1);
+	// printf("k2: %f",k2);
+	// printf("k3: %f",k3);
+
+	if (idx < width && idy < height)
+	{
+
+		if (depth[serial_id] > 0)
+		{
+			// float undistort_x = xL_rotate_x[serial_id];
+			// float undistort_y = xL_rotate_y[serial_id];
+			float undistort_x = idx;
+			float undistort_y = idy;
+			undistortPoint(idx, idy, camera_intrinsic[0], camera_intrinsic[4], camera_intrinsic[2], camera_intrinsic[5],
+			camera_distortion[0], camera_distortion[1], camera_distortion[2], camera_distortion[3], camera_distortion[4],
+			undistort_x, undistort_y);
+
+			pointcloud[3 * serial_id + 0] = (undistort_x - camera_cx) * depth[serial_id] / camera_fx;
+			pointcloud[3 * serial_id + 1] = (undistort_y - camera_cy) * depth[serial_id] / camera_fy;
+			pointcloud[3 * serial_id + 2] = depth[serial_id];
+		}
+		else
+		{
+			pointcloud[3 * serial_id + 0] = 0;
+			pointcloud[3 * serial_id + 1] = 0;
+			pointcloud[3 * serial_id + 2] = 0;
+		}
+	}
+ }

@@ -5,11 +5,18 @@
 
 #define Write_Image_Freeze				0x1A
 #define Write_Operating_Mode_Select		0x05
+#define Read_Operating_Mode_Select		0x06
 #define Write_Input_Image_Size			0x2E
 #define Write_Image_Crop				0x10
 #define Write_Checkerboard				0x0B
 #define Write_Display_Size				0x12
 #define Write_Rgb_Led_Enable			0x52
+#define Write_Trigger_Out               0x92
+#define Read_Trigger_Out                0x93
+#define Write_Led_Current               0x54
+#define Read_Led_Current                0x55
+#define Write_Pattern_Order             0x98
+#define Read_Pattern_Order              0x99
 
 #define Write_Internal_Pattern_Control	0x9E
 #define Write_Flash_Data_Type_Select	0xDE
@@ -209,7 +216,7 @@ public:
 
 	~LightCrafter3010();
 
-	void init(); 
+	int init(); 
     
     void set_trigger_out_delay(int delay_time);
 		
@@ -219,15 +226,15 @@ public:
 	
 	void write_pattern_table(unsigned char* pattern_index, int len);
 	
-	void write_pattern_table(unsigned char* pattern_index, int len,float camera_exposure);
+	int write_pattern_table(unsigned char* pattern_index, unsigned char* pattern_nums, int len,float camera_exposure);
 
 	void pattern_mode01();
 	void pattern_mode02();
 	void pattern_mode03();
-	void pattern_mode04();
+	int pattern_mode04();
 	
 	void pattern_mode03_repetition(int repetition_count);
-	void pattern_mode04_repetition(int repetition_count);
+	int pattern_mode04_repetition(int repetition_count);
 
 	void pattern_mode_brightness();
 
@@ -235,7 +242,7 @@ public:
 	void read_pattern_status();
 	
 	float get_temperature();
-    void SetLedCurrent(unsigned short R, unsigned short G, unsigned short B);
+    int SetLedCurrent(unsigned short R, unsigned short G, unsigned short B);
 
 	void enable_checkerboard();
 	void disable_checkerboard();

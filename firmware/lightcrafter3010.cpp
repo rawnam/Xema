@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include "easylogging++.h"
 #include "math.h"
+#include "protocol.h"
 
 LightCrafter3010::LightCrafter3010()
 {
@@ -53,13 +54,27 @@ LightCrafter3010::~LightCrafter3010()
 }
 
 
-void LightCrafter3010::init()
+int LightCrafter3010::init()
 {
 	char buffer[6];
+    memset(buffer,0,6*sizeof(char));
+
+
+    int ret = 0;
+    char ver_buffer[6];
+    memset(buffer,0,6*sizeof(char));
+
 
 	//internal test pattern mode
 	buffer[0] = 0x04;
-	write(0x05, buffer, 1);
+	write(Write_Operating_Mode_Select, buffer, 1);
+
+    read(Read_Operating_Mode_Select,ver_buffer,1);
+    ret = memcmp(buffer,ver_buffer,1);
+    if(0 != ret)
+    { 
+        return DF_ERROR_LIGHTCRAFTER_SET_MODEL;
+    }
 
 	//LED set to brightest
 	// SetLedCurrent(1023, 1023, 1023);
@@ -70,7 +85,14 @@ void LightCrafter3010::init()
 	buffer[2] = 0x00;
 	buffer[1] = 0x00;
 	buffer[0] = 0x02;
-	write(0x92, buffer, 5);
+	write(Write_Trigger_Out, buffer, 5);
+
+	read(Read_Trigger_Out, ver_buffer, 5);
+    ret = memcmp(buffer,ver_buffer,5);
+    if(!ret)
+    {
+        return DF_ERROR_LIGHTCRAFTER_SET_TRIGGEROUT;
+    }
 
 	//enable trigger out 2
 	//delay = -500us (0xfffffe0c)
@@ -79,13 +101,19 @@ void LightCrafter3010::init()
 	buffer[2] = 0xfe;
 	buffer[1] = 0x0c;
 	buffer[0] = 0x03;
-	write(0x92, buffer, 5);
+	write(Write_Trigger_Out, buffer, 5);
 
+	read(Read_Trigger_Out, ver_buffer, 5);
+    ret = memcmp(buffer,ver_buffer,5);
+    if(!ret)
+    {
+        return DF_ERROR_LIGHTCRAFTER_SET_TRIGGEROUT;
+    }
 
     // set_trigger_out_delay(-500);
 
-	// pattern_mode01();
-	//write_pattern_table();
+    return DF_SUCCESS;
+
 }
   
 void LightCrafter3010::set_trigger_out_delay(int delay_time)
@@ -161,13 +189,21 @@ void LightCrafter3010::set_trigger_out_delay(int delay_time)
  
 }
 
-void LightCrafter3010::SetLedCurrent(unsigned short R, unsigned short G, unsigned short B)
+int LightCrafter3010::SetLedCurrent(unsigned short R, unsigned short G, unsigned short B)
 {
     if (R>1023) R=1023;
     if (G>1023) G=1023;
     if (B>1023) B=1023;
     
     char buffer[6];
+    memset(buffer,0,6*sizeof(char));
+
+    int ret = 0;
+    char ver_buffer[6];
+    memset(ver_buffer,0,6*sizeof(char));
+
+
+
     buffer[5] = ((B>>8)&0x03);
     buffer[4] = (B&0xff);
     buffer[3] = ((G>>8)&0x03);
@@ -175,7 +211,19 @@ void LightCrafter3010::SetLedCurrent(unsigned short R, unsigned short G, unsigne
     buffer[1] = ((R>>8)&0x03);
     buffer[0] = (R & 0xff);
 
-    write(0x54, buffer, 6);
+    write(Write_Led_Current, buffer, 6);
+
+     
+    read(Read_Led_Current, ver_buffer, 6);
+
+    ret = memcmp(buffer,ver_buffer,6*sizeof(char));
+
+    if (0 != ret)
+    {
+        return DF_ERROR_LIGHTCRAFTER_SET_CURRENT; 
+    }
+
+    return DF_SUCCESS;
 } 
 
 
@@ -396,18 +444,24 @@ void LightCrafter3010::reload_pattern_order_table_from_flash()
 }
 
 
-void LightCrafter3010::write_pattern_table(unsigned char* pattern_index, int len,float camera_exposure)
+int LightCrafter3010::write_pattern_table(unsigned char* pattern_index, unsigned char* pattern_nums, int len,float camera_exposure)
 {
     unsigned char buffer[24];
-    buffer[0] = 0x01;  //Start
-    buffer[1] = 0x00;  //Pattern Set Index
+    memset(buffer,0,24*sizeof(char));
 
-    buffer[2] = 0x06;  //Number of pattern to display
+    int ret = 0;
+    unsigned char ver_buffer[25];
+    memset(ver_buffer,0,25*sizeof(char));
+
+    buffer[0] = 0x01; // Start
+    buffer[1] = 0x00; // Pattern Set Index
+
+    buffer[2] = 0x06; // Number of pattern to display
     // buffer[3] = 0x07;  //RGB
-    buffer[3] = 0x04;  //BLUE
+    buffer[3] = 0x04; // BLUE
 
     // Pattern Invert
-    buffer[4] = 0; 
+    buffer[4] = 0;
     buffer[5] = 0;
     buffer[6] = 0;
     buffer[7] = 0;
@@ -416,25 +470,22 @@ void LightCrafter3010::write_pattern_table(unsigned char* pattern_index, int len
     buffer[10] = 0;
     buffer[11] = 0;
 
-    int pre_illumination_dark_time= 8500;
-    int pose_illumination_dark_time= 1500; 
+    int pre_illumination_dark_time = 8500;
+    int pose_illumination_dark_time = 1500;
 
+    int exposure_rate = camera_exposure_ / 2000;
 
-    int exposure_rate = camera_exposure_/2000;
-
-    pre_illumination_dark_time = 1000+ 170*(exposure_rate);
+    pre_illumination_dark_time = 1000 + 170 * (exposure_rate);
     // pose_illumination_dark_time = 500+ 30*(exposure_rate);
     // pose_illumination_dark_time = 1000+ 30*(exposure_rate);
 
-
-
     // Illumination Time = 11000us
     int illumination_time = camera_exposure - 1000;
-  
-    if(camera_exposure< camera_min_exposure_)
+
+    if (camera_exposure < camera_min_exposure_)
     {
-        pre_illumination_dark_time = camera_min_exposure_ -camera_exposure +1000; 
-        illumination_time = camera_exposure; 
+        pre_illumination_dark_time = camera_min_exposure_ - camera_exposure + 1000;
+        illumination_time = camera_exposure;
     }
 
     LOG(INFO) << "pre_illumination_dark_time: " << pre_illumination_dark_time;
@@ -442,60 +493,74 @@ void LightCrafter3010::write_pattern_table(unsigned char* pattern_index, int len
     LOG(INFO) << "pose_illumination_dark_time: " << pose_illumination_dark_time;
 
     std::vector<unsigned char> remainder_list;
-    for(int i= 0;i< 4;i++)
+    for (int i = 0; i < 4; i++)
     {
-        int remainder = illumination_time%256;
+        int remainder = illumination_time % 256;
         remainder_list.push_back(remainder);
-        illumination_time /=256; 
+        illumination_time /= 256;
     }
 
- 
     buffer[12] = remainder_list[0];
     buffer[13] = remainder_list[1];
     buffer[14] = remainder_list[2];
     buffer[15] = remainder_list[3];
 
     std::vector<unsigned char> dark_remainder_list;
-    for(int i= 0;i< 4;i++)
+    for (int i = 0; i < 4; i++)
     {
-        int remainder = pre_illumination_dark_time%256;
+        int remainder = pre_illumination_dark_time % 256;
         dark_remainder_list.push_back(remainder);
-        pre_illumination_dark_time /=256; 
+        pre_illumination_dark_time /= 256;
     }
 
     // Pre-illumination Dark Time = 500us
- 
+
     buffer[16] = dark_remainder_list[0];
     buffer[17] = dark_remainder_list[1];
     buffer[18] = dark_remainder_list[2];
     buffer[19] = dark_remainder_list[3];
- 
 
     std::vector<unsigned char> pose_dark_remainder_list;
-    for(int i= 0;i< 4;i++)
+    for (int i = 0; i < 4; i++)
     {
-        int remainder = pose_illumination_dark_time%256;
+        int remainder = pose_illumination_dark_time % 256;
         pose_dark_remainder_list.push_back(remainder);
-        pose_illumination_dark_time /=256; 
+        pose_illumination_dark_time /= 256;
     }
     buffer[20] = pose_dark_remainder_list[0];
     buffer[21] = pose_dark_remainder_list[1];
     buffer[22] = pose_dark_remainder_list[2];
     buffer[23] = pose_dark_remainder_list[3];
 
-  
 
-    for(int i=0; i<len; i++)
+
+    for (int i = 0; i < len; i++)
     {
-	    buffer[1] = pattern_index[i];
-        write(0x98, buffer, 24);
-	    buffer[0] = 0x00;
+        buffer[1] = pattern_index[i];
+	buffer[2] = pattern_nums[i];
+        write(Write_Pattern_Order, buffer, 24);
+
+        // usleep(100);
+        ver_buffer[0] = pattern_index[i];
+        read(Read_Pattern_Order, ver_buffer, 25);
+
+        ret = memcmp(buffer, ver_buffer+1, 24 * sizeof(char)); 
+        if (0 != ret)
+        {
+            for(int i = 0;i< 24;i++)
+            {
+                LOG(INFO)<<(int)buffer[i] <<" , "<<(int)ver_buffer[i];
+            }
+            return DF_ERROR_LIGHTCRAFTER_SET_PATTERN_ORDER;
+        }
+
+        buffer[0] = 0x00;
     }
 
- 
 
+
+    return DF_SUCCESS;
 }
-
 
 void LightCrafter3010::write_pattern_table(unsigned char* pattern_index, int len)
 {
@@ -547,29 +612,33 @@ void LightCrafter3010::pattern_mode01()
 {
     // unsigned char pattern_index[] = {12,13,15,16};
     unsigned char pattern_index[] = {0,1,3,4};
-    write_pattern_table(pattern_index, 4, camera_exposure_);
+    unsigned char pattern_nums[] = {6,6,6,6};
+    write_pattern_table(pattern_index, pattern_nums, 4, camera_exposure_);
 }
 
 void LightCrafter3010::pattern_mode02()
 {
     unsigned char pattern_index[] = {0,1,2,3,4,5,6};
-    write_pattern_table(pattern_index, 7, camera_exposure_);
+    unsigned char pattern_nums[] = {6,6,6,6,6,6,6};
+    write_pattern_table(pattern_index, pattern_nums, 7, camera_exposure_);
 }
 
 void LightCrafter3010::pattern_mode_brightness()
 {
     unsigned char pattern_index[] = {6};
-    write_pattern_table(pattern_index, 1, camera_exposure_);
+    unsigned char pattern_nums[] = {6};
+    write_pattern_table(pattern_index, pattern_nums, 1, camera_exposure_);
 }
 
 void LightCrafter3010::pattern_mode03()
 {
     unsigned char pattern_index[] = {0,1,2,3,4,6};
-    write_pattern_table(pattern_index, 6, camera_exposure_);
+    unsigned char pattern_nums[] = {6,6,6,6,6,6};
+    write_pattern_table(pattern_index, pattern_nums, 6, camera_exposure_);
 }
 
 
-void LightCrafter3010::pattern_mode04_repetition(int repetition_count)
+int LightCrafter3010::pattern_mode04_repetition(int repetition_count)
 {
     if(repetition_count< 1)
     {
@@ -579,6 +648,11 @@ void LightCrafter3010::pattern_mode04_repetition(int repetition_count)
     int group_count = 3+repetition_count;
 
     unsigned char pattern_index[group_count];
+    unsigned char pattern_nums[group_count];
+    for(int i=0; i<group_count; i++)
+    {
+	pattern_nums[i] = 6;
+    }
     pattern_index[0] = 0;
     pattern_index[1] = 1;
 
@@ -588,7 +662,7 @@ void LightCrafter3010::pattern_mode04_repetition(int repetition_count)
     }
   
     pattern_index[group_count-1] = 6;
-    write_pattern_table(pattern_index, group_count, camera_exposure_);
+    return write_pattern_table(pattern_index, pattern_nums, group_count, camera_exposure_);
 
  
 }
@@ -603,6 +677,11 @@ void LightCrafter3010::pattern_mode03_repetition(int repetition_count)
     int group_count = 5+repetition_count;
 
     unsigned char pattern_index[group_count];
+    unsigned char pattern_nums[group_count];
+    for(int i=0; i<group_count; i++)
+    {
+	pattern_nums[i] = 6;
+    }
 
     pattern_index[0] = 0;
     pattern_index[1] = 1;
@@ -615,14 +694,15 @@ void LightCrafter3010::pattern_mode03_repetition(int repetition_count)
     pattern_index[2+repetition_count] = 3;
     pattern_index[3+repetition_count] = 4;
     pattern_index[4+repetition_count] = 6;
-    write_pattern_table(pattern_index, group_count, camera_exposure_);
+    write_pattern_table(pattern_index, pattern_nums, group_count, camera_exposure_);
 
 }	
 
-void LightCrafter3010::pattern_mode04()
+int LightCrafter3010::pattern_mode04()
 {
     unsigned char pattern_index[] = {0,1,2,6};
-    write_pattern_table(pattern_index, 4, camera_exposure_);
+    unsigned char pattern_nums[] = {6,6,6,1};
+    return write_pattern_table(pattern_index, pattern_nums, 4, camera_exposure_);
 }
 
 

@@ -14,15 +14,12 @@
 #include "select_calibration_board_gui.h"
 #include "outlier_removal_gui.h"
 #include "update_firmware_gui.h"
+#include "about_gui.h"
 
 camera_gui::camera_gui(QWidget* parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
-
-	connect(ui.actionAbout, &QAction::triggered, []() {
-		QMessageBox::about(NULL, "About", _VERSION_);
-		});
 
 	default_config_path_ = "../camera_config.json";
 	last_config_path_ = "../dfx802_config.json";
@@ -40,7 +37,7 @@ camera_gui::camera_gui(QWidget* parent)
 	connect(this, SIGNAL(send_network_drop()), this, SLOT(do_slot_handle_network()));
 
 	connect(ui.action_update_firmware, SIGNAL(triggered()), this, SLOT(do_action_update_firmware()));
-	 
+	connect(ui.actionAbout, SIGNAL(triggered()), this, SLOT(do_action_about()));
 }
 
 camera_gui::~camera_gui()
@@ -186,6 +183,24 @@ void camera_gui::do_action_update_firmware()
 	if (QDialog::Accepted == update_firmware_gui.exec())
 	{
 		qDebug() << "update firmware: ";
+	}
+}
+
+void camera_gui::do_action_about()
+{
+	AboutGui about_gui;
+	QString version;
+	ui.tab_capture->getFirmwareVersion(version);
+	about_gui.setFirmwareVersion(version);
+	about_gui.updateVersion();
+	QString info;
+	ui.tab_capture->getProductInfo(info);
+	about_gui.setProductInfo(info);
+	about_gui.updateProductInfo();
+
+	if (QDialog::Accepted == about_gui.exec())
+	{
+		qDebug() << "about: ";
 	}
 }
 

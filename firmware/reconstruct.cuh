@@ -24,7 +24,8 @@ __global__ void kernel_reconstruct_pointcloud_base_minitable(uint32_t img_height
  
 __device__ float mini_bilinear_interpolation(float x, float y, int map_width, float *mapping);
 
-
+__global__ void kernel_reconstruct_pointcloud_base_depth(int width,int height,float * const xL_rotate_x,float * const xL_rotate_y,
+float* const  camera_intrinsic,float* const  camera_distortion, float * const depth, float * const pointcloud);
 
 
 

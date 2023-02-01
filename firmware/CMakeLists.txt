@@ -53,6 +53,7 @@ link_libraries(/usr/lib/libgxiapi.so)
 include_directories(/opt/pylon/include)
 link_libraries(/opt/pylon/lib/libpylonc.so)
 
+
 add_executable(camera_server
                     camera_server_new.cpp 
                     system_config_settings.cpp  
@@ -76,4 +77,3 @@ add_executable(camera_server
 target_sources(camera_server PUBLIC "../test/LookupTableFunction.cpp") 
 target_link_libraries(camera_server PRIVATE Threads::Threads)
 
- 

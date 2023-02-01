@@ -38,7 +38,8 @@ protected:
 	long int image_width_;
 	long int image_height_;
 
-	float min_camera_exposure_;
- 
+	float min_camera_exposure_; 
+	
+	bool stream_off_flag_;
 };
 

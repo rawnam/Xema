@@ -15,11 +15,8 @@ CameraBasler::~CameraBasler()
 
 bool CameraBasler::grap(unsigned char* buf)
 {
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-    {
-        LOG(INFO) << "--";
-    }
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+ 
 
         PylonGrabResult_t           grabResult;               /* Stores the result of a grab operation. */ 
         _Bool                       isReady;                  /* Used as an output parameter. */
@@ -96,11 +93,8 @@ bool CameraBasler::grap(unsigned char* buf)
 bool CameraBasler::streamOn()
 {
 
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-    {
-        LOG(INFO) << "GXStreamOn --";
-    }
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+ 
 
         GENAPIC_RESULT              res;    
         size_t                      nStreams;                 /* The number of streams the device provides. */
@@ -211,11 +205,10 @@ bool CameraBasler::streamOn()
 
 void CameraBasler::streamOffThread()
 {
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-    {
-        LOG(INFO) << "GXStreamOff --";
-    }
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+ 
+ 
+    stream_off_flag_ = true;
 
  GENAPIC_RESULT              res;                      /* Return value of pylon methods. */ 
     _Bool                       isReady;                  /* Used as an output parameter. */ 
@@ -272,8 +265,15 @@ void CameraBasler::streamOffThread()
 
 bool CameraBasler::streamOff()
 {
+    stream_off_flag_ = false;
     std::thread stop_thread(&CameraBasler::streamOffThread,this);
     stop_thread.detach(); 
+
+
+    while (!stream_off_flag_)
+    { 
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 
     return true;
 }
@@ -281,11 +281,8 @@ bool CameraBasler::streamOff()
 
 bool CameraBasler::openCamera()
 {
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-    {
-        // LOG(INFO) << "--";
-    }
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+ 
 
     GENAPIC_RESULT              res;                      /* Return value of pylon methods. */
     size_t                      numDevices;               /* Number of available devices. */
@@ -412,11 +409,9 @@ bool CameraBasler::openCamera()
 }
 bool CameraBasler::closeCamera()
 {
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-    {
-        LOG(INFO) << "--";
-    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+ 
 
     GENAPIC_RESULT              res;                      /* Return value of pylon methods. */
     /* ... Close and release the pylon device. The stream grabber becomes invalid
@@ -435,11 +430,8 @@ bool CameraBasler::closeCamera()
 }
 bool CameraBasler::switchToInternalTriggerMode()
 {
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-    {
-        LOG(INFO) << "--";
-    }
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+ 
 
     GENAPIC_RESULT res;
 
@@ -461,11 +453,8 @@ bool CameraBasler::switchToInternalTriggerMode()
 }
 bool CameraBasler::switchToExternalTriggerMode()
 {
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-    {
-        LOG(INFO) << "--";
-    }
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+ 
 
     GENAPIC_RESULT res;
 
@@ -488,11 +477,8 @@ bool CameraBasler::switchToExternalTriggerMode()
 }
 bool CameraBasler::getExposure(double &val)
 {
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-    {
-        LOG(INFO) << "--";
-    }
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+ 
 
     GENAPIC_RESULT              res;                      /* Return value of pylon methods. */
     res = PylonDeviceGetFloatFeature( hDev_, "ExposureTime", &val);
@@ -507,11 +493,8 @@ bool CameraBasler::getExposure(double &val)
 }
 bool CameraBasler::setExposure(double val)
 {
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-    {
-        LOG(INFO) << "--";
-    }
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+ 
 
     if(val< min_camera_exposure_)
     {
@@ -533,11 +516,8 @@ bool CameraBasler::setExposure(double val)
 
 bool CameraBasler::getGain(double &val)
 {
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-    {
-        LOG(INFO) << "--";
-    }
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+ 
     PylonDeviceGetFloatFeature;
 
     GENAPIC_RESULT              res;                      /* Return value of pylon methods. */
@@ -552,11 +532,8 @@ bool CameraBasler::getGain(double &val)
 }
 bool CameraBasler::setGain(double val)
 {
-    std::unique_lock<std::timed_mutex> lck(stream_mutex_,std::defer_lock); 
-    while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-    {
-        LOG(INFO) << "--";
-    }
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+ 
     GENAPIC_RESULT              res;                      /* Return value of pylon methods. */
     res = PylonDeviceSetFloatFeature( hDev_, "Gain", val);
     if(GENAPI_E_OK != res)

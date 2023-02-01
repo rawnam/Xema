@@ -12,7 +12,7 @@ public:
 	Scan3D();
 	~Scan3D();
 
-	bool init();
+	int init();
 
     bool cameraIsValid();
 
@@ -55,11 +55,13 @@ public:
 
     bool captureFrame04();
 
-    bool captureFrame04BaseConfidence();
+    int captureFrame04BaseConfidence();
 
     bool captureFrame04Hdr();
     
     bool captureFrame04HdrBaseConfidence(); 
+    
+    void mergeBrightness();
 
     bool captureFrame04Repetition01(int repetition_count); 
 

@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.4.1)
 
+set(CMAKE_BUILD_TYPE "Release")
+
 add_compile_options(-fPIC)
 add_definitions(-std=c++11)
 
@@ -16,7 +18,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 project(open_cam3d_gui CXX)
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/build/bin)
 
-include_directories(${OpenCV_INCLUDE_DIRS}  ../test ../sdk)
+include_directories(${OpenCV_INCLUDE_DIRS}  ../test ../sdk ../example)
 
 set(HEADERS 
     camera_gui.h 
@@ -26,6 +28,8 @@ set(HEADERS
     outlier_removal_gui.h
     update_firmware_gui.h
     update_opencam3d.h
+    waiting_gui.h
+    about_gui.h
 )
 
 set(SOURCES 
@@ -37,6 +41,8 @@ set(SOURCES
     outlier_removal_gui.cpp
     update_firmware_gui.cpp
     update_opencam3d.cpp
+    waiting_gui.cpp
+    about_gui.cpp
 )
 
 set(RESOURCES 
@@ -56,10 +62,11 @@ set(APP_SRC
  )
 
 link_libraries(${PROJECT_SOURCE_DIR}/../example/libopen_cam3d_sdk.so)
+link_libraries(${PROJECT_SOURCE_DIR}/../example/libenumerate.so)
 #print message
 message(${PROJECT_SOURCE_DIR})   
 
-find_package(Qt5 COMPONENTS Core Widgets Xml REQUIRED) 
+find_package(Qt5 COMPONENTS Core Widgets Concurrent Xml REQUIRED)
 
 #添加预编译宏
 ADD_DEFINITIONS(-DTORRENT_LIBRARY)

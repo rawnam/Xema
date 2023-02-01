@@ -29,11 +29,22 @@ Scan3D::~Scan3D()
 
 }
 
-bool Scan3D::init()
+int Scan3D::init()
 {
-        //光机初始化
-    lc3010_.init();  
-    lc3010_.SetLedCurrent(255,255,255);
+    int ret = 0;
+    //光机初始化
+    ret = lc3010_.init();
+    if (DF_SUCCESS != ret)
+    {
+        LOG(ERROR) << "lc3010 init FAILED; CODE : " << ret;
+    }
+
+    ret = lc3010_.SetLedCurrent(255, 255, 255);
+    if (DF_SUCCESS != ret)
+    {
+        LOG(ERROR) << "lc3010 SetLedCurrent FAILED; CODE : " << ret;
+    }
+
     lc3010_.enable_solid_field();
     LOG(INFO)<<"lc3010 init";
 
@@ -207,7 +218,11 @@ bool Scan3D::setParamGain(float gain)
 bool Scan3D::setParamLedCurrent(int current)
 {
 
-    lc3010_.SetLedCurrent(current,current,current);
+    if(DF_SUCCESS!= lc3010_.SetLedCurrent(current,current,current))
+    {
+        LOG(ERROR)<<"Set Led Current failed";
+        return false;
+    }
 
     led_current_ = current;
 
@@ -782,15 +797,26 @@ bool Scan3D::captureFrame04()
     return true;
 }
 
-bool Scan3D::captureFrame04BaseConfidence()
+int Scan3D::captureFrame04BaseConfidence()
 {
- 
-    lc3010_.pattern_mode04();
+    
+    int ret = DF_SUCCESS;
+
+    ret = lc3010_.pattern_mode04();
+    if(DF_SUCCESS != ret)
+    {
+        return ret;
+    }
+
+
+    LOG(INFO) << "cuda_clear_reconstruct_cache:";
+    cuda_clear_reconstruct_cache();
+
     LOG(INFO) << "Stream On:";
     if (!camera_->streamOn())
     {
         LOG(INFO) << "Stream On Error";
-        return false;
+        return DF_ERROR_CAMERA_STREAM;
     }
 
     lc3010_.start_pattern_sequence();
@@ -805,7 +831,7 @@ bool Scan3D::captureFrame04BaseConfidence()
             
             delete[] img_ptr; 
             camera_->streamOff();
-            return false;
+            return DF_ERROR_CAMERA_GRAP;
         }
         LOG(INFO)<<"finished!";
 
@@ -881,9 +907,13 @@ bool Scan3D::captureFrame04BaseConfidence()
         captureTextureImage(generate_brightness_model_, generate_brightness_exposure_,buff_brightness_);
     }
 
-    return true;
+    return DF_SUCCESS;
 }
 
+void Scan3D::mergeBrightness()
+{
+    cuda_merge_brigntness(hdr_num_, buff_brightness_);  
+}
 
 bool Scan3D::captureFrame04HdrBaseConfidence()
 {
@@ -1656,7 +1686,7 @@ void Scan3D::removeOutlierBaseRadiusFilter()
         float r = system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r;
         int num = system_config_settings_machine_.Instance().firwmare_param_.radius_filter_threshold_num;
         LOG(INFO)<<"radius_filter_r: "<<r;
-        LOG(INFO)<<"num: "<<num;
+        LOG(INFO)<<"num: "<<num; 
 
         cuda_remove_points_base_radius_filter(0.5,r,num);
 

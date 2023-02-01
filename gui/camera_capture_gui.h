@@ -11,6 +11,7 @@
 #include <QThread>
 #include <QDebug>
 #include <QtCore/QTimer>
+#include "../firmware/version.h"
 
 #define SELECT_BRIGHTNESS_FLAG_ 1;
 #define SELECT_HEIGHT_MAP_FLAG_ 2;
@@ -20,6 +21,14 @@
 #define GENERATE_BRIGHTNESS_ILLUMINATION_ 2;
 #define GENERATE_BRIGHTNESS_DARKNESS_ 3;
 
+const int EXPOSURE_MODEL_SINGLE_ = 0;
+const int EXPOSURE_MODEL_HDR_ = 1;
+const int EXPOSURE_MODEL_REPETITION_ = 2;
+
+
+//const int EXPOSURE_TIME_MIN_ = 1700;
+//const int EXPOSURE_TIME_MAX_ = 100000;
+
 class CameraCaptureGui : public QWidget
 {
 	Q_OBJECT
@@ -27,6 +36,10 @@ class CameraCaptureGui : public QWidget
 public:
 	CameraCaptureGui(QWidget* parent = Q_NULLPTR);
 	~CameraCaptureGui();
+
+	void getFirmwareVersion(QString& version);
+
+	void getProductInfo(QString& info);
 
 	void setOnDrop(int (*p_function)(void*));
 
@@ -271,4 +284,13 @@ private:
 
 
 	int (*m_p_OnDropped_)(void*);
+
+
+	int exposure_model_;
+
+	int exposure_time_min_ = 1700;
+	int exposure_time_max_ = 100000;
+
+	char firmware_version_[_VERSION_LENGTH_] = { "请先连接相机" };
+	char info_[INFO_SIZE] = {'\0'};
 };

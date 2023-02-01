@@ -71,6 +71,9 @@
     <ClCompile Include="waiting_gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="about_gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="camera_gui.h">
@@ -97,6 +100,9 @@
     <QtMoc Include="waiting_gui.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="about_gui.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="camera_gui.ui">
@@ -120,6 +126,9 @@
     <QtUic Include="waiting_gui.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="about.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="file_io_function.h">
@@ -138,6 +147,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\firmware\easylogging++.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="about.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

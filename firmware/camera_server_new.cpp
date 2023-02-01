@@ -19,6 +19,8 @@
 #include <JetsonGPIO.h>
 #include "scan3d.h"
 #include "socket_tcp.h"
+#include <dirent.h>
+
 
 INITIALIZE_EASYLOGGINGPP
 #define INPUT_PIN           5           // BOARD pin 29, BCM pin 5
@@ -510,7 +512,11 @@ int handle_cmd_set_auto_exposure_base_roi_half(int client_sock)
     if (brightness_current < 1023 && current_exposure != min_camera_exposure_)
     {
         brightness_current = 1023;
-        lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current);
+        if (DF_SUCCESS != lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current))
+        {
+            LOG(ERROR) << "Set Led Current";
+             
+        }
         system_config_settings_machine_.Instance().config_param_.led_current = brightness_current;
     }
 
@@ -641,7 +647,11 @@ int handle_cmd_set_auto_exposure_base_roi_half(int client_sock)
         int adjust_led_val = current_led;
 
         brightness_current = current_led;
-        lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current); 
+
+        if (DF_SUCCESS != lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current))
+        {
+            LOG(ERROR) << "Set Led Current";
+        }
 
         // capture_one_ret = camera.captureSingleExposureImage(current_exposure, (char *)brightness_mat.data);
         capture_one_ret = scan3d_.captureTextureImage(1, current_exposure, (unsigned char *)brightness_mat.data);
@@ -672,7 +682,10 @@ int handle_cmd_set_auto_exposure_base_roi_half(int client_sock)
         }
 
         brightness_current = current_led;
-        lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current); 
+        if (DF_SUCCESS != lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current))
+        {
+            LOG(ERROR) << "Set Led Current";
+        }
         // capture_one_ret = camera.captureSingleExposureImage(current_exposure, (char*)brightness_mat.data); 
         capture_one_ret = scan3d_.captureTextureImage(1, current_exposure, (unsigned char *)brightness_mat.data);
         auto_exposure_machine.evaluateBrightnessParam(brightness_mat,cv::Mat(),average_pixel,over_exposure_rate);
@@ -789,7 +802,11 @@ int handle_cmd_set_auto_exposure_base_roi_pid(int client_sock)
         if (brightness_current < 1023 && current_exposure != min_camera_exposure_)
         {
             brightness_current = 1023;
-            lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current);
+
+            if (DF_SUCCESS != lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current))
+            {
+            LOG(ERROR) << "Set Led Current";
+            }
             system_config_settings_machine_.Instance().config_param_.led_current = brightness_current;
         }
 
@@ -871,9 +888,12 @@ int handle_cmd_set_auto_exposure_base_roi_pid(int client_sock)
                 current_led = 0;
             }
 
-
             led_iterations_num++;
-            lc3010.SetLedCurrent(current_led, current_led, current_led);
+
+            if (DF_SUCCESS != lc3010.SetLedCurrent(current_led, current_led, current_led))
+            {
+                LOG(ERROR) << "Set Led Current";
+            }
             // capture_one_ret = camera.captureSingleExposureImage(current_exposure, (char *)brightness_mat.data);
             capture_one_ret = scan3d_.captureTextureImage(2, current_exposure, (unsigned char *)brightness_mat.data);
             auto_exposure_machine.evaluateBrightnessParam(brightness_mat, cv::Mat(), average_pixel, over_exposure_rate);
@@ -1320,10 +1340,11 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
     scan3d_.captureFrame04HdrBaseConfidence(); 
+    std::thread  t_merge_brightness(&Scan3D::mergeBrightness, &scan3d_);
+ 
     scan3d_.removeOutlierBaseRadiusFilter();
 
-         
-    scan3d_.copyBrightnessData(brightness);
+          
     scan3d_.copyDepthData(depth_map);
 
  
@@ -1350,10 +1371,15 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
         LOG(INFO) << "send error, close this connection!";
         // delete [] buffer;
         delete[] depth_map;
+        
+        t_merge_brightness.join();
         delete[] brightness;
 
         return DF_FAILED;
     }
+
+    t_merge_brightness.join();
+    scan3d_.copyBrightnessData(brightness);
 
     LOG(INFO) << "start send brightness, buffer_size= "<<brightness_buf_size;
     ret = send_buffer(client_sock, (const char *)brightness, brightness_buf_size);
@@ -1772,6 +1798,8 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
         return DF_FAILED;	
     }
 
+    int ret = DF_SUCCESS;
+
     int depth_buf_size = camera_width_*camera_height_*4;
     float* depth_map = new float[depth_buf_size];
 
@@ -1780,7 +1808,11 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
  
 
     LOG(INFO)<<"captureFrame04"; 
-    scan3d_.captureFrame04BaseConfidence();
+    ret = scan3d_.captureFrame04BaseConfidence();
+    if(DF_SUCCESS != ret)
+    { 
+         LOG(ERROR)<<"captureFrame04BaseConfidence code: "<<ret;
+    }
     scan3d_.removeOutlierBaseRadiusFilter();
      
     LOG(INFO)<<"Reconstruct Frame04 Finished!";
@@ -1801,7 +1833,7 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
   
 
     LOG(INFO) << "start send depth, buffer_size= "<< depth_buf_size;
-    int ret = send_buffer(client_sock, (const char *)depth_map, depth_buf_size);
+    ret = send_buffer(client_sock, (const char *)depth_map, depth_buf_size);
     LOG(INFO) << "depth ret= "<<ret;
 
     if (ret == DF_FAILED)
@@ -2306,7 +2338,10 @@ bool set_system_config(SystemConfigParam &rect_config_param)
         if(0<= rect_config_param.led_current && rect_config_param.led_current< 1024)
         {
             brightness_current = rect_config_param.led_current;
-            lc3010.SetLedCurrent(brightness_current,brightness_current,brightness_current);
+            if(DF_SUCCESS != lc3010.SetLedCurrent(brightness_current,brightness_current,brightness_current))
+            {
+                LOG(ERROR)<<"Set Led Current";
+            }
 
             system_config_settings_machine_.Instance().config_param_.led_current = brightness_current;
         }
@@ -3159,25 +3194,28 @@ int handle_cmd_set_param_led_current(int client_sock)
     int ret = recv_buffer(client_sock, (char*)(&led), sizeof(led));
     if(ret == DF_FAILED)
     {
-        LOG(INFO)<<"send error, close this connection!\n";
-    	return DF_FAILED;
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
     }
 
+    // set led current
 
-      //set led current
-    
-        if(0<= led && led< 1024)
+    if (0 <= led && led < 1024)
+    {
+        brightness_current = led;
+
+        if (DF_SUCCESS != lc3010.SetLedCurrent(brightness_current, brightness_current, brightness_current))
         {
-            brightness_current = led;
-            lc3010.SetLedCurrent(brightness_current,brightness_current,brightness_current); 
-            system_config_settings_machine_.Instance().config_param_.led_current = brightness_current;
+                LOG(ERROR) << "Set Led Current";
 
-            scan3d_.setParamLedCurrent(led);
-            return DF_SUCCESS;
+                return DF_FAILED;
         }
- 
-     
- 
+        system_config_settings_machine_.Instance().config_param_.led_current = brightness_current;
+
+        scan3d_.setParamLedCurrent(led);
+        return DF_SUCCESS;
+    }
+
         return DF_FAILED; 
 }
 
@@ -3882,6 +3920,43 @@ int handle_get_firmware_version(int client_sock)
     return DF_SUCCESS;
 }
 
+void load_txt(std::string filename, char* info, int length)
+{
+	FILE* fr = fopen(filename.c_str(), "rb");
+
+	if (fr != NULL) {
+		fread(info, 1, length, fr);
+		fclose(fr);
+	}
+	else {
+		std::cout << "open file error" << std::endl;
+	}
+}
+
+int handle_cmd_get_product_info(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED) {
+	    return DF_FAILED;
+    }
+
+    LOG(INFO)<<"get product info!";
+
+    char *info = new char[INFO_SIZE];
+    memset(info, 0, INFO_SIZE);
+    load_txt("../product_info.txt", info, INFO_SIZE);
+	std::cout << "INFO:\n" << info << std::endl;
+
+    int ret = send_buffer(client_sock, info, INFO_SIZE);    
+    delete [] info;
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+    
+    return DF_SUCCESS;
+}
+
 bool check_trigger_line()
 {
     bool ret = false;
@@ -4304,7 +4379,12 @@ int handle_commands(int client_sock)
         LOG(INFO)<<"DF_CMD_SET_INSPECT_MODEL_FIND_BOARD"; 
         ret = handle_cmd_set_board_inspect(client_sock);
         break;
-        
+    case DF_CMD_GET_PRODUCT_INFO:
+        LOG(INFO)<<"DF_CMD_GET_PRODUCT_INFO"; 
+        ret = handle_cmd_get_product_info(client_sock);
+        break;
+
+
 	default:
 	    LOG(INFO)<<"DF_CMD_UNKNOWN";
         ret = handle_cmd_unknown(client_sock);
@@ -4367,9 +4447,94 @@ int init()
 
     return DF_SUCCESS;
 }
+  
+void rolloutHandler(const char* filename, std::size_t size)
+{ 
+	/// 备份日志
+    if (access("xemaLog", F_OK) != 0)
+    {
+        system("mkdir xemaLog");
+    }
+
+    std::vector<std::string> name_list;
+    std::string suffix = "log";
+    DIR *dir;
+    struct dirent *ent;
+    if ((dir = opendir("xemaLog")) != NULL)
+    {
+        while ((ent = readdir(dir)) != NULL)
+        {
+            /* print all the files and directories within directory */
+            // printf("%s\n", ent->d_name);
+
+            std::string name = ent->d_name;
+
+            if(name.size()< 3)
+            {
+                continue;
+            }
+
+           std::string curSuffix = name.substr(name.size() - 3);
+
+           if (suffix == curSuffix)
+           {
+               name_list.push_back(name);
+           }
+       }
+       closedir(dir);
+   }
+
+   sort(name_list.begin(), name_list.end());
+
+    int num = name_list.size(); 
+	if (num < 10)
+	{
+		num++;
+	}
+	else
+	{
+		num = 10;
+		name_list.pop_back();
+	}
+ 
+
+	for (int i = num; i > 0 && !name_list.empty(); i--)
+	{
+		std::stringstream ss;
+		std::string path = "./xemaLog/" + name_list.back();
+		name_list.pop_back();
+		ss << "mv " << path << " xemaLog/log_" << i-1 << ".log";
+		std::cout << ss.str() << std::endl;
+		system(ss.str().c_str());
+	}
+
+	std::stringstream ss;
+	ss << "mv " << filename << " xemaLog/log_0" <<".log";
+	system(ss.str().c_str());
+ 
+
+}
+ 
+
 
 int main()
 {
+
+    	//关闭log输出
+	el::Configurations conf;
+	conf.setToDefault();  
+	conf.setGlobally(el::ConfigurationType::Filename, "xema_log.log"); 
+	conf.setGlobally(el::ConfigurationType::Enabled, "true");
+	conf.setGlobally(el::ConfigurationType::ToFile, "true"); 
+	el::Loggers::reconfigureAllLoggers(conf); 
+    //log configure
+	el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
+	el::Loggers::reconfigureAllLoggers(el::ConfigurationType::MaxLogFileSize, "10485760");//10MB 10485760 
+	/// 注册回调函数
+	el::Helpers::installPreRollOutCallback(rolloutHandler);
+
+    /***************************************************************************/
+
     LOG(INFO)<<"server started";
     int ret = init();
     if(DF_SUCCESS!= ret)

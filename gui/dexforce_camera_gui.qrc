@@ -2,6 +2,7 @@
   <qresource prefix="/dexforce_camera_gui">
     <file>image/external_param.png</file>
     <file>image/load.gif</file>
+    <file>image/xema logo.png</file>
     <file>image/accuracy.png</file>
     <file>image/icon_logo64.svg</file>
     <file>image/video_start.png</file>
@@ -12,5 +13,8 @@
     <file>image/capture.png</file>
     <file>image/save.png</file>
     <file>image/folder.png</file>
+  </qresource>
+  <qresource prefix="/qt/etc">
+    <file>qt.conf</file>
   </qresource>
 </RCC>

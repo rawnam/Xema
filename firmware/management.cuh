@@ -132,7 +132,7 @@ void cuda_copy_brightness_from_memory(unsigned char* brightness);
 
 void cuda_copy_brightness_to_memory(unsigned char* brightness);
 
-
+void cuda_clear_reconstruct_cache();
 /***********************************************************************************/
 
 bool cuda_compute_phase_shift(int serial_flag); 
@@ -164,6 +164,9 @@ bool cuda_copy_result_to_hdr(int serial_flag,int brigntness_serial);
 
 
 bool cuda_merge_hdr_data(int hdr_num,float* depth_map, unsigned char* brightness);
+
+
+bool cuda_merge_brigntness(int hdr_num, unsigned char* brightness);
 /***********************************************************************************/
 
 

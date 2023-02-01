@@ -131,6 +131,9 @@ open_cam3d.exe --enable-focusing --ip 192.168.x.x \n\
 35.Set Board Inspect: \n\
 open_cam3d.exe --set-board-inspect --switch enable --ip 192.168.x.x \n\
 \n\
+36.Get Product Info: \n\
+open_cam3d.exe --get-product-info --ip 192.168.x.x \n\
+\n\
 ";
 
 void help_with_version(const char* help);
@@ -180,6 +183,7 @@ int get_projector_temperature(const char* ip);
 int get_repetition_phase_02(const char* ip, int count, const char* phase_image_dir);
 int configure_focusing(const char* ip);
 int set_board_inspect(const char* ip,bool enable);
+int get_product_info(const char* ip);
 
 extern int optind, opterr, optopt;
 extern char* optarg;
@@ -232,6 +236,7 @@ enum opt_set
 	ENABLE_FOCUSING,
 	SWITCH,
 	SET_BOARD_INSPECT,
+	GET_PRODUCT_INFO,
 };
 
 static struct option long_options[] =
@@ -282,6 +287,7 @@ static struct option long_options[] =
 	{"get-projector-temperature",no_argument,NULL,GET_PROJECTOR_TEMPERATURE},
 	{"enable-focusing",no_argument,NULL,ENABLE_FOCUSING},
 	{"set-board-inspect",no_argument,NULL,SET_BOARD_INSPECT},
+	{"get-product-info",no_argument,NULL,GET_PRODUCT_INFO},
 };
 
 
@@ -498,6 +504,9 @@ int main(int argc, char* argv[])
 			set_board_inspect(camera_id, false);
 		}
 	}
+		break;
+	case GET_PRODUCT_INFO:
+		get_product_info(camera_id);
 		break;
 	default:
 		break;
@@ -2171,6 +2180,24 @@ int get_firmware_version(const char* ip)
 	DfGetFirmwareVersion(version, _VERSION_LENGTH_);
 	std::cout << "Firmware: " << version << std::endl;
 
+	DfDisconnectNet();
+	return 1;
+}
+
+int get_product_info(const char* ip)
+{
+	DfRegisterOnDropped(on_dropped);
+
+	int ret = DfConnectNet(ip);
+	if (ret == DF_FAILED) {
+		return 0;
+	}
+
+	char* info = new char[INFO_SIZE];
+	DfGetProductInfo(info, INFO_SIZE);
+	std::cout << "Product Info: " << info << std::endl;
+
+	delete[] info;
 	DfDisconnectNet();
 	return 1;
 }

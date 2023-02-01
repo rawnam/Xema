@@ -52,7 +52,6 @@ void UpdateFirmwareGui::do_pushButton_update()
 {
 	UpdateOnDropped(on_dropped);
 
-	char ip[50] = "192.168.4.193";
 	int ret = UpdateConnect(camera_ip.toStdString().c_str());
 	if (ret == DF_FAILED)
 	{
