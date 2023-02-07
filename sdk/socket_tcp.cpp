@@ -81,14 +81,14 @@ int setup_socket(const char* camera_ip, int port, SOCKET& sock)
 		LOG(TRACE) << "socket setup ok";
 
 #ifdef _WIN32 
-		int time_out = 20 * 1000;
+		int time_out = 30 * 1000;
 		//发送时限
 		setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*)&time_out, sizeof(time_out));
 		//接收时限  
 		setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&time_out, sizeof(time_out));
 #elif __linux
 
-		struct timeval timeout = { 20,0 };
+		struct timeval timeout = { 30,0 };
 		//设置发送超时
 		setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char*)&timeout, sizeof(struct timeval));
 		//设置接收超时
