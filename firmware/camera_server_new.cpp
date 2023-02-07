@@ -1570,8 +1570,7 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
       LOG(ERROR) << "captureFrame04BaseConfidence code: " << ret;
       frame_status_ = ret;
     }
-
-    scan3d_.captureFrame04Repetition02BaseConfidence(repetition_count);
+ 
     scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
 
