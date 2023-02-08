@@ -79,7 +79,7 @@
     </tr>
 </table>
 
-
+<img src='images/modules.jpg' width=800>
 <br> <a href='https://github.com/Open3DV/xema_hardware/tree/main/step'>XEMA structural design files</a>
 <br> <a href='https://evercraft.co/share?key=4CFED0'>XEMA-S assembly.stp (view online) </a>
 <br> <a href='https://evercraft.co/share?key=92E956'>XEMA-S structural components.stp (view online) </a>
