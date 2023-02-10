@@ -445,7 +445,7 @@
                     <number>1</number>
                    </property>
                    <property name="maximum">
-                    <double>10.000000000000000</double>
+                    <double>24.000000000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -1080,7 +1080,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_exposure"/>
   <buttongroup name="buttonGroup_image"/>
+  <buttongroup name="buttonGroup_exposure"/>
  </buttongroups>
 </ui>
