@@ -2536,16 +2536,16 @@ int handle_cmd_set_param_camera_gain(int client_sock)
     {
         gain = 0;
     }
-    else if(gain > 10)
+    else if(gain > 24)
     {
-        gain = 10;
+        gain = 24;
     }
 
-    system_config_settings_machine_.Instance().config_param_.camera_gain = gain;
 
     if(scan3d_.setParamGain(gain))
     { 
-        LOG(INFO) << "Set Camera Gain: " << gain;
+        LOG(INFO) << "Set Camera Gain: " << gain; 
+        system_config_settings_machine_.Instance().config_param_.camera_gain = gain;
     }
     else
     {
