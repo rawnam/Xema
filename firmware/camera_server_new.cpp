@@ -4467,11 +4467,11 @@ int handle_commands(int client_sock)
 	    break;
     case DF_CMD_SET_PARAM_DEPTH_FILTER:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_DEPTH_FILTER";   
-    	ret = handle_cmd_set_param_radius_filter(client_sock);
+    	ret = handle_cmd_set_param_depth_filter(client_sock);
 	    break;
 	case DF_CMD_GET_PARAM_DEPTH_FILTER:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_DEPTH_FILTER";   
-    	ret = handle_cmd_get_param_radius_filter(client_sock);
+    	ret = handle_cmd_get_param_depth_filter(client_sock);
 	    break;
 	case DF_CMD_SET_PARAM_BILATERAL_FILTER:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_BILATERAL_FILTER";   

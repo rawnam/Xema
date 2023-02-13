@@ -3843,7 +3843,7 @@ DF_SDK_API int DfGetParamRadiusFilter(int& use, float& radius, int& num)
 	return DF_SUCCESS;
 }
 
-//函数名： DfSetParamRadiusFilter
+//函数名： DfSetParamDepthFilter
 //功能： 设置深度图滤波参数
 //输入参数：use(开关：1开、0关)、depth_filterthreshold(深度图在1000mm距离过滤的噪声阈值)
 //输出参数： 无
@@ -3913,7 +3913,7 @@ DF_SDK_API int DfSetParamDepthFilter(int use, float depth_filter_threshold)
 	return DF_SUCCESS;
 }
 
-//函数名： DfSetParamRadiusFilter
+//函数名： DfGetParamDepthFilter
 //功能： 设置深度图滤波参数
 //输入参数：use(开关：1开、0关)、depth_filterthreshold(深度图在1000mm距离过滤的噪声阈值)
 //输出参数： 无
