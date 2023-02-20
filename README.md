@@ -43,7 +43,7 @@
     </tr>
     <tr>
         <td>Working Distance</td>
-        <td>400 ~ 2000mm</td>
+        <td>400 ~ 1000mm</td>
     </tr>
     <tr>
         <td>Data Interface</td>
@@ -80,12 +80,25 @@
 </table>
 
 <img src='images/modules.jpg' width=800>
-<br> <a href='https://github.com/Open3DV/xema_hardware/tree/main/step'>XEMA structural design files</a>
-<br> <a href='https://evercraft.co/share?key=4CFED0'>XEMA-S assembly.stp (view online) </a>
-<br> <a href='https://evercraft.co/share?key=92E956'>XEMA-S structural components.stp (view online) </a>
-<br> <a href='https://evercraft.co/share?key=A39A64'>XEMA-L assembly.stp (view online) </a>
-<br> <a href='https://evercraft.co/share?key=167319'>XEMA-L structural components.stp (view online) </a>
-<br> <a href='https://github.com/Open3DV/xema_hardware/tree/main/pcb'>XEMA Jetson Nano Carrier Board design files</a>
+
+## Structural Design Files
+<img src='https://github.com/Open3DV/xema_hardware/blob/main/image/XEMA-S assembly.png' width=300><br> 
+<a href='https://github.com/Open3DV/xema_hardware/blob/main/step/XEMA-S%20assembly.stp'>XEMA-S scanning range (400mm-1000mm) step file </a> <a href='https://evercraft.co/share?key=502244'> (view online) </a>
+<br> <br> 
+<img src='https://github.com/Open3DV/xema_hardware/blob/main/image/XEMA-L assembly.png' width=300><br>
+<a href='https://github.com/Open3DV/xema_hardware/blob/main/step/XEMA-L%20assembly.stp'>XEMA-L scanning range (1000mm-3000mm)step file </a><a href='https://evercraft.co/share?key=DE2860'> (view online) </a>
+<br> <br> 
+<img src='https://github.com/Open3DV/xema_hardware/blob/main/image/XEMA-S structural components.png' width=300><br>
+<a href='https://github.com/Open3DV/xema_hardware/blob/main/step/XEMA-S%20structural%20components.stp'> XEMA-S structural components step file </a>
+<a href='https://evercraft.co/share?key=92E956'> (view online) </a>
+<br> <br>
+<img src='https://github.com/Open3DV/xema_hardware/blob/main/image/XEMA-L structural components.png' width=300><br>
+<a href='https://github.com/Open3DV/xema_hardware/blob/main/step/XEMA-L%20structural%20components.stp'> XEMA-L structural components step file </a>
+<a href='https://evercraft.co/share?key=167319'> (view online) </a>
+<br> 
+## PCB Design Files(Pads format)
+<a href='https://github.com/Open3DV/xema_hardware/blob/main/pcb/XEMA%20Jetson%20Nano%20Carrier%20Board.pcb'>XEMA Jetson Nano carrier board  layout (pcb)</a>
+<br> <a href='https://github.com/Open3DV/xema_hardware/blob/main/pcb/XEMA%20Jetson%20Nano%20Carrier%20Board.sch'>XEMA Jetson Nano carrier board schematics (sch)</a>
 
 
 <img src='images/logo/dexforce.png' width=150>
