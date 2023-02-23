@@ -73,6 +73,8 @@ float* depth_buf_ = NULL;
 unsigned char* brightness_buf_ = NULL;
 float* undistort_map_x_ = NULL;
 float* undistort_map_y_ = NULL;
+float* distorted_map_x_ = NULL;
+float* distorted_map_y_ = NULL;
 
  
 /**************************************************************************************************************************/
@@ -298,6 +300,136 @@ int depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 
 	return DF_SUCCESS;
 }
+
+void distortPoint(/*double fx, double fy, double u0, double v0, double k1, double k2, double p1, double p2, double k3, */float inputU, float inputV, float& outputU, float& outputV)
+{
+	float fx = calibration_param_.camera_intrinsic[0];
+	float fy = calibration_param_.camera_intrinsic[4];
+
+	float u0 = calibration_param_.camera_intrinsic[2];
+	float v0 = calibration_param_.camera_intrinsic[5];
+
+
+	float k1 = calibration_param_.camera_distortion[0];
+	float k2 = calibration_param_.camera_distortion[1];
+	float p1 = calibration_param_.camera_distortion[2];
+	float p2 = calibration_param_.camera_distortion[3];
+	float k3 = calibration_param_.camera_distortion[4];
+	float k4 = 0;
+	float k5 = 0;
+	float k6 = 0;
+
+	float x = (inputU - u0) / fx, y = (inputV - v0) / fy;
+
+	float x2 = x * x, y2 = y * y;
+	float r2 = x2 + y2, _2xy = 2 * x * y;
+	float kr = (1 + ((k3 * r2 + k2) * r2 + k1) * r2) / (1 + ((k6 * r2 + k5) * r2 + k4) * r2);
+	// 归一化坐标转化为图像坐标
+	outputU = fx * (x * kr + p1 * _2xy + p2 * (r2 + 2 * x2)) + u0;
+	outputV = fy * (y * kr + p1 * (r2 + 2 * y2) + p2 * _2xy) + v0;
+
+}
+
+int undistortBrightnessMap(unsigned char* brightness_map) //最近邻
+{
+
+	int nr = camera_height_;
+	int nc = camera_width_;
+
+	unsigned char* brightness_map_temp = new unsigned char[nr * nc];
+	memset(brightness_map_temp, 0, sizeof(unsigned char) * nr * nc);
+
+#pragma omp parallel for
+	for (int r = 0; r < nr; r++)
+	{
+
+		for (int c = 0; c < nc; c++)
+		{
+			int offset = r * camera_width_ + c;
+			float distort_x, distort_y;
+			//distortPoint(c, r, distort_x, distort_y);
+			distort_x = distorted_map_x_[offset];
+			distort_y = distorted_map_y_[offset];
+			// 进行双线性差值
+			if (distort_x > 0 && distort_x < nc - 1 && distort_y > 0 && distort_y < nr - 1)
+			{
+				float l_t_brightness = brightness_map[(int)distort_y * camera_width_ + (int)distort_x];
+				float l_b_brightness = brightness_map[(int)(distort_y + 1) * camera_width_ + (int)distort_x];
+				float r_t_brightness = brightness_map[(int)distort_y * camera_width_ + (int)(distort_x + 1)];
+				float r_b_brightness = brightness_map[(int)(distort_y + 1) * camera_width_ + (int)(distort_x + 1)];
+
+				float rate_y = distort_y - (int)distort_y;
+				float rate_x = distort_x - (int)distort_x;
+
+				brightness_map_temp[offset] = (unsigned char)(l_t_brightness * (1 - rate_x) * (1 - rate_y) + l_b_brightness * (1 - rate_x) * rate_y + r_t_brightness * rate_x * (1 - rate_y) + r_b_brightness * rate_x * rate_y + 0.5);
+			}
+		}
+
+	}
+
+	memcpy(brightness_map, brightness_map_temp, sizeof(unsigned char) * nr * nc);
+	delete[] brightness_map_temp;
+	brightness_map_temp = NULL;
+	return DF_SUCCESS;
+}
+
+
+int undistortDepthMap(float* depth_map)
+{
+	// 使用双线性差值
+	if (!connected_flag_)
+	{
+		return DF_NOT_CONNECT;
+	}
+
+	int nr = camera_height_;
+	int nc = camera_width_;
+
+	float* depth_map_temp = new float[nr * nc];
+	memset(depth_map_temp, -1, sizeof(float) * nr * nc);
+
+#pragma omp parallel for
+	for (int r = 0; r < nr; r++)
+	{
+
+		for (int c = 0; c < nc; c++)
+		{
+			int offset = r * camera_width_ + c;
+			float distort_x, distort_y;
+			//distortPoint(c, r, distort_x, distort_y);
+			distort_x = distorted_map_x_[offset];
+			distort_y = distorted_map_y_[offset];
+			// 进行双线性差值
+			if (distort_x > 0 && distort_x < nc - 1 && distort_y > 0 && distort_y < nr - 1)
+			{
+				float l_t_depth = depth_map[(int)distort_y * camera_width_ + (int)distort_x];
+				float l_b_depth = depth_map[(int)(distort_y + 1) * camera_width_ + (int)distort_x];
+				float r_t_depth = depth_map[(int)distort_y * camera_width_ + (int)(distort_x + 1)];
+				float r_b_depth = depth_map[(int)(distort_y + 1) * camera_width_ + (int)(distort_x + 1)];
+
+				if (l_t_depth <= 0 || l_b_depth <= 0 || r_t_depth <= 0 || r_b_depth <= 0)
+				{
+					depth_map_temp[offset] = depth_map[(int)(distort_y + 0.5) * camera_width_ + (int)(distort_x + 0.5)];
+					continue;
+				}
+
+				float rate_y = distort_y - (int)distort_y;
+				float rate_x = distort_x - (int)distort_x;
+
+				depth_map_temp[offset] = l_t_depth * (1 - rate_x) * (1 - rate_y) + l_b_depth * (1 - rate_x) * rate_y + r_t_depth * rate_x * (1 - rate_y) + r_b_depth * rate_x * rate_y;
+			}
+		}
+
+	}
+
+	memcpy(depth_map, depth_map_temp, sizeof(float) * nr * nc);
+	delete[] depth_map_temp;
+	depth_map_temp = NULL;
+	return DF_SUCCESS;
+}
+
+
+
  
 void rolloutHandler(const char* filename, std::size_t size)
 {
@@ -496,6 +628,9 @@ DF_SDK_API int DfConnect(const char* camera_id)
 	undistort_map_x_ = (float*)(new char[depth_buf_size_]);
 	undistort_map_y_ = (float*)(new char[depth_buf_size_]);
 
+	distorted_map_x_ = (float*)(new char[depth_buf_size_]);
+	distorted_map_y_ = (float*)(new char[depth_buf_size_]);
+
 
 	float camera_fx = calibration_param_.camera_intrinsic[0];
 	float camera_fy = calibration_param_.camera_intrinsic[4];
@@ -534,6 +669,28 @@ DF_SDK_API int DfConnect(const char* camera_id)
 		}
 
 	}
+
+
+	// 生成畸变矫正的畸变表
+#pragma omp parallel for
+	for (int r = 0; r < nr; r++)
+	{
+
+		for (int c = 0; c < nc; c++)
+		{
+			float distorted_x, distorted_y;
+
+
+			int offset = r * camera_width_ + c;
+
+			distortPoint(c, r, distorted_x, distorted_y);
+
+			distorted_map_x_[offset] = (float)distorted_x;
+			distorted_map_y_[offset] = (float)distorted_y;
+		}
+
+	}
+
 	/*****************************************************************************************************************/
 	 
 	el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
@@ -826,6 +983,45 @@ DF_SDK_API int DfGetDepthDataFloat(float* depth)
 	return DF_SUCCESS;
 }
 
+//函数名： DfGetUndistortDepthDataFloat
+//功能： 获取去畸变后的深度图
+//输入参数：无
+//输出参数： depth(深度图)
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfGetUndistortDepthDataFloat(float* depth)
+{
+	LOG(INFO) << "DfGetDepthDataFloat:";
+	if (!connected_flag_)
+	{
+		return DF_NOT_CONNECT;
+	}
+
+
+	LOG(INFO) << "Trans Depth:";
+	int point_num = camera_height_ * camera_width_;
+
+	int nr = camera_height_;
+	int nc = camera_width_;
+
+	#pragma omp parallel for
+	for (int r = 0; r < nr; r++)
+	{ 
+		for (int c = 0; c < nc; c++)
+		{
+			int offset = r * camera_width_ + c; 
+			depth[offset] = depth_buf_[offset]; 
+
+		} 
+
+	}
+
+	undistortDepthMap(depth);
+
+	LOG(INFO) << "Get Undistort Depth!";
+
+	return DF_SUCCESS;
+}
+
 //函数名： DfGetBrightnessData
 //功能： 采集点云数据并阻塞至返回结果
 //输入参数：无
@@ -847,6 +1043,33 @@ DF_SDK_API int DfGetBrightnessData(unsigned char* brightness)
 	//brightness = brightness_buf_;
 
 	LOG(INFO) << "Get Brightness!";
+
+	return 0;
+}
+
+//函数名： DfGetUndistortBrightnessData
+//功能： 获取去畸变后的亮度图
+//输入参数：无
+//输出参数： brightness(亮度图)
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfGetUndistortBrightnessData(unsigned char* brightness)
+{ 
+	LOG(INFO) << "DfGetBrightnessData:";
+	if (!connected_flag_)
+	{
+		return DF_NOT_CONNECT;
+	}
+
+
+	LOG(INFO) << "Trans Brightness:";
+
+	memcpy(brightness, brightness_buf_, brightness_bug_size_);
+
+	undistortBrightnessMap(brightness);
+
+	//brightness = brightness_buf_;
+
+	LOG(INFO) << "Get Undistort Brightness!";
 
 	return 0;
 }
@@ -1090,7 +1313,17 @@ DF_SDK_API int DfDisconnect(const char* camera_id)
 	delete[] trans_point_cloud_buf_;
 	delete[] undistort_map_x_;
 	delete[] undistort_map_y_;
-	
+	delete[] distorted_map_x_;
+	delete[] distorted_map_y_;
+
+	depth_buf_ = NULL;
+	brightness_buf_ = NULL;
+	point_cloud_buf_ = NULL;
+	trans_point_cloud_buf_ = NULL;
+	undistort_map_x_ = NULL;
+	undistort_map_y_ = NULL;
+	distorted_map_x_ = NULL;
+	distorted_map_y_ = NULL;
 
 	connected_flag_ = false;
 
