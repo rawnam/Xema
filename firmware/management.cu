@@ -351,7 +351,16 @@ bool cuda_copy_pattern_to_memory(unsigned char* pattern_ptr,int serial_flag)
 		return false;
 	}
 
-	CHECK(cudaMemcpyAsync(d_patterns_list_[serial_flag], pattern_ptr, d_image_height_*d_image_width_* sizeof(unsigned char), cudaMemcpyHostToDevice)); 
+	cv::Mat smooth_mat(d_image_height_, d_image_width_, CV_8UC1, pattern_ptr);
+	if (serial_flag < 12)
+	{
+		LOG(INFO) << "Start GaussianBlur:";
+		cv::GaussianBlur(smooth_mat, smooth_mat, cv::Size(5, 5), 1, 1);
+
+		LOG(INFO) << "finished GaussianBlur!";
+	}
+
+	CHECK(cudaMemcpyAsync(d_patterns_list_[serial_flag], smooth_mat.data, d_image_height_*d_image_width_* sizeof(unsigned char), cudaMemcpyHostToDevice)); 
 }
 
 void cuda_copy_pointcloud_from_memory(float* pointcloud)
