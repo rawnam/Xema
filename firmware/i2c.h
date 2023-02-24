@@ -41,7 +41,6 @@ void i2c_iaddr_convert(unsigned int int_addr, unsigned int iaddr_bytes, unsigned
 /* I2C file I/O read, write */
 ssize_t i2c_read(const I2CDevice *device, unsigned int iaddr, void *buf, size_t len);
 ssize_t i2c_write(const I2CDevice *device, unsigned int iaddr, const void *buf, size_t len);
-ssize_t i2c_write_3010(const I2CDevice *device, unsigned int iaddr, const void *buf, size_t len);
 
 /* I2c ioctl read, write can set i2c flags */
 ssize_t i2c_ioctl_read(const I2CDevice *device, unsigned int iaddr, void *buf, size_t len);
