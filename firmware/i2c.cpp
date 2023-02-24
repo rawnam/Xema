@@ -248,62 +248,7 @@ ssize_t i2c_read(const I2CDevice *device, unsigned int iaddr, void *buf, size_t 
     return cnt;
 }
 
-
-/*
-**	@brief	:	write #buf data to i2c #device #iaddr address
-**	#device	:	I2CDevice struct, must call i2c_device_init first
-**	#iaddr	: 	i2c_device internal address, no address set zero
-**	#buf	:	data will write to i2c device
-**	#len	:	buf data length without '/0'
-**	@return	: 	success return write data length, failed -1
-*/
 ssize_t i2c_write(const I2CDevice *device, unsigned int iaddr, const void *buf, size_t len)
-{
-    ssize_t remain = len;
-    size_t cnt = 0, size = 0;
-    const unsigned char *buffer = (const unsigned char*)buf;
-    unsigned char delay = GET_I2C_DELAY(device->delay);
-    unsigned char tmp_buf[PAGE_MAX_BYTES + INT_ADDR_MAX_BYTES];
-
-    /* Set i2c slave address */
-    if (i2c_select(device->bus, device->addr, device->tenbit) == -1) {
-
-        return -1;
-    }
-
-    /* Once only can write less than 4 byte */
-    while (remain > 0) {
-
-        size = GET_WRITE_SIZE(iaddr % device->page_bytes, remain, device->page_bytes);
-
-        /* Convert i2c internal address */
-        memset(tmp_buf, 0, sizeof(tmp_buf));
-        i2c_iaddr_convert(iaddr, device->iaddr_bytes, tmp_buf);
-
-        /* Copy data to tmp_buf */
-        memcpy(tmp_buf + device->iaddr_bytes, buffer, size);
-
-        /* Write to buf content to i2c device length is address length and write buffer length */
-        if (write(device->bus, tmp_buf, device->iaddr_bytes + size) != device->iaddr_bytes + size) {
-
-            perror("I2C write error:");
-            return -1;
-        }
-
-        /* XXX: Must have a little time delay */
-        i2c_delay(delay);
-
-        /* Move to next #size bytes */
-        cnt += size;
-        iaddr += size;
-        buffer += size;
-        remain -= size;
-    }
-
-    return cnt;
-}
-
-ssize_t i2c_write_3010(const I2CDevice *device, unsigned int iaddr, const void *buf, size_t len)
 {
     ssize_t remain = len;
     size_t cnt = 0, size = 0;
@@ -326,7 +271,7 @@ ssize_t i2c_write_3010(const I2CDevice *device, unsigned int iaddr, const void *
     
     while (remain > 0) {
 
-        size = remain;//GET_WRITE_SIZE(iaddr % device->page_bytes, remain, device->page_bytes);
+        size = remain;  // GET_WRITE_SIZE(iaddr % device->page_bytes, remain, device->page_bytes);
 
         /* Convert i2c internal address */
         memset(tmp_buf, 0, sizeof(tmp_buf));

@@ -45,7 +45,7 @@ size_t LightCrafter3010::read(char inner_addr, void* buffer, size_t buffer_size)
 
 size_t LightCrafter3010::write(char inner_addr, void* buffer, size_t buffer_size)
 {
-	return	i2c_write_3010(&_device, inner_addr, buffer, buffer_size);
+	return	i2c_write(&_device, inner_addr, buffer, buffer_size);
 }
 
 LightCrafter3010::~LightCrafter3010()
@@ -668,8 +668,6 @@ int LightCrafter3010::pattern_mode04_repetition(int repetition_count)
   
     pattern_index[group_count-1] = 6;
     return write_pattern_table(pattern_index, pattern_nums, group_count, camera_exposure_);
-
- 
 }
 
 void LightCrafter3010::pattern_mode03_repetition(int repetition_count)

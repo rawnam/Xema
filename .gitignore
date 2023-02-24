@@ -15,3 +15,5 @@ TestData
 release_camera
 camera_config.json
 3rdparty
+mcu/Project/LST
+mcu/Project/Output

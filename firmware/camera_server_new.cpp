@@ -20,6 +20,7 @@
 #include "scan3d.h"
 #include "socket_tcp.h"
 #include <dirent.h>
+#include "power_controller.h"
 
 
 INITIALIZE_EASYLOGGINGPP
@@ -31,6 +32,7 @@ INITIALIZE_EASYLOGGINGPP
 
 
 Scan3D scan3d_;
+PowerController pwrctrl;
 
 std::random_device rd;
 std::mt19937 rand_num(rd());
