@@ -306,11 +306,13 @@ bool CameraBasler::openCamera()
     // CHECK( res );
     if (0 == numDevices)
     {
-        LOG(INFO)<<"No devices found.\n";
+        LOG(INFO)<<"No basler devices found.\n";
         // fprintf( stderr, "No devices found.\n" );
-        PylonTerminate(); 
+        // PylonTerminate(); 
         // exit( EXIT_FAILURE );   
+        return false;
     }
+ 
 
     /* Get a handle for the first device found.  */
     res = PylonCreateDeviceByIndex( 0, &hDev_ );

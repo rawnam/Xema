@@ -17,5 +17,6 @@
 #define DF_ERROR_CAMERA_STREAM			                        	     -12
 #define DF_ERROR_CAMERA_GRAP			                        	     -13
 #define DF_FRAME_CAPTURING  			                        	     -14
+#define DF_ERROR_LOST_TRIGGER  			                        	     -15
 
 #endif

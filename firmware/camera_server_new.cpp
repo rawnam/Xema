@@ -69,7 +69,58 @@ bool saveSystemConfig()
     return system_config_settings_machine_.saveToSettings("../system_config.ini");
 }
 
+int reboot_lightcraft()
+{
+    LOG(ERROR)<<"reboot lightcraft"; 
+    pwrctrl.off_projector();
+    LOG(ERROR)<<"wait..."; 
+    sleep(6);
 
+    int operate_num = 3;
+
+    while (operate_num-- > 0)
+    {
+        int ret = lc3010.init();
+        if (DF_SUCCESS != ret)
+        {
+            LOG(ERROR) << "lc3010 init FAILED; CODE : " << ret;
+            sleep(1);
+        }
+        else
+        {
+            LOG(INFO)<<"init lightcraft!";
+            break;
+        }
+    }
+
+    operate_num = 3;
+    while (operate_num-- > 0)
+    {
+        int ret = lc3010.SetLedCurrent(system_config_settings_machine_.Instance().config_param_.led_current,
+                                       system_config_settings_machine_.Instance().config_param_.led_current,
+                                       system_config_settings_machine_.Instance().config_param_.led_current);
+
+        if (DF_SUCCESS != ret)
+        {
+            LOG(ERROR) << "lc3010 SetLedCurrent FAILED; CODE : " << ret;
+            usleep(100000);
+        }
+        else
+        {
+            
+            LOG(INFO)<<"set led current!";
+            break;
+        }
+    }
+
+    return 0;
+}
+
+int reboot_system()
+{
+    pwrctrl.off_board();
+    return 0;
+}
 
 bool findMaskBaseConfidence(cv::Mat confidence_map, int threshold, cv::Mat& mask)
 {
@@ -1349,6 +1400,24 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
     { 
          LOG(ERROR)<<"captureFrame04BaseConfidence code: "<<ret;
          frame_status_ = ret;
+
+ 
+         switch (ret)
+         {
+         case DF_ERROR_LOST_TRIGGER:
+         {
+            reboot_lightcraft();
+         }
+                break;
+         case DF_ERROR_CAMERA_STREAM:
+         {
+            scan3d_.reopenCamera();
+         }
+                break;
+         default:
+                break;
+         }
+
     }
 
     std::thread  t_merge_brightness(&Scan3D::mergeBrightness, &scan3d_);
@@ -1571,6 +1640,24 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
     {
       LOG(ERROR) << "captureFrame04BaseConfidence code: " << ret;
       frame_status_ = ret;
+
+         switch (ret)
+         {
+         case DF_ERROR_LOST_TRIGGER:
+         {
+            reboot_lightcraft();
+         }
+                break;
+         case DF_ERROR_CAMERA_STREAM:
+         {
+            scan3d_.reopenCamera();
+         }
+                break;
+         default:
+                break;
+         }
+
+
     }
  
     scan3d_.removeOutlierBaseDepthFilter();
@@ -1843,6 +1930,22 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
     { 
          LOG(ERROR)<<"captureFrame04BaseConfidence code: "<<ret;
          frame_status_ = ret;
+
+         switch (ret)
+         {
+         case DF_ERROR_LOST_TRIGGER:
+         {
+            reboot_lightcraft();
+         }
+                break;
+         case DF_ERROR_CAMERA_STREAM:
+         {
+            scan3d_.reopenCamera();
+         }
+                break;
+         default:
+                break;
+         }
     }
     scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
@@ -4550,13 +4653,16 @@ int init()
 	GPIO::setup(OUTPUT2_PIN, GPIO::OUT, GPIO::LOW);     // output pin, set to LOW level
 	GPIO::setup(LED_CTL_PIN, GPIO::OUT, GPIO::LOW);     // output pin, set to LOW level
 
+    int ret = DF_SUCCESS;
 
-    if(!scan3d_.init())
-    {
+    ret = scan3d_.init();
+
+    if(DF_SUCCESS != ret)
+    { 
         LOG(INFO)<<"init Failed!";
-        // return DF_FAILED;
     }
 
+  
     scan3d_.getCameraResolution(camera_width_,camera_height_);
     //set default param 
     if(!scan3d_.setParamConfidence(system_config_settings_machine_.Instance().firwmare_param_.confidence))
@@ -4585,7 +4691,7 @@ int init()
     set_projector_version(version);
     // LOG(INFO)<<"camera version: "<<DFX_800;
 
-    return DF_SUCCESS;
+    return ret;
 }
   
 void rolloutHandler(const char* filename, std::size_t size)
@@ -4684,8 +4790,35 @@ int main()
         LOG(INFO)<<"init FAILED";
         // return -1;
     }
+
+
+    if(DF_ERROR_2D_CAMERA == ret)
+    {
+ 
+        LOG(ERROR) << "Open Camera Error!"; 
+    /************************************************************************************/
+    //相机打开失败，闪烁6秒
+
+        int light_num = 6;
+
+        while (light_num-- > 0)
+        {
+           lc3010.enable_solid_field();
+
+           usleep(500000);
+           lc3010.disable_solid_field(); 
+           usleep(500000);
+        }
+
+        LOG(ERROR) << "reboot!"; 
+        pwrctrl.off_board();
+    /*************************************************************************************/
+    }
+
     LOG(INFO)<<"inited";
     int sec = 0;
+
+
 
     int server_sock;
     do
