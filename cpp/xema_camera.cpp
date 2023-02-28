@@ -41,10 +41,10 @@ namespace XEMA {
 	void rolloutHandler(const char* filename, std::size_t size)
 	{
 #ifdef _WIN32 
-		/// ±¸·İÈÕÖ¾
+		/// å¤‡ä»½æ—¥å¿—
 		system("mkdir xemaLog");
 		system("DIR .\\xemaLog\\ .log / B > LIST.TXT");
-		ifstream name_in("LIST.txt", ios_base::in);//ÎÄ¼şÁ÷
+		ifstream name_in("LIST.txt", ios_base::in);//æ–‡ä»¶æµ
 
 		int num = 0;
 		std::vector<std::string> name_list;
@@ -82,7 +82,7 @@ namespace XEMA {
 		system(ss.str().c_str());
 #elif __linux 
 
-		/// ±¸·İÈÕÖ¾
+		/// å¤‡ä»½æ—¥å¿—
 		if (access("xemaLog", F_OK) != 0)
 		{
 			system("mkdir xemaLog");
@@ -149,7 +149,7 @@ namespace XEMA {
 	}
 
 
-	//Íø¸ñµôÏß
+	//ç½‘æ ¼æ‰çº¿
 	int on_dropped(void* param)
 	{
 		LOG(INFO) << "Network dropped!" << std::endl;
@@ -268,7 +268,7 @@ namespace XEMA {
 
 		LOG(INFO) << "DfConnectNet: ";
 		/*******************************************************************************************************************/
-		//¹Ø±ÕlogÊä³ö
+		//å…³é—­logè¾“å‡º
 		//el::Configurations conf;
 		//conf.setToDefault();
 		//conf.setGlobally(el::ConfigurationType::Format, "[%datetime{%H:%m:%s} | %level] %msg");
@@ -559,7 +559,7 @@ namespace XEMA {
 
 		LOG(INFO) << "DfConnect: ";
 		/*******************************************************************************************************************/
-		//¹Ø±ÕlogÊä³ö
+		//å…³é—­logè¾“å‡º
 		el::Configurations conf;
 		conf.setToDefault();
 		//conf.setGlobally(el::ConfigurationType::Format, "[%datetime{%H:%m:%s} | %level] %msg"); 
@@ -630,7 +630,7 @@ namespace XEMA {
 
 
 		/******************************************************************************************************/
-		//²úÉú»û±äĞ£Õı±í
+		//äº§ç”Ÿç•¸å˜æ ¡æ­£è¡¨
 		undistort_map_x_ = (float*)(new char[depth_buf_size_]);
 		undistort_map_y_ = (float*)(new char[depth_buf_size_]);
 
@@ -677,7 +677,7 @@ namespace XEMA {
 		el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
 		el::Loggers::reconfigureAllLoggers(el::ConfigurationType::MaxLogFileSize, "104857600");//100MB 104857600
 
-		/// ×¢²á»Øµ÷º¯Êı
+		/// æ³¨å†Œå›è°ƒå‡½æ•°
 		el::Helpers::installPreRollOutCallback(rolloutHandler);
 
 
@@ -714,7 +714,7 @@ namespace XEMA {
 
 		connected_flag_ = false;
 
-		/// ×¢Ïú»Øµ÷º¯Êı
+		/// æ³¨é”€å›è°ƒå‡½æ•°
 		el::Helpers::uninstallPreRollOutCallback();
 
 		return DF_SUCCESS;
@@ -2337,12 +2337,12 @@ namespace XEMA {
 	/************************************************************************/
 	std::tm* XemaCamera::gettm(long long timestamp)
 	{
-		auto milli = timestamp + (long long)8 * 60 * 60 * 1000; //´Ë´¦×ª»¯Îª¶«°ËÇø±±¾©Ê±¼ä£¬Èç¹ûÊÇÆäËüÊ±ÇøĞèÒª°´ĞèÇóĞŞ¸Ä
+		auto milli = timestamp + (long long)8 * 60 * 60 * 1000; //æ­¤å¤„è½¬åŒ–ä¸ºä¸œå…«åŒºåŒ—äº¬æ—¶é—´ï¼Œå¦‚æœæ˜¯å…¶å®ƒæ—¶åŒºéœ€è¦æŒ‰éœ€æ±‚ä¿®æ”¹
 		auto mTime = std::chrono::milliseconds(milli);
 		auto tp = std::chrono::time_point<std::chrono::system_clock, std::chrono::milliseconds>(mTime);
 		auto tt = std::chrono::system_clock::to_time_t(tp);
 		std::tm* now = std::gmtime(&tt);
-		//printf("%4dÄê%02dÔÂ%02dÈÕ %02d:%02d:%02d\n", now->tm_year + 1900, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
+		//printf("%4då¹´%02dæœˆ%02dæ—¥ %02d:%02d:%02d\n", now->tm_year + 1900, now->tm_mon + 1, now->tm_mday, now->tm_hour, now->tm_min, now->tm_sec);
 		return now;
 	}
 
@@ -2368,13 +2368,13 @@ namespace XEMA {
 		auto t = getTimeStamp(msec);
 		//std::cout << "Millisecond timestamp is: " << t << std::endl;
 		auto time_ptr = gettm(t);
-		sprintf(time_str[0], "%02d", time_ptr->tm_year + 1900); //ÔÂ·İÒª¼Ó1
-		sprintf(time_str[1], "%02d", time_ptr->tm_mon + 1); //ÔÂ·İÒª¼Ó1
-		sprintf(time_str[2], "%02d", time_ptr->tm_mday);//Ìì
-		sprintf(time_str[3], "%02d", time_ptr->tm_hour);//Ê±
-		sprintf(time_str[4], "%02d", time_ptr->tm_min);// ·Ö
-		sprintf(time_str[5], "%02d", time_ptr->tm_sec);//Ê±
-		sprintf(time_str[6], "%02lld", msec);// ·Ö
+		sprintf(time_str[0], "%02d", time_ptr->tm_year + 1900); //æœˆä»½è¦åŠ 1
+		sprintf(time_str[1], "%02d", time_ptr->tm_mon + 1); //æœˆä»½è¦åŠ 1
+		sprintf(time_str[2], "%02d", time_ptr->tm_mday);//å¤©
+		sprintf(time_str[3], "%02d", time_ptr->tm_hour);//æ—¶
+		sprintf(time_str[4], "%02d", time_ptr->tm_min);// åˆ†
+		sprintf(time_str[5], "%02d", time_ptr->tm_sec);//æ—¶
+		sprintf(time_str[6], "%02lld", msec);// åˆ†
 		//for (int i = 0; i < 7; i++)
 		//{
 		//	std::cout << "time_str[" << i << "] is: " << time_str[i] << std::endl;
@@ -2653,10 +2653,10 @@ namespace XEMA {
 	}
 
 	 
-	//¹¦ÄÜ£º ÉèÖÃË«±ßÂË²¨²ÎÊı
-	//ÊäÈë²ÎÊı£º use£¨¿ª¹Ø£º1Îª¿ª¡¢0Îª¹Ø£©¡¢param_d£¨Æ½»¬ÏµÊı£º3¡¢5¡¢7¡¢9¡¢11£©
-	//Êä³ö²ÎÊı£º ÎŞ
-	//·µ»ØÖµ£º ÀàĞÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡±ê¶¨²ÎÊı³É¹¦;·µ»Ø-1±íÊ¾»ñÈ¡±ê¶¨²ÎÊıÊ§°Ü.
+	//åŠŸèƒ½ï¼š è®¾ç½®åŒè¾¹æ»¤æ³¢å‚æ•°
+	//è¾“å…¥å‚æ•°ï¼š useï¼ˆå¼€å…³ï¼š1ä¸ºå¼€ã€0ä¸ºå…³ï¼‰ã€param_dï¼ˆå¹³æ»‘ç³»æ•°ï¼š3ã€5ã€7ã€9ã€11ï¼‰
+	//è¾“å‡ºå‚æ•°ï¼š æ— 
+	//è¿”å›å€¼ï¼š ç±»å‹ï¼ˆintï¼‰:è¿”å›0è¡¨ç¤ºè·å–æ ‡å®šå‚æ•°æˆåŠŸ;è¿”å›-1è¡¨ç¤ºè·å–æ ‡å®šå‚æ•°å¤±è´¥.
 	int XemaCamera::setParamBilateralFilter(int use, int param_d)
 	{
 		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
@@ -2720,11 +2720,11 @@ namespace XEMA {
 		return DF_SUCCESS;
 	}
 
-	//º¯ÊıÃû£º DfGetParamBilateralFilter
-	//¹¦ÄÜ£º »ñÈ¡»ìºÏ¶àÆØ¹â²ÎÊı£¨×î´óÆØ¹â´ÎÊıÎª6´Î£©
-	//ÊäÈë²ÎÊı£º ÎŞ
-	//Êä³ö²ÎÊı£º use£¨¿ª¹Ø£º1Îª¿ª¡¢0Îª¹Ø£©¡¢param_d£¨Æ½»¬ÏµÊı£º3¡¢5¡¢7¡¢9¡¢11£©
-	//·µ»ØÖµ£º ÀàĞÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡±ê¶¨²ÎÊı³É¹¦;·µ»Ø-1±íÊ¾»ñÈ¡±ê¶¨²ÎÊıÊ§°Ü.
+	//å‡½æ•°åï¼š DfGetParamBilateralFilter
+	//åŠŸèƒ½ï¼š è·å–æ··åˆå¤šæ›å…‰å‚æ•°ï¼ˆæœ€å¤§æ›å…‰æ¬¡æ•°ä¸º6æ¬¡ï¼‰
+	//è¾“å…¥å‚æ•°ï¼š æ— 
+	//è¾“å‡ºå‚æ•°ï¼š useï¼ˆå¼€å…³ï¼š1ä¸ºå¼€ã€0ä¸ºå…³ï¼‰ã€param_dï¼ˆå¹³æ»‘ç³»æ•°ï¼š3ã€5ã€7ã€9ã€11ï¼‰
+	//è¿”å›å€¼ï¼š ç±»å‹ï¼ˆintï¼‰:è¿”å›0è¡¨ç¤ºè·å–æ ‡å®šå‚æ•°æˆåŠŸ;è¿”å›-1è¡¨ç¤ºè·å–æ ‡å®šå‚æ•°å¤±è´¥.
 	int XemaCamera::getParamBilateralFilter(int& use, int& param_d)
 	{
 		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);

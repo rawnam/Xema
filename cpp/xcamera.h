@@ -16,14 +16,14 @@ extern "C" {
 #endif
 		  
   
-            //Ïà»ú±ê¶¨²ÎÊý½á¹¹Ìå
+            //ç›¸æœºæ ‡å®šå‚æ•°ç»“æž„ä½“
         typedef struct CalibrationParam
         {
-            //Ïà»úÄÚ²Î
+            //ç›¸æœºå†…å‚
             float intrinsic[3 * 3];
-            //Ïà»úÍâ²Î
+            //ç›¸æœºå¤–å‚
             float extrinsic[4 * 4];
-            //Ïà»ú»û±ä£¬Ö»ÓÃÇ°5¸ö
+            //ç›¸æœºç•¸å˜ï¼Œåªç”¨å‰5ä¸ª
             float distortion[1 * 12];//<k1,k2,p1,p2,k3,k4,k5,k6,s1,s2,s3,s4>
 
         }CalibrationParam;
@@ -36,221 +36,221 @@ extern "C" {
             XCamera(const XCamera&) = delete;
             XCamera& operator=(const XCamera&) = delete;
 			 
-			//¹¦ÄÜ£º Á¬½ÓÏà»ú
-			//ÊäÈë²ÎÊý£º camera_id£¨Ïà»úipµØÖ·£©
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾Á¬½Ó³É¹¦;·µ»Ø-1±íÊ¾Á¬½ÓÊ§°Ü.
+			//åŠŸèƒ½ï¼š è¿žæŽ¥ç›¸æœº
+			//è¾“å…¥å‚æ•°ï¼š camera_idï¼ˆç›¸æœºipåœ°å€ï¼‰
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè¿žæŽ¥æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºè¿žæŽ¥å¤±è´¥.
 			virtual int connect(const char* camera_id) = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡Ïà»ú·Ö±æÂÊ
-			//ÊäÈë²ÎÊý£º ÎÞ
-			//Êä³ö²ÎÊý£º width(Í¼Ïñ¿í)¡¢height(Í¼Ïñ¸ß)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊý³É¹¦;·µ»Ø-1±íÊ¾»ñÈ¡²ÎÊýÊ§°Ü.
+			//åŠŸèƒ½ï¼š èŽ·å–ç›¸æœºåˆ†è¾¨çŽ‡
+			//è¾“å…¥å‚æ•°ï¼š æ— 
+			//è¾“å‡ºå‚æ•°ï¼š width(å›¾åƒå®½)ã€height(å›¾åƒé«˜)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–å‚æ•°æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºèŽ·å–å‚æ•°å¤±è´¥.
 			virtual  int  getCameraResolution(int* width, int* height) = 0;
 			 
-			//¹¦ÄÜ£º ²É¼¯Ò»Ö¡Êý¾Ý²¢×èÈûÖÁ·µ»Ø×´Ì¬
-			//ÊäÈë²ÎÊý£º exposure_num£¨ÆØ¹â´ÎÊý£©£ºÉèÖÃÖµÎª1Îªµ¥ÆØ¹â£¬´óÓÚ1Îª¶àÆØ¹âÄ£Ê½£¨¾ßÌå²ÎÊýÔÚÏà»úguiÖÐÉèÖÃ£©.
-			//Êä³ö²ÎÊý£º timestamp(Ê±¼ä´Á)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²É¼¯Êý¾Ý³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êý¾ÝÊ§°Ü.
+			//åŠŸèƒ½ï¼š é‡‡é›†ä¸€å¸§æ•°æ®å¹¶é˜»å¡žè‡³è¿”å›žçŠ¶æ€
+			//è¾“å…¥å‚æ•°ï¼š exposure_numï¼ˆæ›å…‰æ¬¡æ•°ï¼‰ï¼šè®¾ç½®å€¼ä¸º1ä¸ºå•æ›å…‰ï¼Œå¤§äºŽ1ä¸ºå¤šæ›å…‰æ¨¡å¼ï¼ˆå…·ä½“å‚æ•°åœ¨ç›¸æœºguiä¸­è®¾ç½®ï¼‰.
+			//è¾“å‡ºå‚æ•°ï¼š timestamp(æ—¶é—´æˆ³)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–é‡‡é›†æ•°æ®æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 			virtual  int captureData(int exposure_num, char* timestamp) = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡Éî¶ÈÍ¼
-			//ÊäÈë²ÎÊý£ºÎÞ
-			//Êä³ö²ÎÊý£º depth(Éî¶ÈÍ¼)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡Êý¾Ý³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êý¾ÝÊ§°Ü.
+			//åŠŸèƒ½ï¼š èŽ·å–æ·±åº¦å›¾
+			//è¾“å…¥å‚æ•°ï¼šæ— 
+			//è¾“å‡ºå‚æ•°ï¼š depth(æ·±åº¦å›¾)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–æ•°æ®æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 			virtual  int getDepthData(float* depth) = 0;
 			
-			//¹¦ÄÜ£º »ñÈ¡µãÔÆ
-			//ÊäÈë²ÎÊý£ºÎÞ
-			//Êä³ö²ÎÊý£º point_cloud(µãÔÆ)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡Êý¾Ý³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êý¾ÝÊ§°Ü.
+			//åŠŸèƒ½ï¼š èŽ·å–ç‚¹äº‘
+			//è¾“å…¥å‚æ•°ï¼šæ— 
+			//è¾“å‡ºå‚æ•°ï¼š point_cloud(ç‚¹äº‘)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–æ•°æ®æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 			virtual  int getPointcloudData(float* point_cloud) = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡ÁÁ¶ÈÍ¼
-			//ÊäÈë²ÎÊý£ºÎÞ
-			//Êä³ö²ÎÊý£º brightness(ÁÁ¶ÈÍ¼)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡Êý¾Ý³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êý¾ÝÊ§°Ü.
+			//åŠŸèƒ½ï¼š èŽ·å–äº®åº¦å›¾
+			//è¾“å…¥å‚æ•°ï¼šæ— 
+			//è¾“å‡ºå‚æ•°ï¼š brightness(äº®åº¦å›¾)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–æ•°æ®æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 			virtual  int getBrightnessData(unsigned char* brightness)  = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡Ð£Õýµ½»ù×¼Æ½ÃæµÄ¸ß¶ÈÓ³ÉäÍ¼
-			//ÊäÈë²ÎÊý£ºÎÞ  
-			//Êä³ö²ÎÊý£º height_map(¸ß¶ÈÓ³ÉäÍ¼)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡Êý¾Ý³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êý¾ÝÊ§°Ü.
+			//åŠŸèƒ½ï¼š èŽ·å–æ ¡æ­£åˆ°åŸºå‡†å¹³é¢çš„é«˜åº¦æ˜ å°„å›¾
+			//è¾“å…¥å‚æ•°ï¼šæ—   
+			//è¾“å‡ºå‚æ•°ï¼š height_map(é«˜åº¦æ˜ å°„å›¾)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–æ•°æ®æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 			virtual  int getHeightMapData(float* height_map)  = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡»ù×¼Æ½Ãæ²ÎÊý
-			//ÊäÈë²ÎÊý£ºÎÞ
-			//Êä³ö²ÎÊý£º R(Ðý×ª¾ØÕó£º3*3)¡¢T(Æ½ÒÆ¾ØÕó£º3*1)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡Êý¾Ý³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êý¾ÝÊ§°Ü.
+			//åŠŸèƒ½ï¼š èŽ·å–åŸºå‡†å¹³é¢å‚æ•°
+			//è¾“å…¥å‚æ•°ï¼šæ— 
+			//è¾“å‡ºå‚æ•°ï¼š R(æ—‹è½¬çŸ©é˜µï¼š3*3)ã€T(å¹³ç§»çŸ©é˜µï¼š3*1)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–æ•°æ®æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 			virtual  int getStandardPlaneParam(float* R, float* T)  = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡Ð£Õýµ½»ù×¼Æ½ÃæµÄ¸ß¶ÈÓ³ÉäÍ¼
-			//ÊäÈë²ÎÊý£ºR(Ðý×ª¾ØÕó)¡¢T(Æ½ÒÆ¾ØÕó)
-			//Êä³ö²ÎÊý£º height_map(¸ß¶ÈÓ³ÉäÍ¼)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡Êý¾Ý³É¹¦;·µ»Ø-1±íÊ¾²É¼¯Êý¾ÝÊ§°Ü.
+			//åŠŸèƒ½ï¼š èŽ·å–æ ¡æ­£åˆ°åŸºå‡†å¹³é¢çš„é«˜åº¦æ˜ å°„å›¾
+			//è¾“å…¥å‚æ•°ï¼šR(æ—‹è½¬çŸ©é˜µ)ã€T(å¹³ç§»çŸ©é˜µ)
+			//è¾“å‡ºå‚æ•°ï¼š height_map(é«˜åº¦æ˜ å°„å›¾)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–æ•°æ®æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºé‡‡é›†æ•°æ®å¤±è´¥.
 			virtual  int getHeightMapDataBaseParam(float* R, float* T, float* height_map)  = 0;
 			  
-			//¹¦ÄÜ£º ¶Ï¿ªÏà»úÁ¬½Ó
-			//ÊäÈë²ÎÊý£º camera_id£¨Ïà»úipµØÖ·£©
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾¶Ï¿ª³É¹¦;·µ»Ø-1±íÊ¾¶Ï¿ªÊ§°Ü.
+			//åŠŸèƒ½ï¼š æ–­å¼€ç›¸æœºè¿žæŽ¥
+			//è¾“å…¥å‚æ•°ï¼š camera_idï¼ˆç›¸æœºipåœ°å€ï¼‰
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºæ–­å¼€æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºæ–­å¼€å¤±è´¥.
 			virtual  int disconnect(const char* camera_id) = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡Ïà»ú±ê¶¨²ÎÊý
-			//ÊäÈë²ÎÊý£º ÎÞ
-			//Êä³ö²ÎÊý£º calibration_param£¨Ïà»ú±ê¶¨²ÎÊý½á¹¹Ìå£©
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡±ê¶¨²ÎÊý³É¹¦;·µ»Ø-1±íÊ¾»ñÈ¡±ê¶¨²ÎÊýÊ§°Ü.
+			//åŠŸèƒ½ï¼š èŽ·å–ç›¸æœºæ ‡å®šå‚æ•°
+			//è¾“å…¥å‚æ•°ï¼š æ— 
+			//è¾“å‡ºå‚æ•°ï¼š calibration_paramï¼ˆç›¸æœºæ ‡å®šå‚æ•°ç»“æž„ä½“ï¼‰
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–æ ‡å®šå‚æ•°æˆåŠŸ;è¿”å›ž-1è¡¨ç¤ºèŽ·å–æ ‡å®šå‚æ•°å¤±è´¥.
 			virtual  int getCalibrationParam(struct CalibrationParam* calibration_param) = 0;
 
 
 			/***************************************************************************************************************************************************************/
-			//²ÎÊýÉèÖÃ
+			//å‚æ•°è®¾ç½®
 			 
-			//¹¦ÄÜ£º ÉèÖÃLEDµçÁ÷
-			//ÊäÈë²ÎÊý£º led£¨µçÁ÷Öµ£©
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾ÉèÖÃ²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®LEDç”µæµ
+			//è¾“å…¥å‚æ•°ï¼š ledï¼ˆç”µæµå€¼ï¼‰
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè®¾ç½®å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int setParamLedCurrent(int led) = 0;
 			 
-			//¹¦ÄÜ£º ÉèÖÃLEDµçÁ÷
-			//ÊäÈë²ÎÊý£º ÎÞ
-			//Êä³ö²ÎÊý£º led£¨µçÁ÷Öµ£©
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®LEDç”µæµ
+			//è¾“å…¥å‚æ•°ï¼š æ— 
+			//è¾“å‡ºå‚æ•°ï¼š ledï¼ˆç”µæµå€¼ï¼‰
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int getParamLedCurrent(int& led) = 0;
 			  
 			 
-			//¹¦ÄÜ£º ÉèÖÃ»ù×¼Æ½ÃæµÄÍâ²Î
-			//ÊäÈë²ÎÊý£ºR(Ðý×ª¾ØÕó£º3*3)¡¢T(Æ½ÒÆ¾ØÕó£º3*1)
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾ÉèÖÃ²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®åŸºå‡†å¹³é¢çš„å¤–å‚
+			//è¾“å…¥å‚æ•°ï¼šR(æ—‹è½¬çŸ©é˜µï¼š3*3)ã€T(å¹³ç§»çŸ©é˜µï¼š3*1)
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè®¾ç½®å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int setParamStandardPlaneExternal(float* R, float* T) = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡»ù×¼Æ½ÃæµÄÍâ²Î
-			//ÊäÈë²ÎÊý£ºÎÞ
-			//Êä³ö²ÎÊý£º R(Ðý×ª¾ØÕó£º3*3)¡¢T(Æ½ÒÆ¾ØÕó£º3*1)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š èŽ·å–åŸºå‡†å¹³é¢çš„å¤–å‚
+			//è¾“å…¥å‚æ•°ï¼šæ— 
+			//è¾“å‡ºå‚æ•°ï¼š R(æ—‹è½¬çŸ©é˜µï¼š3*3)ã€T(å¹³ç§»çŸ©é˜µï¼š3*1)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int getParamStandardPlaneExternal(float* R, float* T) = 0;
 			 
-			//¹¦ÄÜ£º ÉèÖÃÉú³ÉÁÁ¶ÈÍ¼²ÎÊý
-			//ÊäÈë²ÎÊý£ºmodel(1:ÓëÌõÎÆÍ¼Í¬²½Á¬ÐøÆØ¹â¡¢2£ºµ¥¶À·¢¹âÆØ¹â¡¢3£º²»·¢¹âµ¥¶ÀÆØ¹â)¡¢exposure(ÁÁ¶ÈÍ¼ÆØ¹âÊ±¼ä)
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾ÉèÖÃ²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®ç”Ÿæˆäº®åº¦å›¾å‚æ•°
+			//è¾“å…¥å‚æ•°ï¼šmodel(1:ä¸Žæ¡çº¹å›¾åŒæ­¥è¿žç»­æ›å…‰ã€2ï¼šå•ç‹¬å‘å…‰æ›å…‰ã€3ï¼šä¸å‘å…‰å•ç‹¬æ›å…‰)ã€exposure(äº®åº¦å›¾æ›å…‰æ—¶é—´)
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè®¾ç½®å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int setParamGenerateBrightness(int model, float exposure) = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡Éú³ÉÁÁ¶ÈÍ¼²ÎÊý
-			//ÊäÈë²ÎÊý£º ÎÞ
-			//Êä³ö²ÎÊý£ºmodel(1:ÓëÌõÎÆÍ¼Í¬²½Á¬ÐøÆØ¹â¡¢2£ºµ¥¶À·¢¹âÆØ¹â¡¢3£º²»·¢¹âµ¥¶ÀÆØ¹â)¡¢exposure(ÁÁ¶ÈÍ¼ÆØ¹âÊ±¼ä)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š èŽ·å–ç”Ÿæˆäº®åº¦å›¾å‚æ•°
+			//è¾“å…¥å‚æ•°ï¼š æ— 
+			//è¾“å‡ºå‚æ•°ï¼šmodel(1:ä¸Žæ¡çº¹å›¾åŒæ­¥è¿žç»­æ›å…‰ã€2ï¼šå•ç‹¬å‘å…‰æ›å…‰ã€3ï¼šä¸å‘å…‰å•ç‹¬æ›å…‰)ã€exposure(äº®åº¦å›¾æ›å…‰æ—¶é—´)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int getParamGenerateBrightness(int& model, float& exposure) = 0;
 			 
-			//¹¦ÄÜ£º ÉèÖÃÏà»úÆØ¹âÊ±¼ä
-			//ÊäÈë²ÎÊý£ºexposure(Ïà»úÆØ¹âÊ±¼ä)
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾ÉèÖÃ²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®ç›¸æœºæ›å…‰æ—¶é—´
+			//è¾“å…¥å‚æ•°ï¼šexposure(ç›¸æœºæ›å…‰æ—¶é—´)
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè®¾ç½®å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int setParamCameraExposure(float exposure) = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡Ïà»úÆØ¹âÊ±¼ä
-			//ÊäÈë²ÎÊý£º ÎÞ
-			//Êä³ö²ÎÊý£ºexposure(Ïà»úÆØ¹âÊ±¼ä)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š èŽ·å–ç›¸æœºæ›å…‰æ—¶é—´
+			//è¾“å…¥å‚æ•°ï¼š æ— 
+			//è¾“å‡ºå‚æ•°ï¼šexposure(ç›¸æœºæ›å…‰æ—¶é—´)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int getParamCameraExposure(float& exposure) = 0;
 			 
-			//¹¦ÄÜ£º ÉèÖÃ»ìºÏ¶àÆØ¹â²ÎÊý£¨×î´óÆØ¹â´ÎÊýÎª6´Î£©
-			//ÊäÈë²ÎÊý£º num£¨ÆØ¹â´ÎÊý£©¡¢exposure_param[6]£¨6¸öÆØ¹â²ÎÊý¡¢Ç°num¸öÓÐÐ§£©¡¢led_param[6]£¨6¸öledÁÁ¶È²ÎÊý¡¢Ç°num¸öÓÐÐ§£©
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾ÉèÖÃ²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®æ··åˆå¤šæ›å…‰å‚æ•°ï¼ˆæœ€å¤§æ›å…‰æ¬¡æ•°ä¸º6æ¬¡ï¼‰
+			//è¾“å…¥å‚æ•°ï¼š numï¼ˆæ›å…‰æ¬¡æ•°ï¼‰ã€exposure_param[6]ï¼ˆ6ä¸ªæ›å…‰å‚æ•°ã€å‰numä¸ªæœ‰æ•ˆï¼‰ã€led_param[6]ï¼ˆ6ä¸ªledäº®åº¦å‚æ•°ã€å‰numä¸ªæœ‰æ•ˆï¼‰
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè®¾ç½®å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int setParamMixedHdr(int num, int exposure_param[6], int led_param[6]) = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡»ìºÏ¶àÆØ¹â²ÎÊý£¨×î´óÆØ¹â´ÎÊýÎª6´Î£©
-			//ÊäÈë²ÎÊý£º ÎÞ
-			//Êä³ö²ÎÊý£º num£¨ÆØ¹â´ÎÊý£©¡¢exposure_param[6]£¨6¸öÆØ¹â²ÎÊý¡¢Ç°num¸öÓÐÐ§£©¡¢led_param[6]£¨6¸öledÁÁ¶È²ÎÊý¡¢Ç°num¸öÓÐÐ§£©
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š èŽ·å–æ··åˆå¤šæ›å…‰å‚æ•°ï¼ˆæœ€å¤§æ›å…‰æ¬¡æ•°ä¸º6æ¬¡ï¼‰
+			//è¾“å…¥å‚æ•°ï¼š æ— 
+			//è¾“å‡ºå‚æ•°ï¼š numï¼ˆæ›å…‰æ¬¡æ•°ï¼‰ã€exposure_param[6]ï¼ˆ6ä¸ªæ›å…‰å‚æ•°ã€å‰numä¸ªæœ‰æ•ˆï¼‰ã€led_param[6]ï¼ˆ6ä¸ªledäº®åº¦å‚æ•°ã€å‰numä¸ªæœ‰æ•ˆï¼‰
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int getParamMixedHdr(int& num, int exposure_param[6], int led_param[6]) = 0;
 			 
-			//¹¦ÄÜ£º ÉèÖÃÏà»úÆØ¹âÊ±¼ä
-			//ÊäÈë²ÎÊý£ºconfidence(Ïà»úÖÃÐÅ¶È)
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾ÉèÖÃ²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®ç›¸æœºæ›å…‰æ—¶é—´
+			//è¾“å…¥å‚æ•°ï¼šconfidence(ç›¸æœºç½®ä¿¡åº¦)
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè®¾ç½®å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int setParamCameraConfidence(float confidence) = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡Ïà»úÆØ¹âÊ±¼ä
-			//ÊäÈë²ÎÊý£º ÎÞ
-			//Êä³ö²ÎÊý£ºconfidence(Ïà»úÖÃÐÅ¶È)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š èŽ·å–ç›¸æœºæ›å…‰æ—¶é—´
+			//è¾“å…¥å‚æ•°ï¼š æ— 
+			//è¾“å‡ºå‚æ•°ï¼šconfidence(ç›¸æœºç½®ä¿¡åº¦)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int getParamCameraConfidence(float& confidence) = 0;
 			 
-			//¹¦ÄÜ£º ÉèÖÃÏà»úÔöÒæ
-			//ÊäÈë²ÎÊý£ºgain(Ïà»úÔöÒæ)
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾ÉèÖÃ²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®ç›¸æœºå¢žç›Š
+			//è¾“å…¥å‚æ•°ï¼šgain(ç›¸æœºå¢žç›Š)
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè®¾ç½®å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int setParamCameraGain(float gain) = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡Ïà»úÔöÒæ
-			//ÊäÈë²ÎÊý£º ÎÞ
-			//Êä³ö²ÎÊý£ºgain(Ïà»úÔöÒæ)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š èŽ·å–ç›¸æœºå¢žç›Š
+			//è¾“å…¥å‚æ•°ï¼š æ— 
+			//è¾“å‡ºå‚æ•°ï¼šgain(ç›¸æœºå¢žç›Š)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int getParamCameraGain(float& gain) = 0;
 			 
-			//¹¦ÄÜ£º ÉèÖÃµãÔÆÆ½»¬²ÎÊý
-			//ÊäÈë²ÎÊý£ºsmoothing(0:¹Ø¡¢1-5:Æ½»¬³Ì¶ÈÓÉµÍµ½¸ß)
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾ÉèÖÃ²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®ç‚¹äº‘å¹³æ»‘å‚æ•°
+			//è¾“å…¥å‚æ•°ï¼šsmoothing(0:å…³ã€1-5:å¹³æ»‘ç¨‹åº¦ç”±ä½Žåˆ°é«˜)
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè®¾ç½®å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int setParamSmoothing(int smoothing) = 0;
 			 
-			//¹¦ÄÜ£º ÉèÖÃµãÔÆÆ½»¬²ÎÊý
-			//ÊäÈë²ÎÊý£ºÎÞ
-			//Êä³ö²ÎÊý£ºsmoothing(0:¹Ø¡¢1-5:Æ½»¬³Ì¶ÈÓÉµÍµ½¸ß)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®ç‚¹äº‘å¹³æ»‘å‚æ•°
+			//è¾“å…¥å‚æ•°ï¼šæ— 
+			//è¾“å‡ºå‚æ•°ï¼šsmoothing(0:å…³ã€1-5:å¹³æ»‘ç¨‹åº¦ç”±ä½Žåˆ°é«˜)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int getParamSmoothing(int& smoothing) = 0;
 			 
-			//¹¦ÄÜ£º ÉèÖÃµãÔÆ°ë¾¶ÂË²¨²ÎÊý
-			//ÊäÈë²ÎÊý£ºuse(¿ª¹Ø£º1¿ª¡¢0¹Ø)¡¢radius(°ë¾¶£©¡¢num£¨ÓÐÐ§µã£©
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾ÉèÖÃ²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®ç‚¹äº‘åŠå¾„æ»¤æ³¢å‚æ•°
+			//è¾“å…¥å‚æ•°ï¼šuse(å¼€å…³ï¼š1å¼€ã€0å…³)ã€radius(åŠå¾„ï¼‰ã€numï¼ˆæœ‰æ•ˆç‚¹ï¼‰
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè®¾ç½®å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int setParamRadiusFilter(int use, float radius, int num) = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡µãÔÆ°ë¾¶ÂË²¨²ÎÊý
-			//ÊäÈë²ÎÊý£ºÎÞ
-			//Êä³ö²ÎÊý£ºuse(¿ª¹Ø£º1¿ª¡¢0¹Ø)¡¢radius(°ë¾¶£©¡¢num£¨ÓÐÐ§µã£©
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š èŽ·å–ç‚¹äº‘åŠå¾„æ»¤æ³¢å‚æ•°
+			//è¾“å…¥å‚æ•°ï¼šæ— 
+			//è¾“å‡ºå‚æ•°ï¼šuse(å¼€å…³ï¼š1å¼€ã€0å…³)ã€radius(åŠå¾„ï¼‰ã€numï¼ˆæœ‰æ•ˆç‚¹ï¼‰
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int getParamRadiusFilter(int& use, float& radius, int& num) = 0;
 
-			//º¯ÊýÃû£º setParamDepthFilter
-			//¹¦ÄÜ£º ÉèÖÃÉî¶ÈÍ¼ÂË²¨²ÎÊý
-			//ÊäÈë²ÎÊý£ºuse(¿ª¹Ø£º1¿ª¡¢0¹Ø)¡¢depth_filterthreshold(Éî¶ÈÍ¼ÔÚ1000mm¾àÀë¹ýÂËµÄÔëÉùãÐÖµ)
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾ÉèÖÃ²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//å‡½æ•°åï¼š setParamDepthFilter
+			//åŠŸèƒ½ï¼š è®¾ç½®æ·±åº¦å›¾æ»¤æ³¢å‚æ•°
+			//è¾“å…¥å‚æ•°ï¼šuse(å¼€å…³ï¼š1å¼€ã€0å…³)ã€depth_filterthreshold(æ·±åº¦å›¾åœ¨1000mmè·ç¦»è¿‡æ»¤çš„å™ªå£°é˜ˆå€¼)
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè®¾ç½®å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual int setParamDepthFilter(int use, float depth_filter_threshold) = 0;
 
-			//º¯ÊýÃû£º getParamDepthFilter
-			//¹¦ÄÜ£º ÉèÖÃÉî¶ÈÍ¼ÂË²¨²ÎÊý
-			//ÊäÈë²ÎÊý£ºuse(¿ª¹Ø£º1¿ª¡¢0¹Ø)¡¢depth_filterthreshold(Éî¶ÈÍ¼ÔÚ1000mm¾àÀë¹ýÂËµÄÔëÉùãÐÖµ)
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//å‡½æ•°åï¼š getParamDepthFilter
+			//åŠŸèƒ½ï¼š è®¾ç½®æ·±åº¦å›¾æ»¤æ³¢å‚æ•°
+			//è¾“å…¥å‚æ•°ï¼šuse(å¼€å…³ï¼š1å¼€ã€0å…³)ã€depth_filterthreshold(æ·±åº¦å›¾åœ¨1000mmè·ç¦»è¿‡æ»¤çš„å™ªå£°é˜ˆå€¼)
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual int getParamDepthFilter(int& use, float& depth_filter_threshold) = 0;
 			 
-			//¹¦ÄÜ£º ÉèÖÃÍâµã¹ýÂËãÐÖµ
-			//ÊäÈë²ÎÊý£ºthreshold(ãÐÖµ0-100)
-			//Êä³ö²ÎÊý£º ÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾ÉèÖÃ²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®å¤–ç‚¹è¿‡æ»¤é˜ˆå€¼
+			//è¾“å…¥å‚æ•°ï¼šthreshold(é˜ˆå€¼0-100)
+			//è¾“å‡ºå‚æ•°ï¼š æ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè®¾ç½®å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int setParamOutlierFilter(float threshold) = 0;
 			 
-			//¹¦ÄÜ£º »ñÈ¡Íâµã¹ýÂËãÐÖµ
-			//ÊäÈë²ÎÊý£º ÎÞ
-			//Êä³ö²ÎÊý£ºthreshold(ãÐÖµ0-100)
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾»ñÈ¡²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š èŽ·å–å¤–ç‚¹è¿‡æ»¤é˜ˆå€¼
+			//è¾“å…¥å‚æ•°ï¼š æ— 
+			//è¾“å‡ºå‚æ•°ï¼šthreshold(é˜ˆå€¼0-100)
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºèŽ·å–å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int getParamOutlierFilter(float& threshold) = 0;
 			 
-			//¹¦ÄÜ£º ÉèÖÃ¶àÆØ¹âÄ£Ê½
-			//ÊäÈë²ÎÊý£º model(1£ºHDR(Ä¬ÈÏÖµ)¡¢2£ºÖØ¸´ÆØ¹â)
-			//Êä³ö²ÎÊý£ºÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾ÉèÖÃ²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®å¤šæ›å…‰æ¨¡å¼
+			//è¾“å…¥å‚æ•°ï¼š model(1ï¼šHDR(é»˜è®¤å€¼)ã€2ï¼šé‡å¤æ›å…‰)
+			//è¾“å‡ºå‚æ•°ï¼šæ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè®¾ç½®å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int setParamMultipleExposureModel(int model) = 0;
 			 
-			//¹¦ÄÜ£º ÉèÖÃÖØ¸´ÆØ¹âÊý
-			//ÊäÈë²ÎÊý£º num(2-10)
-			//Êä³ö²ÎÊý£ºÎÞ
-			//·µ»ØÖµ£º ÀàÐÍ£¨int£©:·µ»Ø0±íÊ¾ÉèÖÃ²ÎÊý³É¹¦;·ñÔòÊ§°Ü¡£
+			//åŠŸèƒ½ï¼š è®¾ç½®é‡å¤æ›å…‰æ•°
+			//è¾“å…¥å‚æ•°ï¼š num(2-10)
+			//è¾“å‡ºå‚æ•°ï¼šæ— 
+			//è¿”å›žå€¼ï¼š ç±»åž‹ï¼ˆintï¼‰:è¿”å›ž0è¡¨ç¤ºè®¾ç½®å‚æ•°æˆåŠŸ;å¦åˆ™å¤±è´¥ã€‚
 			virtual  int setParamRepetitionExposureNum(int num) = 0;
         };
 
