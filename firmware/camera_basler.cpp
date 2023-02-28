@@ -303,16 +303,35 @@ bool CameraBasler::openCamera()
     /* Enumerate all camera devices. You must call
     PylonEnumerateDevices() before creating a device. */
     res = PylonEnumerateDevices( &numDevices );
-    // CHECK( res );
-    if (0 == numDevices)
+
+    std::vector<int> valid_dev_id;
+
+    for (int d_n = 0; d_n < numDevices; d_n++)
     {
-        LOG(INFO)<<"No basler devices found.\n";
+        PylonDeviceInfo_t info;
+        PylonGetDeviceInfo(d_n, &info);
+
+        std::string d_class(info.DeviceClass);
+
+        if ("BaslerUsb" == d_class)
+        {
+                valid_dev_id.push_back(d_n);
+        }
+
+        LOG(INFO) << "device class: " << info.DeviceClass;
+    }
+
+    LOG(INFO) << "valid_device_num: " << valid_dev_id.size();
+
+    // CHECK( res );
+    if (0 == valid_dev_id.size())
+    {
+        LOG(INFO) << "No basler devices found.\n";
         // fprintf( stderr, "No devices found.\n" );
-        // PylonTerminate(); 
-        // exit( EXIT_FAILURE );   
+        // PylonTerminate();
+        // exit( EXIT_FAILURE );
         return false;
     }
- 
 
     /* Get a handle for the first device found.  */
     res = PylonCreateDeviceByIndex( 0, &hDev_ );
