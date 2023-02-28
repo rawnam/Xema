@@ -208,7 +208,7 @@ extern "C" {
 
 			//函数名： getParamDepthFilter
 			//功能： 设置深度图滤波参数
-			//输入参数：use(开关：1开、0关)、depth_filterthreshold(深度图在1000mm距离过滤的噪声阈值)
+			//输入参数：use(开关：1开、0关)、depth_filterthreshold(阈值0-100)
 			//输出参数： 无
 			//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
 			virtual int getParamDepthFilter(int& use, float& depth_filter_threshold)override;
