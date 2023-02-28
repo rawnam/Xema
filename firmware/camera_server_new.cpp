@@ -118,6 +118,7 @@ int reboot_lightcraft()
 
 int reboot_system()
 {
+    LOG(ERROR)<<"reboot board"; 
     pwrctrl.off_board();
     return 0;
 }
@@ -1411,7 +1412,10 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
                 break;
          case DF_ERROR_CAMERA_STREAM:
          {
-            scan3d_.reopenCamera();
+            if(DF_ERROR_2D_CAMERA == scan3d_.reopenCamera())
+            {
+                reboot_system();
+            }
          }
                 break;
          default:
@@ -1650,7 +1654,10 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
                 break;
          case DF_ERROR_CAMERA_STREAM:
          {
-            scan3d_.reopenCamera();
+            if(DF_ERROR_2D_CAMERA == scan3d_.reopenCamera())
+            {
+                reboot_system();
+            }
          }
                 break;
          default:
@@ -1940,7 +1947,10 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
                 break;
          case DF_ERROR_CAMERA_STREAM:
          {
-            scan3d_.reopenCamera();
+            if(DF_ERROR_2D_CAMERA == scan3d_.reopenCamera())
+            {
+                reboot_system();
+            }
          }
                 break;
          default:
