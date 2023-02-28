@@ -254,8 +254,8 @@ extern "C" {
 			virtual  int setParamRepetitionExposureNum(int num) = 0;
         };
 
-        XEMA_API void* createCamera();
-        XEMA_API void destroyCamera(void*);
+        XEMA_API void* createXCamera();
+        XEMA_API void destroyXCamera(void*);
 
     }
 }

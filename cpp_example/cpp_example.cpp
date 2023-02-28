@@ -1,4 +1,4 @@
-﻿// example.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
+// example.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //
 
 #include <iostream>
@@ -13,11 +13,11 @@ int main()
 	int ret_code = 0;
  
 	//创建相机
-	XCamera* p_camera = (XCamera*)createCamera();
+	XCamera* p_camera = (XCamera*)createXCamera();
 
 
 	//连接相机 
-	ret_code = p_camera->connect("192.168.100.132");
+	ret_code = p_camera->connect("192.168.100.30");
 
 	int width = 0, height = 0;
 	if (0 == ret_code)
@@ -271,7 +271,7 @@ int main()
 
 	p_camera->disconnect("192.168.100.132");
 	 
-	destroyCamera(p_camera);
+	destroyXCamera(p_camera);
 	  
 }
 

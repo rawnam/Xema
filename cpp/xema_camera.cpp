@@ -2785,11 +2785,11 @@ namespace XEMA {
 
 
 	/************************************************************************/
-	void* createCamera() {
+	void* createXCamera() {
 		return new XemaCamera;
 	}
 
-	void destroyCamera(void* pCamera) {
+	void destroyXCamera(void* pCamera) {
 		delete reinterpret_cast<XemaCamera*>(pCamera);
 	}
 
