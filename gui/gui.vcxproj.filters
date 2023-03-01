@@ -74,6 +74,9 @@
     <ClCompile Include="about_gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="save_gui.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="camera_gui.h">
@@ -103,6 +106,9 @@
     <QtMoc Include="about_gui.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="save_gui.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="camera_gui.ui">
@@ -127,6 +133,9 @@
       <Filter>Form Files</Filter>
     </QtUic>
     <QtUic Include="about.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="save_gui.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>

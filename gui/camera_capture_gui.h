@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <QtCore/QTimer>
 #include "../firmware/version.h"
+#include "save_gui.h"
 
 #define SELECT_BRIGHTNESS_FLAG_ 1;
 #define SELECT_HEIGHT_MAP_FLAG_ 2;
@@ -240,6 +241,8 @@ private:
 	cv::Mat pointcloud_map_;
 	cv::Mat brightness_map_;
 	cv::Mat height_map_;
+	cv::Mat undistort_depth_map_;
+	cv::Mat undistort_brightness_map_;
 	cv::Mat render_image_brightness_;
 	cv::Mat render_image_gray_depth_;
 	cv::Mat render_image_color_depth_;
@@ -299,4 +302,7 @@ private:
 
 	char firmware_version_[_VERSION_LENGTH_] = { "请先连接相机" };
 	char info_[INFO_SIZE] = {'\0'};
+
+	SaveDataType save_data_type_ = SaveDataType::Origin;
+	bool hide_save_gui_flag_ = false;
 };

@@ -16,6 +16,7 @@
 #include "waiting_gui.h"
 #include <enumerate.h>
 #include "about_gui.h"
+#include "save_gui.h"
 
 CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	: QWidget(parent)
@@ -331,11 +332,25 @@ bool CameraCaptureGui::saveOneFrameData(QString path_name)
 	path_name = dir.absolutePath();
 
 
-	QString brightness_str = path_name + "_bright.bmp";
-	cv::imwrite(brightness_str.toLocal8Bit().toStdString(), brightness_map_);
 
-	QString depth_str = path_name + "_depth_map.tiff";
-	cv::imwrite(depth_str.toLocal8Bit().toStdString(), depth_map_);
+	if (SaveDataType::Undistort == save_data_type_)
+	{
+		QString brightness_str = path_name + "_bright.bmp";
+		cv::imwrite(brightness_str.toLocal8Bit().toStdString(), undistort_brightness_map_);
+
+		QString depth_str = path_name + "_depth_map.tiff";
+		cv::imwrite(depth_str.toLocal8Bit().toStdString(), undistort_depth_map_);
+	}
+	else
+	{
+		QString brightness_str = path_name + "_bright.bmp";
+		cv::imwrite(brightness_str.toLocal8Bit().toStdString(), brightness_map_);
+
+		QString depth_str = path_name + "_depth_map.tiff";
+		cv::imwrite(depth_str.toLocal8Bit().toStdString(), depth_map_);
+	}
+
+
 
 	QString height_str = path_name + "_height_map.tiff";
 	cv::imwrite(height_str.toLocal8Bit().toStdString(), height_map_);
@@ -1744,6 +1759,8 @@ bool CameraCaptureGui::captureOneFrameData()
 	cv::Mat brightness(height, width, CV_8U, cv::Scalar(0));
 	cv::Mat depth(height, width, CV_32F, cv::Scalar(0.));
 	cv::Mat point_cloud(height, width, CV_32FC3, cv::Scalar(0.));
+	cv::Mat undistort_brightness(height, width, CV_8U, cv::Scalar(0));
+	cv::Mat undistort_depth(height, width, CV_32F, cv::Scalar(0.));
 
 	int depth_buf_size = image_size * 1 * 4;
 	int brightness_bug_size = image_size;
@@ -1849,12 +1866,30 @@ bool CameraCaptureGui::captureOneFrameData()
 			std::cout << "Get Depth Error!" << std::endl;
 		}
 
+		/*****************************************************************************/
+		//获取去畸变图像
+		ret_code = DfGetUndistortBrightnessData(undistort_brightness.data);
+		if (DF_SUCCESS != ret_code)
+		{
+			std::cout << "Get Undistort Brightness Data Error!" << std::endl;
+		}
+
+		ret_code = DfGetUndistortDepthDataFloat((float*)undistort_depth.data);
+
+		if (DF_SUCCESS != ret_code)
+		{
+			std::cout << "Get Undistort Depth Error!" << std::endl;
+		}
+		/******************************************************************************/
 
 		processing_gui_settings_data_.Instance().exposure_model = exposure_model_;
 
 
 		brightness_map_ = brightness.clone();
 		depth_map_ = depth.clone();
+
+		undistort_brightness_map_ = undistort_brightness.clone();
+		undistort_depth_map_ = undistort_depth.clone();
 
 		depthTransformPointcloud((float*)depth.data, (float*)point_cloud.data);
 		pointcloud_map_ = point_cloud.clone();
@@ -2681,7 +2716,39 @@ void CameraCaptureGui::do_pushButton_save_as()
 		return;
 	}
 
+	if (!hide_save_gui_flag_)
+	{
+		SaveGui config_save_dialog(this);
+		config_save_dialog.setDataType(save_data_type_);
+
+		if (QDialog::Accepted == config_save_dialog.exec())
+		{
+			config_save_dialog.getDateType(save_data_type_);
+			hide_save_gui_flag_ = config_save_dialog.isHideUi();
+
+			switch (save_data_type_)
+			{
+			case SaveDataType::Origin:
+				addLogMessage(tr("保存原图"));
+				break;
+			case SaveDataType::Undistort:
+				addLogMessage(tr("保存去畸变图"));
+				break;
+			default:
+				break;
+			}
+		} 
+	}
+
+
+
+
 	QString StrCurrentTime = "/" + QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
+
+	if (SaveDataType::Undistort == save_data_type_)
+	{
+		StrCurrentTime += "_undistort";
+	}
 
 	QString path = QFileDialog::getSaveFileName(this, "Set Save Name", last_path_ + StrCurrentTime);
 

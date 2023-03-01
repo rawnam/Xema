@@ -31,7 +31,7 @@
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>$(DefaultQtVersion)</QtInstall>
-    <QtModules>core;xml;network;gui;widgets;printsupport;concurrent;</QtModules>
+    <QtModules>core;xml;network;gui;widgets;printsupport;concurrent</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
@@ -148,6 +148,7 @@ copy $(ProjectDir)..\3rdparty\ConfiguringIP\enumerated.dll $(TargetDir)</Command
     <ClCompile Include="main.cpp" />
     <ClCompile Include="outlier_removal_gui.cpp" />
     <ClCompile Include="PrecisionTest.cpp" />
+    <ClCompile Include="save_gui.cpp" />
     <ClCompile Include="select_calibration_board_gui.cpp" />
     <ClCompile Include="settings_file_function.cpp" />
     <ClCompile Include="update_firmware_gui.cpp" />
@@ -160,6 +161,7 @@ copy $(ProjectDir)..\3rdparty\ConfiguringIP\enumerated.dll $(TargetDir)</Command
     <QtUic Include="camera_capture_gui.ui" />
     <QtUic Include="camera_gui.ui" />
     <QtUic Include="outlier_removal_gui.ui" />
+    <QtUic Include="save_gui.ui" />
     <QtUic Include="select_calibration_board_gui.ui" />
     <QtUic Include="update_firmware_gui.ui" />
     <QtUic Include="waiting_gui.ui" />
@@ -171,6 +173,7 @@ copy $(ProjectDir)..\3rdparty\ConfiguringIP\enumerated.dll $(TargetDir)</Command
     <ClInclude Include="..\firmware\easylogging++.h" />
     <ClInclude Include="about.h" />
     <QtMoc Include="about_gui.h" />
+    <QtMoc Include="save_gui.h" />
     <ClInclude Include="update_opencam3d.h" />
     <QtMoc Include="waiting_gui.h" />
     <ClInclude Include="x64\Release\uic\ui_update_firmware_gui.h" />
