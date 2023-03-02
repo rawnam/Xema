@@ -633,7 +633,8 @@ namespace XEMA {
 		//产生畸变校正表
 		undistort_map_x_ = (float*)(new char[depth_buf_size_]);
 		undistort_map_y_ = (float*)(new char[depth_buf_size_]);
-
+		distorted_map_x_ = (float*)(new char[depth_buf_size_]);
+		distorted_map_y_ = (float*)(new char[depth_buf_size_]);
 
 		float camera_fx = calibration_param_.camera_intrinsic[0];
 		float camera_fy = calibration_param_.camera_intrinsic[4];
@@ -672,6 +673,28 @@ namespace XEMA {
 			}
 
 		}
+		/********************************************************************************************************************/
+			// 生成畸变矫正的畸变表
+#pragma omp parallel for
+		for (int r = 0; r < nr; r++)
+		{
+
+			for (int c = 0; c < nc; c++)
+			{
+				float distorted_x, distorted_y;
+
+
+				int offset = r * camera_width_ + c;
+
+				distortPoint(camera_fx, camera_fy,camera_cx, camera_cy, k1, k2, k3, p1, p2,
+					c, r, distorted_x, distorted_y);
+
+				distorted_map_x_[offset] = (float)distorted_x;
+				distorted_map_y_[offset] = (float)distorted_y;
+			}
+
+		}
+
 		/*****************************************************************************************************************/
 
 		el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
@@ -710,7 +733,17 @@ namespace XEMA {
 		delete[] trans_point_cloud_buf_;
 		delete[] undistort_map_x_;
 		delete[] undistort_map_y_;
+		delete[] distorted_map_x_;
+		delete[] distorted_map_y_;
 
+		depth_buf_ = NULL;
+		brightness_buf_ = NULL;
+		point_cloud_buf_ = NULL;
+		trans_point_cloud_buf_ = NULL;
+		undistort_map_x_ = NULL;
+		undistort_map_y_ = NULL;
+		distorted_map_x_ = NULL;
+		distorted_map_y_ = NULL;
 
 		connected_flag_ = false;
 
@@ -842,6 +875,41 @@ namespace XEMA {
 
 		return DF_SUCCESS;
 	}
+ 
+	int XemaCamera::getUndistortDepthData(float* undistort_depth)
+	{
+
+		LOG(INFO) << "DfGetUndistortDepthDataFloat:";
+		if (!connected_flag_)
+		{
+			return DF_NOT_CONNECT;
+		}
+
+
+		LOG(INFO) << "Trans Depth:";
+		int point_num = camera_height_ * camera_width_;
+
+		int nr = camera_height_;
+		int nc = camera_width_;
+
+#pragma omp parallel for
+		for (int r = 0; r < nr; r++)
+		{
+			for (int c = 0; c < nc; c++)
+			{
+				int offset = r * camera_width_ + c;
+				undistort_depth[offset] = depth_buf_[offset];
+
+			}
+
+		}
+
+		undistortDepthMap(undistort_depth);
+
+		LOG(INFO) << "Get Undistort Depth!";
+
+		return DF_SUCCESS;
+	}
 	 
 	int XemaCamera::getDepthData(float* depth)
 	{
@@ -899,6 +967,28 @@ namespace XEMA {
 		return 0;
 	}
 
+	int XemaCamera::getUndistortBrightnessData(unsigned char* undistort_brightness)
+	{
+
+		LOG(INFO) << "DfGetBrightnessData:";
+		if (!connected_flag_)
+		{
+			return DF_NOT_CONNECT;
+		}
+
+
+		LOG(INFO) << "Trans Brightness:";
+
+		memcpy(undistort_brightness, brightness_buf_, brightness_bug_size_);
+
+		undistortBrightnessMap(undistort_brightness);
+
+		//brightness = brightness_buf_;
+
+		LOG(INFO) << "Get Undistort Brightness!";
+
+		return 0;
+	}
 
 	int XemaCamera::getBrightnessData(unsigned char* brightness)
 	{
@@ -2779,6 +2869,105 @@ namespace XEMA {
 		}
 
 		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+
+
+	int XemaCamera::undistortBrightnessMap(unsigned char* brightness_map) //最近邻
+	{
+
+		int nr = camera_height_;
+		int nc = camera_width_;
+
+		unsigned char* brightness_map_temp = new unsigned char[nr * nc];
+		memset(brightness_map_temp, 0, sizeof(unsigned char) * nr * nc);
+
+		#pragma omp parallel for
+		for (int r = 0; r < nr; r++)
+		{
+
+			for (int c = 0; c < nc; c++)
+			{
+				int offset = r * camera_width_ + c;
+				float distort_x, distort_y;
+				//distortPoint(c, r, distort_x, distort_y);
+				distort_x = distorted_map_x_[offset];
+				distort_y = distorted_map_y_[offset];
+				// 进行双线性差值
+				if (distort_x > 0 && distort_x < nc - 1 && distort_y > 0 && distort_y < nr - 1)
+				{
+					float l_t_brightness = brightness_map[(int)distort_y * camera_width_ + (int)distort_x];
+					float l_b_brightness = brightness_map[(int)(distort_y + 1) * camera_width_ + (int)distort_x];
+					float r_t_brightness = brightness_map[(int)distort_y * camera_width_ + (int)(distort_x + 1)];
+					float r_b_brightness = brightness_map[(int)(distort_y + 1) * camera_width_ + (int)(distort_x + 1)];
+
+					float rate_y = distort_y - (int)distort_y;
+					float rate_x = distort_x - (int)distort_x;
+
+					brightness_map_temp[offset] = (unsigned char)(l_t_brightness * (1 - rate_x) * (1 - rate_y) + l_b_brightness * (1 - rate_x) * rate_y + r_t_brightness * rate_x * (1 - rate_y) + r_b_brightness * rate_x * rate_y + 0.5);
+				}
+			}
+
+		}
+
+		memcpy(brightness_map, brightness_map_temp, sizeof(unsigned char) * nr * nc);
+		delete[] brightness_map_temp;
+		brightness_map_temp = NULL;
+		return DF_SUCCESS;
+	}
+
+
+	int XemaCamera::undistortDepthMap(float* depth_map)
+	{
+		// 使用双线性差值
+		if (!connected_flag_)
+		{
+			return DF_NOT_CONNECT;
+		}
+
+		int nr = camera_height_;
+		int nc = camera_width_;
+
+		float* depth_map_temp = new float[nr * nc];
+		memset(depth_map_temp, -1, sizeof(float) * nr * nc);
+
+#pragma omp parallel for
+		for (int r = 0; r < nr; r++)
+		{
+
+			for (int c = 0; c < nc; c++)
+			{
+				int offset = r * camera_width_ + c;
+				float distort_x, distort_y;
+				//distortPoint(c, r, distort_x, distort_y);
+				distort_x = distorted_map_x_[offset];
+				distort_y = distorted_map_y_[offset];
+				// 进行双线性差值
+				if (distort_x > 0 && distort_x < nc - 1 && distort_y > 0 && distort_y < nr - 1)
+				{
+					float l_t_depth = depth_map[(int)distort_y * camera_width_ + (int)distort_x];
+					float l_b_depth = depth_map[(int)(distort_y + 1) * camera_width_ + (int)distort_x];
+					float r_t_depth = depth_map[(int)distort_y * camera_width_ + (int)(distort_x + 1)];
+					float r_b_depth = depth_map[(int)(distort_y + 1) * camera_width_ + (int)(distort_x + 1)];
+
+					if (l_t_depth <= 0 || l_b_depth <= 0 || r_t_depth <= 0 || r_b_depth <= 0)
+					{
+						depth_map_temp[offset] = depth_map[(int)(distort_y + 0.5) * camera_width_ + (int)(distort_x + 0.5)];
+						continue;
+					}
+
+					float rate_y = distort_y - (int)distort_y;
+					float rate_x = distort_x - (int)distort_x;
+
+					depth_map_temp[offset] = l_t_depth * (1 - rate_x) * (1 - rate_y) + l_b_depth * (1 - rate_x) * rate_y + r_t_depth * rate_x * (1 - rate_y) + r_b_depth * rate_x * rate_y;
+				}
+			}
+
+		}
+
+		memcpy(depth_map, depth_map_temp, sizeof(float) * nr * nc);
+		delete[] depth_map_temp;
+		depth_map_temp = NULL;
 		return DF_SUCCESS;
 	}
 

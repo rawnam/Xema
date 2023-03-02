@@ -44,6 +44,12 @@ extern "C" {
 			//返回值： 类型（int）:返回0表示获取采集数据成功;返回-1表示采集数据失败.
 			int captureData(int exposure_num, char* timestamp)override;
 
+			//功能： 获取去畸变深度图
+			//输入参数：无
+			//输出参数： undistort_depth(深度图)
+			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+			int getUndistortDepthData(float* undistort_depth)override;
+
 			//功能： 获取深度图
 			//输入参数：无
 			//输出参数： depth(深度图)
@@ -55,6 +61,12 @@ extern "C" {
 			//输出参数： point_cloud(点云)
 			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 			int getPointcloudData(float* point_cloud)override;
+
+			//功能： 获取去畸变亮度图
+			//输入参数：无
+			//输出参数： undistort_brightness(亮度图)
+			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+			int getUndistortBrightnessData(unsigned char* undistort_brightness)override;
 
 			//功能： 获取亮度图
 			//输入参数：无
@@ -239,7 +251,9 @@ extern "C" {
 
 
 		public:
+			int undistortBrightnessMap(unsigned char* brightness_map);
 
+			int undistortDepthMap(float* depth_map);
 
 			bool transformPointcloud(float* org_point_cloud_map, float* transform_point_cloud_map, float* rotate, float* translation);
 
@@ -311,6 +325,8 @@ extern "C" {
 			unsigned char* brightness_buf_ = NULL;
 			float* undistort_map_x_ = NULL;
 			float* undistort_map_y_ = NULL;
+			float* distorted_map_x_ = NULL;
+			float* distorted_map_y_ = NULL;
 		};
 		 
 

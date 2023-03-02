@@ -300,35 +300,35 @@ int depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 
 	return DF_SUCCESS;
 }
-
-void distortPoint(/*double fx, double fy, double u0, double v0, double k1, double k2, double p1, double p2, double k3, */float inputU, float inputV, float& outputU, float& outputV)
-{
-	float fx = calibration_param_.camera_intrinsic[0];
-	float fy = calibration_param_.camera_intrinsic[4];
-
-	float u0 = calibration_param_.camera_intrinsic[2];
-	float v0 = calibration_param_.camera_intrinsic[5];
-
-
-	float k1 = calibration_param_.camera_distortion[0];
-	float k2 = calibration_param_.camera_distortion[1];
-	float p1 = calibration_param_.camera_distortion[2];
-	float p2 = calibration_param_.camera_distortion[3];
-	float k3 = calibration_param_.camera_distortion[4];
-	float k4 = 0;
-	float k5 = 0;
-	float k6 = 0;
-
-	float x = (inputU - u0) / fx, y = (inputV - v0) / fy;
-
-	float x2 = x * x, y2 = y * y;
-	float r2 = x2 + y2, _2xy = 2 * x * y;
-	float kr = (1 + ((k3 * r2 + k2) * r2 + k1) * r2) / (1 + ((k6 * r2 + k5) * r2 + k4) * r2);
-	// 归一化坐标转化为图像坐标
-	outputU = fx * (x * kr + p1 * _2xy + p2 * (r2 + 2 * x2)) + u0;
-	outputV = fy * (y * kr + p1 * (r2 + 2 * y2) + p2 * _2xy) + v0;
-
-}
+//
+//void distortPoint(/*double fx, double fy, double u0, double v0, double k1, double k2, double p1, double p2, double k3, */float inputU, float inputV, float& outputU, float& outputV)
+//{
+//	float fx = calibration_param_.camera_intrinsic[0];
+//	float fy = calibration_param_.camera_intrinsic[4];
+//
+//	float u0 = calibration_param_.camera_intrinsic[2];
+//	float v0 = calibration_param_.camera_intrinsic[5];
+//
+//
+//	float k1 = calibration_param_.camera_distortion[0];
+//	float k2 = calibration_param_.camera_distortion[1];
+//	float p1 = calibration_param_.camera_distortion[2];
+//	float p2 = calibration_param_.camera_distortion[3];
+//	float k3 = calibration_param_.camera_distortion[4];
+//	float k4 = 0;
+//	float k5 = 0;
+//	float k6 = 0;
+//
+//	float x = (inputU - u0) / fx, y = (inputV - v0) / fy;
+//
+//	float x2 = x * x, y2 = y * y;
+//	float r2 = x2 + y2, _2xy = 2 * x * y;
+//	float kr = (1 + ((k3 * r2 + k2) * r2 + k1) * r2) / (1 + ((k6 * r2 + k5) * r2 + k4) * r2);
+//	// 归一化坐标转化为图像坐标
+//	outputU = fx * (x * kr + p1 * _2xy + p2 * (r2 + 2 * x2)) + u0;
+//	outputV = fy * (y * kr + p1 * (r2 + 2 * y2) + p2 * _2xy) + v0;
+//
+//}
 
 int undistortBrightnessMap(unsigned char* brightness_map) //最近邻
 {
@@ -683,7 +683,8 @@ DF_SDK_API int DfConnect(const char* camera_id)
 
 			int offset = r * camera_width_ + c;
 
-			distortPoint(c, r, distorted_x, distorted_y);
+			distortPoint(camera_fx, camera_fy,camera_cx, camera_cy, k1, k2, k3, p1, p2,
+				c, r, distorted_x, distorted_y);
 
 			distorted_map_x_[offset] = (float)distorted_x;
 			distorted_map_y_[offset] = (float)distorted_y;
@@ -990,7 +991,7 @@ DF_SDK_API int DfGetDepthDataFloat(float* depth)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetUndistortDepthDataFloat(float* depth)
 {
-	LOG(INFO) << "DfGetDepthDataFloat:";
+	LOG(INFO) << "DfGetUndistortDepthDataFloat:";
 	if (!connected_flag_)
 	{
 		return DF_NOT_CONNECT;

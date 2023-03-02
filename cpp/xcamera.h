@@ -59,6 +59,12 @@ extern "C" {
 			//输出参数： depth(深度图)
 			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 			virtual  int getDepthData(float* depth) = 0;
+
+			//功能： 获取去畸变深度图
+			//输入参数：无
+			//输出参数： undistort_depth(深度图)
+			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+			virtual  int getUndistortDepthData(float* undistort_depth) = 0;
 			
 			//功能： 获取点云
 			//输入参数：无
@@ -71,6 +77,12 @@ extern "C" {
 			//输出参数： brightness(亮度图)
 			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 			virtual  int getBrightnessData(unsigned char* brightness)  = 0;
+
+			//功能： 获取去畸变亮度图
+			//输入参数：无
+			//输出参数： undistort_brightness(亮度图)
+			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+			virtual  int getUndistortBrightnessData(unsigned char* undistort_brightness) = 0;
 			 
 			//功能： 获取校正到基准平面的高度映射图
 			//输入参数：无  
