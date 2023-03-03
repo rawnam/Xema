@@ -1585,7 +1585,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 	}
 	capturing_flag_ = true;
 
-	addLogMessage(u8"采集数据：");
+	//addLogMessage(u8"采集数据：");
 
 	int width = camera_width_;
 	int height = camera_height_;
@@ -2774,33 +2774,38 @@ void CameraCaptureGui::do_pushButton_save_as()
 
 bool CameraCaptureGui::captureOneFrameAndRender()
 {
-	bool ret = captureOneFrameData();
+
+	addLogMessage(u8"采集数据：");
+	std::thread t_s(&CameraCaptureGui::captureOneFrameBaseThread, this, false);
+	t_s.detach();
+
+	//bool ret = captureOneFrameData();
 
 
-	if (ret)
-	{
+	//if (ret)
+	//{
 
-		renderBrightnessImage(brightness_map_);
-		renderDepthImage(depth_map_);
-		renderHeightImage(height_map_);
-		showImage();
+	//	renderBrightnessImage(brightness_map_);
+	//	renderDepthImage(depth_map_);
+	//	renderHeightImage(height_map_);
+	//	showImage();
 
-		if (ui.checkBox_auto_save->isChecked())
-		{
-			QString StrCurrentTime = "/" + QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
-			QString path_name = sys_path_ + StrCurrentTime;
-			//saveOneFrameData(path_name);
+	//	if (ui.checkBox_auto_save->isChecked())
+	//	{
+	//		QString StrCurrentTime = "/" + QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss");
+	//		QString path_name = sys_path_ + StrCurrentTime;
+	//		//saveOneFrameData(path_name);
 
-			std::thread t_s(&CameraCaptureGui::saveOneFrameData, this, path_name);
-			t_s.detach();
-			addLogMessage(u8"保存路径：" + path_name);
-		}
-	}
-	else
-	{
-		addLogMessage(u8"请先连接相机");
-		return false;
-	}
+	//		std::thread t_s(&CameraCaptureGui::saveOneFrameData, this, path_name);
+	//		t_s.detach();
+	//		addLogMessage(u8"保存路径：" + path_name);
+	//	}
+	//}
+	//else
+	//{
+	//	addLogMessage(u8"请先连接相机");
+	//	return false;
+	//}
 
 	return true;
 }
@@ -2879,7 +2884,12 @@ void  CameraCaptureGui::do_timeout_capture_slot()
 		//{
 		//	capture_timer_.start();
 		//}
-		 
+
+		if (!capturing_flag_)
+		{
+			addLogMessage(u8"采集数据：");
+		}
+
 		std::thread t_s(&CameraCaptureGui::captureOneFrameBaseThread, this, false);
 		t_s.detach();
 		capture_timer_.start();
