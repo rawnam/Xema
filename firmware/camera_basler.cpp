@@ -389,7 +389,7 @@ bool CameraBasler::openCamera()
     }
 
     /* Get a handle for the first device found.  */
-    res = PylonCreateDeviceByIndex( 0, &hDev_ );
+    res = PylonCreateDeviceByIndex(valid_dev_id[0], &hDev_ );
     // CHECK( res );
 
     /* Before using the device, it must be opened. Open it for configuring
