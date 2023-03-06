@@ -30,6 +30,7 @@ set(HEADERS
     update_opencam3d.h
     waiting_gui.h
     about_gui.h
+    save_gui.h
 )
 
 set(SOURCES 
@@ -43,6 +44,7 @@ set(SOURCES
     update_opencam3d.cpp
     waiting_gui.cpp
     about_gui.cpp
+    save_gui.cpp
 )
 
 set(RESOURCES 
