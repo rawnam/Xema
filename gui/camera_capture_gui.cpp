@@ -1595,6 +1595,8 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 	cv::Mat brightness(height, width, CV_8U, cv::Scalar(0));
 	cv::Mat depth(height, width, CV_32F, cv::Scalar(0.));
 	cv::Mat point_cloud(height, width, CV_32FC3, cv::Scalar(0.));
+	cv::Mat undistort_brightness(height, width, CV_8U, cv::Scalar(0));
+	cv::Mat undistort_depth(height, width, CV_32F, cv::Scalar(0.));
 
 	int depth_buf_size = image_size * 1 * 4;
 	int brightness_bug_size = image_size;
@@ -1701,6 +1703,27 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 		{
 			std::cout << "Get Depth Error!" << std::endl;
 		}
+
+
+		/*****************************************************************************/
+		//获取去畸变图像
+		ret_code = DfGetUndistortBrightnessData(undistort_brightness.data);
+		if (DF_SUCCESS != ret_code)
+		{
+			std::cout << "Get Undistort Brightness Data Error!" << std::endl;
+		}
+
+		ret_code = DfGetUndistortDepthDataFloat((float*)undistort_depth.data);
+
+		if (DF_SUCCESS != ret_code)
+		{
+			std::cout << "Get Undistort Depth Error!" << std::endl;
+		}
+
+		undistort_brightness_map_ = undistort_brightness.clone();
+		undistort_depth_map_ = undistort_depth.clone();
+		/******************************************************************************/
+
 
 		float temperature = 0;
 		ret_code = DfGetDeviceTemperature(temperature);
@@ -1880,6 +1903,9 @@ bool CameraCaptureGui::captureOneFrameData()
 		{
 			std::cout << "Get Undistort Depth Error!" << std::endl;
 		}
+
+		undistort_brightness_map_ = undistort_brightness.clone();
+		undistort_depth_map_ = undistort_depth.clone();
 		/******************************************************************************/
 
 		processing_gui_settings_data_.Instance().exposure_model = exposure_model_;
@@ -1888,9 +1914,7 @@ bool CameraCaptureGui::captureOneFrameData()
 		brightness_map_ = brightness.clone();
 		depth_map_ = depth.clone();
 
-		undistort_brightness_map_ = undistort_brightness.clone();
-		undistort_depth_map_ = undistort_depth.clone();
-
+		 
 		depthTransformPointcloud((float*)depth.data, (float*)point_cloud.data);
 		pointcloud_map_ = point_cloud.clone();
 		addLogMessage(u8"采集完成！");
