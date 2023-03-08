@@ -106,36 +106,60 @@ bool CameraBasler::streamOn()
 
         /* Get the number of streams supported by the device and the transport layer. */
         res = PylonDeviceGetNumStreamGrabberChannels( hDev_, &nStreams);
+
+        if(GENAPI_E_OK != res)
+        {
+            LOG(INFO)<<"PylonDeviceGetNumStreamGrabberChannels!";
+            return false;
+        }
+
         // CHECK( res );
         if (nStreams < 1)
         {
             LOG(INFO)<<"The transport layer doesn't support image streams\n" ;
             // fprintf( stderr, "The transport layer doesn't support image streams\n" );
-            PylonTerminate();
+            // PylonTerminate();
 
             return false;
 
         }
 
         /* Create and open a stream grabber for the first channel. */
-        res = PylonDeviceGetStreamGrabber( hDev_, 0, &hGrabber_ );
-        // CHECK( res );
-        res = PylonStreamGrabberOpen( hGrabber_ );
-        // CHECK( res );
+        res = PylonDeviceGetStreamGrabber(hDev_, 0, &hGrabber_);
+        if (GENAPI_E_OK != res)
+        {
+            LOG(INFO) << "PylonDeviceGetStreamGrabber!";
+            return false;
+        }
+
+        res = PylonStreamGrabberOpen(hGrabber_);
+        if (GENAPI_E_OK != res)
+        {
+            LOG(INFO) << "PylonStreamGrabberOpen!";
+            return false;
+        }
 
         /* Get a handle for the stream grabber's wait object. The wait object
         allows waiting for buffers to be filled with grabbed data. */
         res = PylonStreamGrabberGetWaitObject( hGrabber_, &hWait_ );
-        // CHECK( res );
-
+        if (GENAPI_E_OK != res)
+        {
+            LOG(INFO) << "PylonStreamGrabberGetWaitObject!";
+            return false;
+        }
 
         /* Determine the minimum size of the grab buffer.
         The size is determined by the configuration of the camera
         and the stream grabber. Be aware that this may change
         by changing critical parameters after this call.*/
         size_t  payloadSize;              /* Size of an image frame in bytes. */
-        res = PylonStreamGrabberGetPayloadSize( hDev_, hGrabber_, &payloadSize );
-        // CHECK( res );
+        res = PylonStreamGrabberGetPayloadSize(hDev_, hGrabber_, &payloadSize);
+        if (GENAPI_E_OK != res)
+        {
+            LOG(INFO) << "PylonStreamGrabberGetPayloadSize!";
+            return false;
+        }
+
         LOG(INFO)<<"payloadSize: "<<payloadSize;
         /* Allocate memory for grabbing.  */
         for (size_t i = 0; i < NUM_BUFFERS; ++i)
@@ -146,7 +170,7 @@ bool CameraBasler::streamOn()
 
                 LOG(INFO) << "Out of memory!\n";
                 // fprintf( stderr, "Out of memory!\n" );
-                PylonTerminate();
+                // PylonTerminate();
  
             }
         }
@@ -155,17 +179,29 @@ bool CameraBasler::streamOn()
             we are using. */
         /* .. We will not use more than NUM_BUFFERS for grabbing. */
         res = PylonStreamGrabberSetMaxNumBuffer( hGrabber_, NUM_BUFFERS );
+        if (GENAPI_E_OK != res)
+        {
+            LOG(INFO) << "PylonStreamGrabberSetMaxNumBuffer!";
+            return false;
+        }
         // CHECK( res );
         /* .. We will not use buffers bigger than payloadSize bytes. */
         res = PylonStreamGrabberSetMaxBufferSize( hGrabber_, payloadSize );
-        // CHECK( res );
-
+        if (GENAPI_E_OK != res)
+        {
+            LOG(INFO) << "PylonStreamGrabberSetMaxBufferSize!";
+            return false;
+        }
 
         /*  Allocate the resources required for grabbing. After this, critical parameters
             that impact the payload size must not be changed until FinishGrab() is called. */
         res = PylonStreamGrabberPrepareGrab( hGrabber_ );
         // CHECK( res );
-
+        if (GENAPI_E_OK != res)
+        {
+            LOG(INFO) << "PylonStreamGrabberPrepareGrab!";
+            return false;
+        }
 
         /* Before using the buffers for grabbing, they must be registered at
         the stream grabber. For each registered buffer, a buffer handle
@@ -173,8 +209,13 @@ bool CameraBasler::streamOn()
         raw pointers. */
         for (size_t i = 0; i < NUM_BUFFERS; ++i)
         {
-            res = PylonStreamGrabberRegisterBuffer( hGrabber_, buffers_[i], payloadSize, &bufHandles_[i] );
+            res = PylonStreamGrabberRegisterBuffer(hGrabber_, buffers_[i], payloadSize, &bufHandles_[i]);
             // CHECK( res );
+            if (GENAPI_E_OK != res)
+            {
+                LOG(INFO) << "PylonStreamGrabberRegisterBuffer!";
+                return false;
+            }
         }
 
         /* Feed the buffers into the stream grabber's input queue. For each buffer, the API
@@ -183,8 +224,13 @@ bool CameraBasler::streamOn()
         buffer as context information. */
         for (size_t i = 0; i < NUM_BUFFERS; ++i)
         {
-            res = PylonStreamGrabberQueueBuffer( hGrabber_, bufHandles_[i], (void*) i );
+            res = PylonStreamGrabberQueueBuffer(hGrabber_, bufHandles_[i], (void *)i);
             // CHECK( res );
+            if (GENAPI_E_OK != res)
+            {
+                LOG(INFO) << "PylonStreamGrabberQueueBuffer!";
+                return false;
+            }
         }
 
         /* Now the stream grabber is prepared. As soon as the camera starts to acquire images,
@@ -193,12 +239,21 @@ bool CameraBasler::streamOn()
         /* Start the image acquisition engine. */
         res = PylonStreamGrabberStartStreamingIfMandatory( hGrabber_ );
         // CHECK( res );
+        if (GENAPI_E_OK != res)
+        {
+            LOG(INFO) << "PylonStreamGrabberStartStreamingIfMandatory!";
+            return false;
+        }
 
         /* Let the camera acquire images. */
         res = PylonDeviceExecuteCommandFeature( hDev_, "AcquisitionStart" );
         // CHECK( res );
-
-
+        if (GENAPI_E_OK != res)
+        {
+            LOG(INFO) << "PylonDeviceExecuteCommandFeature!";
+            return false;
+        }
+ 
  
         return true;
 }
@@ -303,17 +358,38 @@ bool CameraBasler::openCamera()
     /* Enumerate all camera devices. You must call
     PylonEnumerateDevices() before creating a device. */
     res = PylonEnumerateDevices( &numDevices );
-    // CHECK( res );
-    if (0 == numDevices)
+
+    std::vector<int> valid_dev_id;
+
+    for (int d_n = 0; d_n < numDevices; d_n++)
     {
-        LOG(INFO)<<"No devices found.\n";
+        PylonDeviceInfo_t info;
+        PylonGetDeviceInfo(d_n, &info);
+
+        std::string d_class(info.DeviceClass);
+
+        if ("BaslerUsb" == d_class)
+        {
+                valid_dev_id.push_back(d_n);
+        }
+
+        LOG(INFO) << "device class: " << info.DeviceClass;
+    }
+
+    LOG(INFO) << "valid_device_num: " << valid_dev_id.size();
+
+    // CHECK( res );
+    if (0 == valid_dev_id.size())
+    {
+        LOG(INFO) << "No basler devices found.\n";
         // fprintf( stderr, "No devices found.\n" );
-        PylonTerminate(); 
-        // exit( EXIT_FAILURE );   
+        // PylonTerminate();
+        // exit( EXIT_FAILURE );
+        return false;
     }
 
     /* Get a handle for the first device found.  */
-    res = PylonCreateDeviceByIndex( 0, &hDev_ );
+    res = PylonCreateDeviceByIndex(valid_dev_id[0], &hDev_ );
     // CHECK( res );
 
     /* Before using the device, it must be opened. Open it for configuring

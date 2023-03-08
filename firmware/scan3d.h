@@ -96,6 +96,10 @@ public:
 
     void removeOutlierBaseDepthFilter();
 
+    int initCache();
+
+    int reopenCamera();
+
 private:
  
     Camera* camera_;

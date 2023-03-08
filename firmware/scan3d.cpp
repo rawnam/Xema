@@ -60,7 +60,7 @@ int Scan3D::init()
         {
             LOG(INFO) << "Open Basler Camera Error!"; 
             camera_opened_flag_ = false;
-            return false;
+            return DF_ERROR_2D_CAMERA;
         }
         else
         { 
@@ -125,6 +125,35 @@ int Scan3D::init()
     return true;
  
 } 
+
+
+int Scan3D::reopenCamera()
+{
+    LOG(ERROR)<<"reopen Camera:";
+    if(!camera_->closeCamera())
+    {
+        LOG(ERROR)<<"close Camera Error!";
+    }
+
+    if(camera_->openCamera())
+    {
+        camera_->setExposure(camera_exposure_);
+    }
+    else
+    {
+        return DF_ERROR_2D_CAMERA;
+    }
+   
+    LOG(ERROR)<<"reopen Camera finished!";
+    return DF_SUCCESS;    
+}
+
+int Scan3D::initCache()
+{
+    std::memset(buff_brightness_,0,sizeof(char)*image_width_*image_height_);
+    std::memset(buff_depth_,0,sizeof(float)*image_width_*image_height_);
+    std::memset(buff_pointcloud_,0,sizeof(float)*image_width_*image_height_*3); 
+}
 
 bool Scan3D::cameraIsValid()
 {
@@ -811,6 +840,7 @@ int Scan3D::captureFrame04BaseConfidence()
 
     LOG(INFO) << "cuda_clear_reconstruct_cache:";
     cuda_clear_reconstruct_cache();
+    initCache();
 
     LOG(INFO) << "Stream On:";
     if (!camera_->streamOn())
@@ -830,7 +860,12 @@ int Scan3D::captureFrame04BaseConfidence()
         {
             
             delete[] img_ptr; 
-            camera_->streamOff();
+            camera_->streamOff(); 
+            if(i == 0)
+            {
+                return DF_ERROR_LOST_TRIGGER;
+            }
+
             return DF_ERROR_CAMERA_GRAP;
         }
         LOG(INFO)<<"finished!";
@@ -917,6 +952,8 @@ void Scan3D::mergeBrightness()
 
 int Scan3D::captureFrame04HdrBaseConfidence()
 {
+    cuda_clear_reconstruct_cache();
+    initCache();
 
     LOG(INFO)<<"Mixed HDR Exposure Base Confidence:";  
     int frame_status = DF_SUCCESS;
@@ -1070,6 +1107,7 @@ bool Scan3D::captureFrame04Repetition01(int repetition_count)
             
             delete[] img_ptr; 
             camera_->streamOff();
+ 
             return false;
         } 
  
@@ -1188,6 +1226,8 @@ int Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
 
     int frame_status = DF_SUCCESS;
     cuda_clear_repetition_02_patterns();
+    cuda_clear_reconstruct_cache();
+    initCache();
 
     unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
 
@@ -1205,8 +1245,8 @@ int Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
         if (!camera_->streamOn())
         {
             LOG(INFO) << "Stream On Error";
-            frame_status = DF_ERROR_2D_CAMERA;
-            return DF_ERROR_2D_CAMERA;
+            frame_status = DF_ERROR_CAMERA_STREAM;
+            return DF_ERROR_CAMERA_STREAM;
         }
 
         lc3010_.start_pattern_sequence();
@@ -1229,6 +1269,11 @@ int Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
                 LOG(INFO) << "grad failed!";
                 camera_->streamOff();
                 delete[] img_ptr;
+
+                if (i == 0)
+                {
+                    return DF_ERROR_LOST_TRIGGER;
+                }
 
                 frame_status = DF_ERROR_CAMERA_GRAP;
                 return DF_ERROR_CAMERA_GRAP;
@@ -1315,6 +1360,10 @@ bool Scan3D::captureFrame04Repetition02(int repetition_count)
                 LOG(INFO) << "grad failed!";
                 camera_->streamOff();
                 delete[] img_ptr;
+                if (i == 0)
+                {
+                        return DF_ERROR_LOST_TRIGGER;
+                }
                 return false;
             }
         }
@@ -1380,6 +1429,10 @@ bool Scan3D::captureFrame05()
             
             delete[] img_ptr; 
             camera_->streamOff();
+            if (i == 0)
+            {
+                return DF_ERROR_LOST_TRIGGER;
+            }
             return false;
         }
         LOG(INFO)<<"finished!";
