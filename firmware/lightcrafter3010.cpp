@@ -797,18 +797,26 @@ float LightCrafter3010::lookup_table(float fRntc)
 float LightCrafter3010::get_projector_temperature()
 {
     unsigned char buffer[2];
-    read_mcp3221(buffer, 2);
+    int size = read_mcp3221(buffer, 2);
 
     short OutputCode;
-    OutputCode = ((buffer[0] << 8) & 0xff00) | buffer[1];
-    printf("The AD data = 0x%x = %d\n", OutputCode, OutputCode);
+    float temperature;
+    if (size == 2) 
+    {
+        OutputCode = ((buffer[0] << 8) & 0xff00) | buffer[1];
+        printf("The AD data = 0x%x = %d\n", OutputCode, OutputCode);
 
-    // Rntc = 10 * (4096 - AD) / AD, unit=KO
-    float fAD = OutputCode;
-    float fRntc = 10.0 * (4096.0 - fAD) / fAD;
-    printf("R = %f\n", fRntc);
+        // Rntc = 10 * (4096 - AD) / AD, unit=KO
+        float fAD = OutputCode;
+        float fRntc = 10.0 * (4096.0 - fAD) / fAD;
+        printf("R = %f\n", fRntc);
 
-    float temperature = lookup_table(fRntc);
+        temperature = lookup_table(fRntc);
+    } 
+    else
+    {
+        temperature = -100;
+    }
 
     return temperature;
 }
