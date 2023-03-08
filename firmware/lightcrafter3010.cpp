@@ -812,6 +812,7 @@ float LightCrafter3010::get_projector_temperature()
         printf("R = %f\n", fRntc);
 
         temperature = lookup_table(fRntc);
+        temperature = (temperature >= 125.0) ? -125.0 : temperature;
     } 
     else
     {
