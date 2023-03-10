@@ -796,7 +796,6 @@ void read_04()
 		std::cout << "Set Camera Version Error!" << std::endl;
 		return;
 	}
-
-
-	solution_machine_.reconstructMixedVariableWavelengthXPatternsBaseTable(patterns_, calibration_param_, pointcloud_path);
+	 
+	solution_machine_.reconstructPatterns08(patterns_, calibration_param_, pointcloud_path);
 }

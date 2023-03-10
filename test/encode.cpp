@@ -1,6 +1,9 @@
 #include "encode.h"
 #include "iostream" 
+#include "../firmware/easylogging++.h"
+#include <opencv2/highgui.hpp>
 
+INITIALIZE_EASYLOGGINGPP
 DF_Encode::DF_Encode()
 {
 }
@@ -170,6 +173,139 @@ bool DF_Encode::computePhaseShift(std::vector<cv::Mat> patterns, cv::Mat& wrap_m
 	brightness_map = brightness.clone();
 	average_map = average.clone();
 	mask_map = mask.clone();
+
+	return true;
+}
+
+
+bool DF_Encode::grayCodeToXorCode(std::vector<cv::Mat> gray_code, std::vector<cv::Mat>& xor_code)
+{
+	if (gray_code.empty())
+	{
+		return false;
+	}
+
+	xor_code.clear();
+
+
+	cv::Mat template_pattern = gray_code.back().clone();
+	int nr = template_pattern.rows;
+	int nc = template_pattern.cols;
+
+	for (int p = 0; p < gray_code.size() - 1; p++)
+	{
+		 
+		cv::Mat pattern = gray_code[p].clone(); 
+
+		cv::Mat merge_map(nr, nc, CV_8U, cv::Scalar(0));
+
+		for (int r = 0; r < nr; r++)
+		{
+			uchar* ptr_0 = template_pattern.ptr<uchar>(r);
+			uchar* ptr_1 = pattern.ptr<uchar>(r);
+			uchar* ptr_m = merge_map.ptr<uchar>(r);
+
+			for (int c = 0; c < nc; c++)
+			{
+
+				ptr_m[c] = ptr_0[c] ^ ptr_1[c];
+			}
+
+
+		}
+		 
+		xor_code.push_back(merge_map.clone()); 
+	}
+
+	xor_code.push_back(template_pattern);
+	 
+	return true;
+}
+ 
+bool DF_Encode::computeXOR05(std::vector<cv::Mat> patterns, cv::Mat& k1_map, cv::Mat& k2_map, cv::Mat& mask_map)
+{
+
+	if (patterns.empty())
+	{
+		return false;
+	}
+
+	cv::Mat black_map = patterns[patterns.size() - 2];
+	cv::Mat white_map = patterns[patterns.size() - 1];
+
+	int nr = black_map.rows;
+	int nc = black_map.cols;
+
+
+	cv::Mat threshold_map(nr, nc, CV_8U);
+
+	for (int r = 0; r < nr; r++)
+	{
+		uchar* ptr_b = black_map.ptr<uchar>(r);
+		uchar* ptr_w = white_map.ptr<uchar>(r);
+		uchar* ptr_t = threshold_map.ptr<uchar>(r);
+
+		for (int c = 0; c < nc; c++)
+		{
+			float d = ptr_w[c] - ptr_b[c];
+			ptr_t[c] = 0.5 + d / 2.0;
+		}
+
+	}
+
+
+
+	std::vector<cv::Mat> bin_xor_patterns;
+
+	for (int p_i = 0; p_i < patterns.size()-2; p_i++)
+	{
+		cv::Mat bin_pattern(nr, nc, CV_8U, cv::Scalar(0));
+
+		for (int r = 0; r < nr; r++)
+		{ 
+			uchar* ptr_p = patterns[p_i].ptr<uchar>(r);
+			uchar* ptr_t = threshold_map.ptr<uchar>(r);
+			uchar* ptr_bin = bin_pattern.ptr<uchar>(r);
+
+			for (int c = 0; c < nc; c++)
+			{
+				if (ptr_p[c] < ptr_t[c])
+				{
+					ptr_bin[c] = 0;
+				}
+				else
+				{
+					ptr_bin[c] = 255;
+				}
+
+			}
+
+		}
+
+		bin_xor_patterns.push_back(bin_pattern.clone());
+	}
+
+	 
+	std::vector<cv::Mat> gray_patterns; 
+	grayCodeToXorCode(bin_xor_patterns, gray_patterns); 
+	 
+	decodeGrayCode(gray_patterns, threshold_map, k1_map, k2_map);
+
+	//for (int p_i = 0; p_i < xor_patterns.size(); p_i++)
+	//{
+
+	//	std::string path = "G:\\DFX_CODE\\xema\\dev\\xema\\x64\\Release\\Patterns\\xor_";
+
+	//	path += std::to_string(p_i);
+	//	path += ".bmp";
+
+	//	cv::imwrite(path, xor_patterns[p_i]);
+
+	//	cv::Mat diff = patterns[p_i] - gray_patterns[p_i];
+	//}
+
+	
+
 
 	return true;
 }
