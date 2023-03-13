@@ -911,13 +911,19 @@ int Scan3D::captureFrame04BaseConfidence()
 
 
             cuda_compute_phase_shift(3);
+            if (1 == system_config_settings_machine_.Instance().firwmare_param_.use_gray_rectify)
+            {
+                cv::Mat convolution_kernal = cv::getGaussianKernel(system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r, system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_sigma * 0.02, CV_32F);
+	            convolution_kernal = convolution_kernal * convolution_kernal.t();
+                cuda_copy_convolution_kernal_to_memory((float*)convolution_kernal.data, system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
+                cuda_rectify_six_step_pattern_phase(0, system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
+            }
             cuda_unwrap_phase_shift_base_fisher_confidence(3);
             fisher_filter(fisher_confidence_val_);
             cuda_normalize_phase(0);
 
             cuda_generate_pointcloud_base_table();
             LOG(INFO) << "cuda_generate_pointcloud_base_table";
-            // depth_filter(system_config_settings_machine_.Instance().firwmare_param_.use_radius_filter / 1000.);
         }
 
         default:
@@ -1293,6 +1299,13 @@ int Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
     LOG(INFO) << "parallel_cuda_compute_mergerepetition_02_phase";
     cuda_unwrap_phase_shift_base_fisher_confidence(1);
     cuda_unwrap_phase_shift_base_fisher_confidence(2);
+    if (1 == system_config_settings_machine_.Instance().firwmare_param_.use_gray_rectify)
+    {
+        cv::Mat convolution_kernal = cv::getGaussianKernel(system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r, system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_sigma * 0.02, CV_32F);
+        convolution_kernal = convolution_kernal * convolution_kernal.t();
+        cuda_copy_convolution_kernal_to_memory((float*)convolution_kernal.data, system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
+        cuda_rectify_six_step_pattern_phase(1, system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
+    }
     cuda_unwrap_phase_shift_base_fisher_confidence(3);
 
     fisher_filter(fisher_confidence_val_);
@@ -1725,15 +1738,12 @@ bool Scan3D::loadCalibData()
         R1_t.convertTo(R1_t, CV_32F);
         pattern_mapping.convertTo(pattern_mapping, CV_32F);
         pattern_minimapping.convertTo(pattern_minimapping, CV_32F); 
- 
 
         float b = sqrt(pow(calib_param_.translation_matrix[0], 2) + pow(calib_param_.translation_matrix[1], 2) + pow(calib_param_.translation_matrix[2], 2));
 
         LOG(INFO)<<"start copy table:";
         cuda_copy_talbe_to_memory((float*)pattern_mapping.data,(float*)pattern_minimapping.data, (float*)xL_rotate_x.data,(float*)xL_rotate_y.data,(float*)R1_t.data,b);
         LOG(INFO)<<"copy finished!";
-
-
     }
 
     return true;

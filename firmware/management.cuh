@@ -21,9 +21,11 @@
 #include "merge_repetition.cuh"
 #include "filter_module.cuh"
 
+#define SIZE_OF_CONVOLUTION_KERNAL 9
 #define MAX_PATTERNS_NUMBER 36
 #define MAX_WRAP_NUMBER 8
 #define MAX_UNWRAP_NUMBER 2
+#define LAST_STEPS_NUM 6
 #define D_HDR_MAX_NUM 6 
 #define D_REPETITIONB_MAX_NUM 10
 #define FISHER_RATE_1 -6.61284856e-06
@@ -43,15 +45,20 @@ __device__ int d_image_height_ = 0;
 /**********************************************************************/
 //basic memory
 __device__ unsigned char* d_patterns_list_[MAX_PATTERNS_NUMBER];
+__device__ unsigned char* d_six_step_patterns_list_[LAST_STEPS_NUM];
+__device__ unsigned char* d_six_step_patterns_convolved_list_[LAST_STEPS_NUM];
+__device__ unsigned short* d_repetition_02_merge_patterns_convolved_list_[LAST_STEPS_NUM];  
 __device__ float* d_wrap_map_list_[MAX_WRAP_NUMBER];
 __device__ float* d_confidence_map_list_[MAX_WRAP_NUMBER];
 __device__ float* d_unwrap_map_list_[MAX_UNWRAP_NUMBER];
-
+__device__ float* d_six_step_pattern_convolution_phase_list_[2];
 
 __device__ float* d_fisher_confidence_map;
+__device__ float* d_convolution_kernal_map;
 __device__ unsigned char* d_fisher_mask_;
 __device__ unsigned char* d_mask_map_;
 __device__ unsigned char* d_brightness_map_;
+__device__ unsigned char* d_darkness_map_;
 __device__ float* d_point_cloud_map_;
 __device__ float* d_depth_map_; 
 __device__ float* d_depth_map_temp_; 
@@ -131,16 +138,24 @@ void cuda_copy_depth_from_memory(float* depth);
 
 void cuda_copy_brightness_from_memory(unsigned char* brightness);
 
+void cuda_copy_convolution_kernal_to_memory(float* convolution_kernal, int kernal_diameter);
+
 void cuda_copy_brightness_to_memory(unsigned char* brightness);
 
 void cuda_clear_reconstruct_cache();
+
+
 /***********************************************************************************/
 
 bool cuda_compute_phase_shift(int serial_flag); 
 
+bool cuda_compute_convolved_image_phase_shift(int serial_flag);
+
 bool cuda_unwrap_phase_shift(int serial_flag);
 
 bool cuda_unwrap_phase_shift_base_fisher_confidence(int serial_flag);
+
+bool cuda_rectify_six_step_pattern_phase(int mode, int kernal_diameter);
 
 bool cuda_normalize_phase(int serial_flag);
 

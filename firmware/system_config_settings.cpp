@@ -77,6 +77,9 @@ SystemConfigDataStruct::SystemConfigDataStruct()
 	instance_.firwmare_param_.depth_filter_threshold = 33; 
 	instance_.firwmare_param_.use_reflect_filter = 0;
 	instance_.firwmare_param_.fisher_confidence = -30;
+	instance_.firwmare_param_.use_gray_rectify = 0; 
+	instance_.firwmare_param_.gray_rectify_r = 5; 
+	instance_.firwmare_param_.gray_rectify_sigma = 40; 
 
 }
 

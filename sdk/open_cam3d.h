@@ -275,19 +275,33 @@ extern "C"
 	//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
 	DF_SDK_API int DfGetParamRadiusFilter(int& use, float& radius, int& num);
 
-	//函数名： DfSetParamRadiusFilter
+	//函数名： DfSetParamDepthFilter
 	//功能： 设置深度图滤波参数
 	//输入参数：use(开关：1开、0关)、depth_filterthreshold(阈值0-100)
 	//输出参数： 无
 	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 	DF_SDK_API int DfSetParamDepthFilter(int use, float depth_filter_threshold);
 
-	//函数名： DfSetParamRadiusFilter
+	//函数名： DfGetParamDepthFilter
 	//功能： 设置深度图滤波参数
-	//输入参数：use(开关：1开、0关)、depth_filterthreshold(深度图在1000mm距离过滤的噪声阈值)
+	//输入参数：use(开关：1开、0关)、depth_filterthreshold(阈值0-100)
 	//输出参数： 无
 	//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
 	DF_SDK_API int DfGetParamDepthFilter(int& use, float& depth_filter_threshold);
+
+	//函数名： DfSetParamGrayRectify
+	//功能： 设置点云灰度补偿参数
+	//输入参数：use(开关：1开、0关)、radius(半径：3、5、7、9）、sigma（补偿强度，范围0-100）
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfSetParamGrayRectify(int use, int radius, float sigma);
+
+	//函数名： DfGetParamGrayRectify
+	//功能： 获取点云灰度补偿参数
+	//输入参数：无
+	//输出参数：use(开关：1开、0关)、radius(半径：3、5、7、9）、sigma（补偿强度，范围0-100）
+	//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
+	DF_SDK_API int DfGetParamGrayRectify(int& use, int& radius, float& sigma);
 
 	//函数名： DfSetParamOutlierFilter
 	//功能： 设置外点过滤阈值

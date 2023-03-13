@@ -105,6 +105,18 @@ bool cuda_malloc_basic_memory()
     {
         cudaMalloc((void **)&d_patterns_list_[i], d_image_height_ * d_image_width_ * sizeof(unsigned char)); 
     }
+    for (int i = 0; i < LAST_STEPS_NUM; i++)
+    {
+        cudaMalloc((void **)&d_six_step_patterns_list_[i], d_image_height_ * d_image_width_ * sizeof(unsigned char)); 
+    }
+    for (int i = 0; i < LAST_STEPS_NUM; i++)
+    {
+        cudaMalloc((void **)&d_six_step_patterns_convolved_list_[i], d_image_height_ * d_image_width_ * sizeof(unsigned char)); 
+    }
+	for (int i = 0; i < LAST_STEPS_NUM; i++)
+    {
+        cudaMalloc((void **)&d_repetition_02_merge_patterns_convolved_list_[i], d_image_height_ * d_image_width_ * sizeof(unsigned short)); 
+    }
 
     // cudaBindTexture(0,texture_patterns_0,d_patterns_list_[0]);
 	// cudaBindTexture(0,texture_patterns_1,d_patterns_list_[1]);
@@ -139,7 +151,13 @@ bool cuda_malloc_basic_memory()
 		cudaMalloc((void**)&d_unwrap_map_list_[i], d_image_height_*d_image_width_ * sizeof(float)); 
 	} 
 
+	for (int i = 0; i< 2; i++)
+	{
+		cudaMalloc((void**)&d_six_step_pattern_convolution_phase_list_[i], d_image_height_*d_image_width_ * sizeof(float)); 
+	} 
+
 	cudaMalloc((void**)&d_brightness_map_, d_image_height_*d_image_width_ * sizeof(unsigned char)); 
+
 	cudaMalloc((void**)&d_mask_map_, d_image_height_*d_image_width_ * sizeof(unsigned char)); 
 	cudaMalloc((void**)&d_fisher_mask_, d_image_height_ * d_image_width_ * sizeof(unsigned char));
 
@@ -155,6 +173,7 @@ bool cuda_malloc_basic_memory()
 
 
 	cudaMalloc((void**)&d_fisher_confidence_map, d_image_height_*d_image_width_ * sizeof(float));
+	cudaMalloc((void**)&d_convolution_kernal_map, SIZE_OF_CONVOLUTION_KERNAL*SIZE_OF_CONVOLUTION_KERNAL * sizeof(float));
 	cudaMalloc((void**)&d_point_cloud_map_, 3*d_image_height_*d_image_width_ * sizeof(float));
 	cudaMalloc((void**)&d_depth_map_, d_image_height_*d_image_width_ * sizeof(float));
 	cudaMalloc((void**)&d_depth_map_temp_, d_image_height_*d_image_width_ * sizeof(float));
@@ -179,7 +198,18 @@ bool cuda_free_basic_memory()
 	{  
 		cudaFree(d_patterns_list_[i]); 
 	}
-
+	for (int i = 0; i< LAST_STEPS_NUM; i++)
+	{  
+		cudaFree(d_six_step_patterns_list_[i]); 
+	}
+	for (int i = 0; i< LAST_STEPS_NUM; i++)
+	{  
+		cudaFree(d_six_step_patterns_convolved_list_[i]); 
+	}
+	for (int i = 0; i< LAST_STEPS_NUM; i++)
+	{  
+		cudaFree(d_repetition_02_merge_patterns_convolved_list_[i]); 
+	}
 	// cudaUnbindTexture(texture_patterns_0);
 	// cudaUnbindTexture(texture_patterns_1);
 	// cudaUnbindTexture(texture_patterns_2);
@@ -211,10 +241,17 @@ bool cuda_free_basic_memory()
 		cudaFree(d_unwrap_map_list_[i]); 
 	}
 
+	for (int i = 0; i< 2; i++)
+	{ 
+		cudaFree(d_six_step_pattern_convolution_phase_list_[i]); 
+	}
+
 	cudaFree(d_fisher_confidence_map);
+	cudaFree(d_convolution_kernal_map);
 	cudaFree(d_fisher_mask_);
     cudaFree(d_mask_map_);
     cudaFree(d_brightness_map_);
+
     cudaFree(d_point_cloud_map_);
     cudaFree(d_depth_map_);
 	cudaFree(d_depth_map_temp_);
@@ -378,6 +415,11 @@ void cuda_copy_brightness_from_memory(unsigned char* brightness)
 	CHECK(cudaMemcpy(brightness, d_brightness_map_, d_image_height_*d_image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToHost)); 
 }
 
+void cuda_copy_convolution_kernal_to_memory(float* convolution_kernal, int kernal_diameter)
+{
+	CHECK(cudaMemcpyAsync(d_convolution_kernal_map, convolution_kernal, kernal_diameter*kernal_diameter* sizeof(float), cudaMemcpyHostToDevice)); 
+}
+
 void cuda_copy_brightness_to_memory(unsigned char* brightness)
 { 
 	CHECK(cudaMemcpyAsync(d_brightness_map_, brightness, d_image_height_*d_image_width_* sizeof(unsigned char), cudaMemcpyHostToDevice)); 
@@ -391,6 +433,8 @@ void cuda_clear_reconstruct_cache()
 	CHECK(cudaMemset(d_depth_map_,0, d_image_height_*d_image_width_ * sizeof(float))); 
 	CHECK(cudaMemset(d_point_cloud_map_,0,3* d_image_height_*d_image_width_ * sizeof(float))); 
 }
+
+
 /********************************************************************************************/
 
 
@@ -475,6 +519,76 @@ bool cuda_compute_phase_shift(int serial_flag)
 	return true;
 }
 
+bool cuda_compute_convolved_image_phase_shift(int serial_flag)
+{
+	switch (serial_flag)
+	{
+	case 0:
+	{
+		kernel_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_six_step_patterns_convolved_list_[0], d_six_step_patterns_convolved_list_[1], d_six_step_patterns_convolved_list_[2], d_six_step_patterns_convolved_list_[3],d_six_step_patterns_convolved_list_[4],d_six_step_patterns_convolved_list_[5],d_six_step_pattern_convolution_phase_list_[1], d_confidence_map_list_[3]);
+	}
+		break;
+
+	case 1:
+	{
+		kernel_merge_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_repetition_02_merge_patterns_convolved_list_[0], d_repetition_02_merge_patterns_convolved_list_[1], d_repetition_02_merge_patterns_convolved_list_[2], d_repetition_02_merge_patterns_convolved_list_[3],d_repetition_02_merge_patterns_convolved_list_[4],d_repetition_02_merge_patterns_convolved_list_[5], 1, d_image_height_, d_image_width_, d_six_step_pattern_convolution_phase_list_[1], d_confidence_map_list_[3]);
+	}
+		break;
+	
+	default:
+		break;
+	}
+
+
+	return true;
+}
+
+bool cuda_rectify_six_step_pattern_phase(int mode, int kernal_diameter)
+{	
+	switch (mode)
+	{
+		case 0:
+		{
+			cudaDeviceSynchronize();
+			LOG(INFO)<<"start six_step blur mode 0";
+			for (int i = 0; i < LAST_STEPS_NUM; i += 1)
+			{
+				kernal_convolution_2D<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_, d_patterns_list_[12 + i], d_six_step_patterns_convolved_list_[i], d_convolution_kernal_map, kernal_diameter);
+			}
+			cudaDeviceSynchronize();
+			LOG(INFO)<<"end six_step blur";
+
+			cuda_compute_convolved_image_phase_shift(0);
+
+			// 计算相位并且补偿
+			kernel_six_step_phase_rectify<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_wrap_map_list_[3], d_six_step_pattern_convolution_phase_list_[1], d_wrap_map_list_[3]);
+		}
+		break;
+
+		case 1:
+		{
+			cudaDeviceSynchronize();
+			LOG(INFO)<<"start six_step blur mode 1";
+			for (int i = 0; i < LAST_STEPS_NUM; i += 1)
+			{
+				kernal_convolution_2D_short<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_, d_repetition_02_merge_patterns_list_[12 + i], d_repetition_02_merge_patterns_convolved_list_[i], d_convolution_kernal_map, kernal_diameter);
+			}
+			cudaDeviceSynchronize();
+			LOG(INFO)<<"end six_step blur";
+
+			cuda_compute_convolved_image_phase_shift(1);
+
+			// 计算相位并且补偿
+			kernel_six_step_phase_rectify<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_wrap_map_list_[3], d_six_step_pattern_convolution_phase_list_[1], d_wrap_map_list_[3]);
+		}
+		break;
+		
+		default:
+			break;
+	}
+
+	
+}
 
 bool cuda_normalize_phase(int serial_flag)
 {
