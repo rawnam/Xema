@@ -574,6 +574,50 @@ bool Scan3D::captureRaw04(unsigned char* buff)
 }
 
 
+int Scan3D::captureRaw08(unsigned char* buff)
+{
+
+    
+    lc3010_.pattern_mode08();
+    if (!camera_->streamOn())
+    {
+        LOG(INFO) << "Stream On Error";
+        return DF_ERROR_CAMERA_STREAM;
+    }
+
+    lc3010_.start_pattern_sequence();
+
+    int img_size = image_width_*image_height_;
+
+    unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
+
+    for (int i = 0; i < 24; i++)
+    {
+        LOG(INFO)<<"grap "<<i<<" image:";
+        if (!camera_->grap(img_ptr))
+        {
+            camera_->streamOff();
+            return DF_ERROR_CAMERA_GRAP;
+        }
+ 
+        memcpy(buff+img_size*i, img_ptr, img_size);
+  
+    }
+
+    camera_->streamOff();
+
+    if (1 != generate_brightness_model_)
+    {
+        captureTextureImage(generate_brightness_model_, generate_brightness_exposure_, img_ptr);
+        memcpy(buff + img_size * 18, img_ptr, img_size);
+    }
+
+    delete[] img_ptr;
+ 
+
+    return DF_SUCCESS;
+}
+
 bool Scan3D::captureRaw04Repetition01(int repetition_count,unsigned char* buff)
 {
     

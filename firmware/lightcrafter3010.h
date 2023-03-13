@@ -232,6 +232,7 @@ public:
 	void pattern_mode02();
 	void pattern_mode03();
 	int pattern_mode04();
+	int pattern_mode08();
 	
 	void pattern_mode03_repetition(int repetition_count);
 	int pattern_mode04_repetition(int repetition_count);

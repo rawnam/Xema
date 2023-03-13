@@ -48,6 +48,8 @@ public:
     bool captureRaw03(unsigned char* buff);
     
     bool captureRaw04(unsigned char* buff); 
+
+    int captureRaw08(unsigned char* buff); 
     
     bool captureRaw04Repetition01(int repetition_count,unsigned char* buff);
 

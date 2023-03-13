@@ -709,6 +709,13 @@ int LightCrafter3010::pattern_mode04()
 }
 
 
+int LightCrafter3010::pattern_mode08() 
+{
+    unsigned char pattern_index[] = {2,7};
+    unsigned char pattern_nums[] = {6,18};
+    return write_pattern_table(pattern_index, pattern_nums, 2, camera_exposure_);
+}
+
 void LightCrafter3010::read_pattern_status()
 {
     char buffer[7];
