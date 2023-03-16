@@ -340,6 +340,10 @@ bool CameraCaptureGui::saveOneFrameData(QString path_name)
 
 		QString depth_str = path_name + "_depth_map.tiff";
 		cv::imwrite(depth_str.toLocal8Bit().toStdString(), undistort_depth_map_);
+
+		QString points_str = path_name + "_depth_map.ply";
+		FileIoFunction file_io_machine;
+		file_io_machine.SaveBinPointsToPly(undistort_pointcloud_map_, points_str, undistort_brightness_map_);
 	}
 	else
 	{
@@ -348,6 +352,10 @@ bool CameraCaptureGui::saveOneFrameData(QString path_name)
 
 		QString depth_str = path_name + "_depth_map.tiff";
 		cv::imwrite(depth_str.toLocal8Bit().toStdString(), depth_map_);
+
+		QString points_str = path_name + ".ply"; 
+		FileIoFunction file_io_machine;
+		file_io_machine.SaveBinPointsToPly(pointcloud_map_, points_str, brightness_map_);
 	}
 
 
@@ -355,10 +363,7 @@ bool CameraCaptureGui::saveOneFrameData(QString path_name)
 	QString height_str = path_name + "_height_map.tiff";
 	cv::imwrite(height_str.toLocal8Bit().toStdString(), height_map_);
 
-	QString points_str = path_name + ".ply";
-  
-	FileIoFunction file_io_machine;
-	file_io_machine.SaveBinPointsToPly(pointcloud_map_, points_str, brightness_map_);
+
 
 	return true;
 }
@@ -1597,6 +1602,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 	cv::Mat point_cloud(height, width, CV_32FC3, cv::Scalar(0.));
 	cv::Mat undistort_brightness(height, width, CV_8U, cv::Scalar(0));
 	cv::Mat undistort_depth(height, width, CV_32F, cv::Scalar(0.));
+	cv::Mat undistort_point_cloud(height, width, CV_32FC3, cv::Scalar(0.));
 
 	int depth_buf_size = image_size * 1 * 4;
 	int brightness_bug_size = image_size;
@@ -1736,6 +1742,9 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 		depth_map_ = depth.clone();
 
 		depthTransformPointcloud((float*)depth.data, (float*)point_cloud.data); 
+		undistortDepthTransformPointcloud((float*)undistort_depth.data, (float*)undistort_point_cloud.data);
+		undistort_pointcloud_map_ = undistort_point_cloud.clone();
+
 		pointcloud_map_ = point_cloud.clone();
 		transformPointcloud((float*)point_cloud.data, (float*)point_cloud.data, system_config_param_.standard_plane_external_param, &system_config_param_.standard_plane_external_param[9]);
 

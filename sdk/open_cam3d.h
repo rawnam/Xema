@@ -410,6 +410,13 @@ DF_SDK_API int DfGetCameraRawData04Repetition(unsigned char* raw, int raw_buf_si
 //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int depthTransformPointcloud(float* depth_map, float* point_cloud_map);
 
+//函数名： undistortDepthTransformPointcloud
+//功能： 深度图转点云接口
+//输入参数：undistort_depth_map（深度图）
+//输出参数：point_cloud_map（点云）
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int undistortDepthTransformPointcloud(float* undistort_depth_map, float* undistort_point_cloud_map);
+
 //函数名： transformPointcloud
 //功能： 点云坐标系转换接口
 //输入参数：rotate（旋转矩阵）、translation（平移矩阵）

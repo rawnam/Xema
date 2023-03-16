@@ -243,6 +243,7 @@ private:
 	cv::Mat height_map_;
 	cv::Mat undistort_depth_map_;
 	cv::Mat undistort_brightness_map_;
+	cv::Mat undistort_pointcloud_map_;
 	cv::Mat render_image_brightness_;
 	cv::Mat render_image_gray_depth_;
 	cv::Mat render_image_color_depth_;

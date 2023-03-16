@@ -234,6 +234,67 @@ bool transformPointcloud(float* org_point_cloud_map, float* transform_point_clou
 	return true;
 }
 
+//函数名： undistortDepthTransformPointcloud
+//功能： 深度图转点云接口
+//输入参数：undistort_depth_map（深度图）
+//输出参数：point_cloud_map（点云）
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败. 
+int  undistortDepthTransformPointcloud(float* undistort_depth_map, float* undistort_point_cloud_map)
+{
+
+	if (!connected_flag_)
+	{
+		return DF_NOT_CONNECT;
+	}
+
+	float camera_fx = calibration_param_.camera_intrinsic[0];
+	float camera_fy = calibration_param_.camera_intrinsic[4];
+
+	float camera_cx = calibration_param_.camera_intrinsic[2];
+	float camera_cy = calibration_param_.camera_intrinsic[5];
+
+  
+	int nr = camera_height_;
+	int nc = camera_width_;
+
+#pragma omp parallel for
+	for (int r = 0; r < nr; r++)
+	{
+
+		for (int c = 0; c < nc; c++)
+		{
+
+
+
+			int offset = r * camera_width_ + c;
+			if (undistort_depth_map[offset] > 0)
+			{
+				double undistort_x = c;
+				double undistort_y = r;
+ 
+
+				undistort_point_cloud_map[3 * offset + 0] = (undistort_x - camera_cx) * undistort_depth_map[offset] / camera_fx;
+				undistort_point_cloud_map[3 * offset + 1] = (undistort_y - camera_cy) * undistort_depth_map[offset] / camera_fy;
+				undistort_point_cloud_map[3 * offset + 2] = undistort_depth_map[offset];
+
+
+			}
+			else
+			{
+				undistort_point_cloud_map[3 * offset + 0] = 0;
+				undistort_point_cloud_map[3 * offset + 1] = 0;
+				undistort_point_cloud_map[3 * offset + 2] = 0;
+			}
+
+
+		}
+
+	}
+
+
+	return DF_SUCCESS;
+}
+
 int depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 {
 
