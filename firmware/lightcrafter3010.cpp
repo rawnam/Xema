@@ -542,7 +542,7 @@ int LightCrafter3010::write_pattern_table(unsigned char* pattern_index, unsigned
     for (int i = 0; i < len; i++)
     {
         buffer[1] = pattern_index[i];
-	buffer[2] = pattern_nums[i];
+	    buffer[2] = pattern_nums[i];
         write(Write_Pattern_Order, buffer, 24);
 
         // usleep(100);
@@ -708,11 +708,24 @@ int LightCrafter3010::pattern_mode04()
     return write_pattern_table(pattern_index, pattern_nums, 4, camera_exposure_);
 }
 
+int LightCrafter3010::pattern_mode05()
+{
+    unsigned char pattern_index[] = {2,7,9};
+    unsigned char pattern_nums[] = {6,8,2};
+    return write_pattern_table(pattern_index, pattern_nums, 3, camera_exposure_);
+}
+
+int LightCrafter3010::pattern_mode06()
+{
+    unsigned char pattern_index[] = {2,8,9};
+    unsigned char pattern_nums[] = {6,10,2};
+    return write_pattern_table(pattern_index, pattern_nums, 3, camera_exposure_);
+}
 
 int LightCrafter3010::pattern_mode08() 
 {
     unsigned char pattern_index[] = {2,7};
-    unsigned char pattern_nums[] = {6,18};
+    unsigned char pattern_nums[] = {6,30};
     return write_pattern_table(pattern_index, pattern_nums, 2, camera_exposure_);
 }
 

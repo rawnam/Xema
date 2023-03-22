@@ -48,6 +48,10 @@ public:
     bool captureRaw03(unsigned char* buff);
     
     bool captureRaw04(unsigned char* buff); 
+    
+    int captureRaw05(unsigned char* buff); 
+    
+    int captureRaw06(unsigned char* buff); 
 
     int captureRaw08(unsigned char* buff); 
     

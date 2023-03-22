@@ -573,11 +573,84 @@ bool Scan3D::captureRaw04(unsigned char* buff)
     return true;
 }
 
-
-int Scan3D::captureRaw08(unsigned char* buff)
+int Scan3D::captureRaw05(unsigned char *buff)
 {
 
-    
+    int patterns_num = 16;
+
+    lc3010_.pattern_mode05();
+    if (!camera_->streamOn())
+    {
+        LOG(INFO) << "Stream On Error";
+        return false;
+    }
+
+    lc3010_.start_pattern_sequence();
+
+    int img_size = image_width_*image_height_;
+
+    unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
+
+    for (int i = 0; i < patterns_num; i++)
+    {
+        LOG(INFO)<<"grap "<<i<<" image:";
+        if (!camera_->grap(img_ptr))
+        {
+            camera_->streamOff();
+            return false;
+        }
+ 
+        memcpy(buff+img_size*i, img_ptr, img_size);
+  
+    }
+
+    camera_->streamOff();
+ 
+    delete[] img_ptr;
+
+    return true;
+}
+
+int Scan3D::captureRaw06(unsigned char *buff)
+{
+   int patterns_num = 18;
+
+    lc3010_.pattern_mode06();
+    if (!camera_->streamOn())
+    {
+        LOG(INFO) << "Stream On Error";
+        return false;
+    }
+
+    lc3010_.start_pattern_sequence();
+
+    int img_size = image_width_*image_height_;
+
+    unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
+
+    for (int i = 0; i < patterns_num; i++)
+    {
+        LOG(INFO)<<"grap "<<i<<" image:";
+        if (!camera_->grap(img_ptr))
+        {
+            camera_->streamOff();
+            return false;
+        }
+ 
+        memcpy(buff+img_size*i, img_ptr, img_size);
+  
+    }
+
+    camera_->streamOff();
+ 
+    delete[] img_ptr;
+
+    return true;
+}
+
+int Scan3D::captureRaw08(unsigned char *buff)
+{
+
     lc3010_.pattern_mode08();
     if (!camera_->streamOn())
     {
@@ -591,7 +664,7 @@ int Scan3D::captureRaw08(unsigned char* buff)
 
     unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
 
-    for (int i = 0; i < 24; i++)
+    for (int i = 0; i < 36; i++)
     {
         LOG(INFO)<<"grap "<<i<<" image:";
         if (!camera_->grap(img_ptr))

@@ -1209,6 +1209,85 @@ int handle_cmd_get_raw_04(int client_sock)
 }
 
 
+int handle_cmd_get_raw_05(int client_sock)
+{
+  
+    if(check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;	
+    } 
+
+    int image_num= 16;
+
+    int width = 0;
+    int height = 0;
+
+    scan3d_.getCameraResolution(width,height);
+ 
+    int buffer_size = height*width*image_num;
+    unsigned char* buffer = new unsigned char[buffer_size];
+    
+    scan3d_.captureRaw05(buffer); 
+
+    LOG(INFO)<<"start send image, buffer_size= "<< buffer_size;
+    int ret = send_buffer(client_sock, (char*)buffer, buffer_size);
+
+    LOG(INFO)<<"ret= "<<ret;
+
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!"; 
+        delete [] buffer;
+        return DF_FAILED;
+    }
+
+    LOG(INFO)<<"image sent!";
+
+    delete [] buffer;
+    return DF_SUCCESS;
+  
+}
+
+
+int handle_cmd_get_raw_06(int client_sock)
+{
+  
+    if(check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;	
+    } 
+
+    int image_num= 18;
+
+    int width = 0;
+    int height = 0;
+
+    scan3d_.getCameraResolution(width,height);
+ 
+    int buffer_size = height*width*image_num;
+    unsigned char* buffer = new unsigned char[buffer_size];
+    
+    scan3d_.captureRaw06(buffer); 
+
+    LOG(INFO)<<"start send image, buffer_size= "<< buffer_size;
+    int ret = send_buffer(client_sock, (char*)buffer, buffer_size);
+
+    LOG(INFO)<<"ret= "<<ret;
+
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!"; 
+        delete [] buffer;
+        return DF_FAILED;
+    }
+
+    LOG(INFO)<<"image sent!";
+
+    delete [] buffer;
+    return DF_SUCCESS;
+  
+}
+
 int handle_cmd_get_raw_08(int client_sock)
 {
   
@@ -1217,7 +1296,7 @@ int handle_cmd_get_raw_08(int client_sock)
         return DF_FAILED;	
     } 
 
-    int image_num= 24;
+    int image_num= 36;
 
     int width = 0;
     int height = 0;
@@ -4264,12 +4343,20 @@ int handle_commands(int client_sock)
 	    ret = handle_cmd_get_raw_03(client_sock);
 	    break;
     case DF_CMD_GET_RAW_04:
-	    LOG(INFO)<<"DF_CMD_GET_RAW_04"; 
-	    ret = handle_cmd_get_raw_04(client_sock);
-	    break;
+        LOG(INFO) << "DF_CMD_GET_RAW_04";
+        ret = handle_cmd_get_raw_04(client_sock);
+        break;
+    case DF_CMD_GET_RAW_05:
+        LOG(INFO) << "DF_CMD_GET_RAW_05";
+        ret = handle_cmd_get_raw_05(client_sock);
+        break;
+    case DF_CMD_GET_RAW_06:
+        LOG(INFO) << "DF_CMD_GET_RAW_06";
+        ret = handle_cmd_get_raw_06(client_sock);
+        break;
     case DF_CMD_GET_RAW_08:
-	    LOG(INFO)<<"DF_CMD_GET_RAW_08"; 
-	    ret = handle_cmd_get_raw_08(client_sock);
+        LOG(INFO) << "DF_CMD_GET_RAW_08";
+        ret = handle_cmd_get_raw_08(client_sock);
 	    break;
     case DF_CMD_GET_RAW_04_REPETITION:
 	    LOG(INFO)<<"DF_CMD_GET_RAW_04_REPETITION"; 
