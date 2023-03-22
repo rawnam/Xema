@@ -2563,6 +2563,186 @@ DF_SDK_API int DfGetCameraRawData04(unsigned char* raw, int raw_buf_size)
 	return DF_FAILED;
 }
 
+//函数名： DfGetCameraRawData05
+//功能： 采集一组相移图，一共16幅，8个xor码+6个垂直方向的六步相移条纹图 + 黑白2个图
+//输入参数：raw_buf_size（16张8位图的尺寸）
+//输出参数：raw
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetCameraRawData05(unsigned char* raw, int raw_buf_size)
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	if (raw)
+	{
+		LOG(INFO) << "DfGetCameraRawData05";
+		assert(raw_buf_size >= image_size_ * sizeof(unsigned char) * 16);
+		int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_GET_RAW_05, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			LOG(INFO) << "token checked ok";
+			LOG(INFO) << "receiving buffer, raw_buf_size=" << raw_buf_size;
+			ret = recv_buffer((char*)raw, raw_buf_size, g_sock);
+			LOG(INFO) << "images received";
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			LOG(INFO) << "Get raw rejected";
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+
+		LOG(INFO) << "Get raw success";
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+	return DF_FAILED;
+}
+
+//函数名： DfGetCameraRawData06
+//功能： 采集一组相移图，一共18幅，10个minsw码+6个垂直方向的六步相移条纹图 + 黑白2个图
+//输入参数：raw_buf_size（18张8位图的尺寸）
+//输出参数：raw
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetCameraRawData06(unsigned char* raw, int raw_buf_size)
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	if (raw)
+	{
+		LOG(INFO) << "DfGetCameraRawData06";
+		assert(raw_buf_size >= image_size_ * sizeof(unsigned char) * 18);
+		int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_GET_RAW_06, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			LOG(INFO) << "token checked ok";
+			LOG(INFO) << "receiving buffer, raw_buf_size=" << raw_buf_size;
+			ret = recv_buffer((char*)raw, raw_buf_size, g_sock);
+			LOG(INFO) << "images received";
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			LOG(INFO) << "Get raw rejected";
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+
+		LOG(INFO) << "Get raw success";
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+	return DF_FAILED;
+}
+
+//函数名： DfGetCameraRawData08
+//功能： 采集一组相移图，一共14幅，8个XOR码+6个垂直方向的六步相移条纹图+一个亮度图+一个暗图
+//输入参数：raw_buf_size（16张8位图的尺寸）
+//输出参数：raw
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetCameraRawData08(unsigned char* raw, int raw_buf_size)
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	if (raw)
+	{
+		LOG(INFO) << "DfGetCameraRawData08";
+		assert(raw_buf_size >= image_size_ * sizeof(unsigned char) * 16);
+		int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_GET_RAW_08, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			LOG(INFO) << "token checked ok";
+			LOG(INFO) << "receiving buffer, raw_buf_size=" << raw_buf_size;
+			ret = recv_buffer((char*)raw, raw_buf_size, g_sock);
+			LOG(INFO) << "images received";
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			LOG(INFO) << "Get raw rejected";
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+
+		LOG(INFO) << "Get raw success";
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+	return DF_FAILED;
+}
+
 DF_SDK_API int DfGetCameraRawData03(unsigned char* raw, int raw_buf_size)
 {
 	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);

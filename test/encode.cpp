@@ -28,8 +28,8 @@ bool DF_Encode::unwrapBase2Kmap(cv::Mat wrap_map, cv::Mat k1_map, cv::Mat k2_map
 
 	for (int r = 0; r < nr; r++)
 	{
-		uchar* ptr_k1 = k1_map.ptr<uchar>(r);
-		uchar* ptr_k2 = k2_map.ptr<uchar>(r);
+		ushort* ptr_k1 = k1_map.ptr<ushort>(r);
+		ushort* ptr_k2 = k2_map.ptr<ushort>(r);
 		float* ptr_wrap = wrap_map.ptr<float>(r);
 		float* ptr_unwrap = unwrap.ptr<float>(r);
 
@@ -213,6 +213,11 @@ bool DF_Encode::grayCodeToXorCode(std::vector<cv::Mat> gray_code, std::vector<cv
 
 
 		}
+
+		cv::Mat element = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 1));
+
+		cv::morphologyEx(merge_map, merge_map, cv::MORPH_OPEN, element);
+		cv::morphologyEx(merge_map, merge_map, cv::MORPH_CLOSE, element);
 		 
 		xor_code.push_back(merge_map.clone()); 
 	}
@@ -220,6 +225,1057 @@ bool DF_Encode::grayCodeToXorCode(std::vector<cv::Mat> gray_code, std::vector<cv
 	xor_code.push_back(template_pattern);
 	 
 	return true;
+}
+
+
+bool DF_Encode::minswCodeToValue(int minsw, int& value)
+{
+	if (minsw > 1023)
+	{
+		return false;
+	}
+
+	value = -1;
+
+	std::vector<int> list{ 0   ,
+1   ,
+65  ,
+81  ,
+85  ,
+341 ,
+469 ,
+501 ,
+509 ,
+1021,
+957 ,
+941 ,
+937 ,
+681 ,
+553 ,
+521 ,
+513 ,
+515 ,
+579 ,
+595 ,
+599 ,
+87  ,
+215 ,
+247 ,
+255 ,
+511 ,
+447 ,
+431 ,
+427 ,
+939 ,
+811 ,
+779 ,
+771 ,
+770 ,
+834 ,
+850 ,
+854 ,
+598 ,
+726 ,
+758 ,
+766 ,
+254 ,
+252 ,
+236 ,
+232 ,
+488 ,
+424 ,
+392 ,
+384 ,
+385 ,
+257 ,
+273 ,
+277 ,
+789 ,
+853 ,
+885 ,
+893 ,
+637 ,
+765 ,
+749 ,
+745 ,
+233 ,
+169 ,
+137 ,
+129 ,
+131 ,
+3   ,
+19  ,
+23  ,
+279 ,
+343 ,
+375 ,
+383 ,
+895 ,
+1023,
+1007,
+1003,
+747 ,
+683 ,
+651 ,
+643 ,
+642 ,
+514 ,
+530 ,
+534 ,
+22  ,
+86  ,
+118 ,
+126 ,
+382 ,
+510 ,
+494 ,
+490 ,
+1002,
+938 ,
+906 ,
+898 ,
+896 ,
+768 ,
+784 ,
+788 ,
+532 ,
+596 ,
+628 ,
+636 ,
+124 ,
+125  ,
+109  ,
+105  ,
+361  ,
+489  ,
+457  ,
+449  ,
+451  ,
+387  ,
+403  ,
+407  ,
+919  ,
+791  ,
+823  ,
+831  ,
+575  ,
+639  ,
+638  ,
+634  ,
+122  ,
+250  ,
+234  ,
+226  ,
+224  ,
+160  ,
+128  ,
+132  ,
+388  ,
+260  ,
+276  ,
+284  ,
+796  ,
+860  ,
+892  ,
+888  ,
+632  ,
+760  ,
+744  ,
+736  ,
+737  ,
+673  ,
+641  ,
+645  ,
+133  ,
+5    ,
+21   ,
+29   ,
+285  ,
+349  ,
+381  ,
+377  ,
+889  ,
+1017 ,
+1001 ,
+993  ,
+995  ,
+931  ,
+899  ,
+903  ,
+647  ,
+519  ,
+535  ,
+543  ,
+31   ,
+30   ,
+62   ,
+58   ,
+314  ,
+378  ,
+362  ,
+354  ,
+352  ,
+480  ,
+448  ,
+452  ,
+964  ,
+900  ,
+916  ,
+924  ,
+668  ,
+540  ,
+572  ,
+568  ,
+56   ,
+120  ,
+104  ,
+96   ,
+97   ,
+225  ,
+193  ,
+197  ,
+453  ,
+389  ,
+405  ,
+413  ,
+925  ,
+797  ,
+829  ,
+825  ,
+569  ,
+633  ,
+617  ,
+609  ,
+611  ,
+739  ,
+707  ,
+711  ,
+199  ,
+135  ,
+151  ,
+159  ,
+415  ,
+287  ,
+319  ,
+315  ,
+827  ,
+891  ,
+875  ,
+867  ,
+866  ,
+994  ,
+962  ,
+966  ,
+710  ,
+646  ,
+662  ,
+670  ,
+158  ,
+156  ,
+188  ,
+184  ,
+440  ,
+312  ,
+296  ,
+288  ,
+289  ,
+353  ,
+321  ,
+325  ,
+837  ,
+965  ,
+981  ,
+989  ,
+733  ,
+669  ,
+701  ,
+697  ,
+185  ,
+57   ,
+41   ,
+33   ,
+35   ,
+99   ,
+67   ,
+71   ,
+327  ,
+455  ,
+471  ,
+479  ,
+991  ,
+927  ,
+959  ,
+955  ,
+699  ,
+571  ,
+555  ,
+547  ,
+546  ,
+610  ,
+578  ,
+582  ,
+70   ,
+198  ,
+214  ,
+222  ,
+478  ,
+414  ,
+446  ,
+442  ,
+954  ,
+826  ,
+810  ,
+802  ,
+800  ,
+864  ,
+832  ,
+836  ,
+580  ,
+708  ,
+724  ,
+732  ,
+220  ,
+221  ,
+253  ,
+249  ,
+505  ,
+441  ,
+425  ,
+417  ,
+419  ,
+291  ,
+259  ,
+263  ,
+775  ,
+839  ,
+855  ,
+863  ,
+607  ,
+735  ,
+767  ,
+763  ,
+251  ,
+187  ,
+171  ,
+163  ,
+162  ,
+34   ,
+2    ,
+6    ,
+262  ,
+326  ,
+342  ,
+350  ,
+862  ,
+990  ,
+1022 ,
+1018 ,
+762  ,
+698  ,
+682  ,
+674  ,
+672  ,
+544  ,
+512  ,
+516  ,
+4    ,
+68   ,
+84   ,
+92   ,
+348  ,
+476  ,
+508  ,
+504  ,
+1016 ,
+952  ,
+936  ,
+928  ,
+929  ,
+801  ,
+769  ,
+773  ,
+517  ,
+581  ,
+597  ,
+605  ,
+93   ,
+95   ,
+127  ,
+123  ,
+379  ,
+507  ,
+491  ,
+483  ,
+482  ,
+418  ,
+386  ,
+390  ,
+902  ,
+774  ,
+790  ,
+798  ,
+542  ,
+606  ,
+604  ,
+600  ,
+88   ,
+216  ,
+248  ,
+240  ,
+241  ,
+177  ,
+161  ,
+165  ,
+421  ,
+293  ,
+261  ,
+269  ,
+781  ,
+845  ,
+861  ,
+857  ,
+601  ,
+729  ,
+761  ,
+753  ,
+755  ,
+691  ,
+675  ,
+679  ,
+167  ,
+39   ,
+7    ,
+15   ,
+271  ,
+335  ,
+351  ,
+347  ,
+859  ,
+987  ,
+1019 ,
+1011 ,
+1010 ,
+946  ,
+930  ,
+934  ,
+678  ,
+550  ,
+518  ,
+526  ,
+14   ,
+12   ,
+28   ,
+24   ,
+280  ,
+344  ,
+376  ,
+368  ,
+369  ,
+497  ,
+481  ,
+485  ,
+997  ,
+933  ,
+901  ,
+909  ,
+653  ,
+525  ,
+541  ,
+537  ,
+25   ,
+89   ,
+121  ,
+113  ,
+115  ,
+243  ,
+227  ,
+231  ,
+487  ,
+423  ,
+391  ,
+399  ,
+911  ,
+783  ,
+799  ,
+795  ,
+539  ,
+603  ,
+635  ,
+627  ,
+626  ,
+754  ,
+738  ,
+742  ,
+230  ,
+166  ,
+134  ,
+142  ,
+398  ,
+270  ,
+286  ,
+282  ,
+794  ,
+858  ,
+890  ,
+882  ,
+880  ,
+1008 ,
+992  ,
+996  ,
+740  ,
+676  ,
+644  ,
+652  ,
+140  ,
+141  ,
+157  ,
+153  ,
+409  ,
+281  ,
+313  ,
+305  ,
+307  ,
+371  ,
+355  ,
+359  ,
+871  ,
+999  ,
+967  ,
+975  ,
+719  ,
+655  ,
+671  ,
+667  ,
+155  ,
+27   ,
+59   ,
+51   ,
+50   ,
+114  ,
+98   ,
+102  ,
+358  ,
+486  ,
+454  ,
+462  ,
+974  ,
+910  ,
+926  ,
+922  ,
+666  ,
+538  ,
+570  ,
+562  ,
+560  ,
+624  ,
+608  ,
+612  ,
+100  ,
+228  ,
+196  ,
+204  ,
+460  ,
+396  ,
+412  ,
+408  ,
+920  ,
+792  ,
+824  ,
+816  ,
+817  ,
+881  ,
+865  ,
+869  ,
+613  ,
+741  ,
+709  ,
+717  ,
+205  ,
+207  ,
+223  ,
+219  ,
+475  ,
+411  ,
+443  ,
+435  ,
+434  ,
+306  ,
+290  ,
+294  ,
+806  ,
+870  ,
+838  ,
+846  ,
+590  ,
+718  ,
+734  ,
+730  ,
+218  ,
+154  ,
+186  ,
+178  ,
+176  ,
+48   ,
+32   ,
+36   ,
+292  ,
+356  ,
+324  ,
+332  ,
+844  ,
+972  ,
+988  ,
+984  ,
+728  ,
+664  ,
+696  ,
+688  ,
+689  ,
+561  ,
+545  ,
+549  ,
+37   ,
+101  ,
+69   ,
+77   ,
+333  ,
+461  ,
+477  ,
+473  ,
+985  ,
+921  ,
+953  ,
+945  ,
+947  ,
+819  ,
+803  ,
+807  ,
+551  ,
+615  ,
+583  ,
+591  ,
+79   ,
+78   ,
+94   ,
+90   ,
+346  ,
+474  ,
+506  ,
+498  ,
+496  ,
+432  ,
+416  ,
+420  ,
+932  ,
+804  ,
+772  ,
+780  ,
+524  ,
+588  ,
+589  ,
+585  ,
+73   ,
+201  ,
+217  ,
+209  ,
+211  ,
+147  ,
+179  ,
+183  ,
+439  ,
+311  ,
+295  ,
+303  ,
+815  ,
+879  ,
+847  ,
+843  ,
+587  ,
+715  ,
+731  ,
+723  ,
+722  ,
+658  ,
+690  ,
+694  ,
+182  ,
+54   ,
+38   ,
+46   ,
+302  ,
+366  ,
+334  ,
+330  ,
+842  ,
+970  ,
+986  ,
+978  ,
+976  ,
+912  ,
+944  ,
+948  ,
+692  ,
+564  ,
+548  ,
+556  ,
+44   ,
+45   ,
+13   ,
+9    ,
+265  ,
+329  ,
+345  ,
+337  ,
+339  ,
+467  ,
+499  ,
+503  ,
+1015 ,
+951  ,
+935  ,
+943  ,
+687  ,
+559  ,
+527  ,
+523  ,
+11   ,
+75   ,
+91   ,
+83   ,
+82   ,
+210  ,
+242  ,
+246  ,
+502  ,
+438  ,
+422  ,
+430  ,
+942  ,
+814  ,
+782  ,
+778  ,
+522  ,
+586  ,
+602  ,
+594  ,
+592  ,
+720  ,
+752  ,
+756  ,
+244  ,
+180  ,
+164  ,
+172  ,
+428  ,
+300  ,
+268  ,
+264  ,
+776  ,
+840  ,
+856  ,
+848  ,
+849  ,
+977  ,
+1009 ,
+1013 ,
+757  ,
+693  ,
+677  ,
+685  ,
+173  ,
+175  ,
+143  ,
+139  ,
+395  ,
+267  ,
+283  ,
+275  ,
+274  ,
+338  ,
+370  ,
+374  ,
+886  ,
+1014 ,
+998  ,
+1006 ,
+750  ,
+686  ,
+654  ,
+650  ,
+138  ,
+10   ,
+26   ,
+18   ,
+16   ,
+80   ,
+112  ,
+116  ,
+372  ,
+500  ,
+484  ,
+492  ,
+1004 ,
+940  ,
+908  ,
+904  ,
+648  ,
+520  ,
+536  ,
+528  ,
+529  ,
+593  ,
+625  ,
+629  ,
+117  ,
+245  ,
+229  ,
+237  ,
+493  ,
+429  ,
+397  ,
+393  ,
+905  ,
+777  ,
+793  ,
+785  ,
+787  ,
+851  ,
+883  ,
+887  ,
+631  ,
+759  ,
+743  ,
+751  ,
+239  ,
+238  ,
+206  ,
+202  ,
+458  ,
+394  ,
+410  ,
+402  ,
+400  ,
+272  ,
+304  ,
+308  ,
+820  ,
+884  ,
+868  ,
+876  ,
+620  ,
+748  ,
+716  ,
+712  ,
+200  ,
+136  ,
+152  ,
+144  ,
+145  ,
+17   ,
+49   ,
+53   ,
+309  ,
+373  ,
+357  ,
+365  ,
+877  ,
+1005 ,
+973  ,
+969  ,
+713  ,
+649  ,
+665  ,
+657  ,
+659  ,
+531  ,
+563  ,
+567  ,
+55   ,
+119  ,
+103  ,
+111  ,
+367  ,
+495  ,
+463  ,
+459  ,
+971  ,
+907  ,
+923  ,
+915  ,
+914  ,
+786  ,
+818  ,
+822  ,
+566  ,
+630  ,
+614  ,
+622  ,
+110  ,
+108  ,
+76   ,
+72   ,
+328  ,
+456  ,
+472  ,
+464  ,
+465  ,
+401  ,
+433  ,
+437  ,
+949  ,
+821  ,
+805  ,
+813  ,
+557  ,
+621  ,
+623  ,
+619  ,
+107  ,
+235  ,
+203  ,
+195  ,
+194  ,
+130  ,
+146  ,
+150  ,
+406  ,
+278  ,
+310  ,
+318  ,
+830  ,
+894  ,
+878  ,
+874  ,
+618  ,
+746  ,
+714  ,
+706  ,
+704  ,
+640  ,
+656  ,
+660  ,
+148  ,
+20   ,
+52   ,
+60   ,
+316  ,
+380  ,
+364  ,
+360  ,
+872  ,
+1000 ,
+968  ,
+960  ,
+961  ,
+897  ,
+913  ,
+917  ,
+661  ,
+533  ,
+565  ,
+573  ,
+61   ,
+63   ,
+47   ,
+43   ,
+299  ,
+363  ,
+331  ,
+323  ,
+322  ,
+450  ,
+466  ,
+470  ,
+982  ,
+918  ,
+950  ,
+958  ,
+702  ,
+574  ,
+558  ,
+554  ,
+42   ,
+106  ,
+74   ,
+66   ,
+64   ,
+192  ,
+208  ,
+212  ,
+468  ,
+404  ,
+436  ,
+444  ,
+956  ,
+828  ,
+812  ,
+808  ,
+552  ,
+616  ,
+584  ,
+576  ,
+577  ,
+705  ,
+721  ,
+725  ,
+213  ,
+149  ,
+181  ,
+189  ,
+445  ,
+317  ,
+301  ,
+297  ,
+809  ,
+873  ,
+841  ,
+833  ,
+835  ,
+963  ,
+979  ,
+983  ,
+727  ,
+663  ,
+695  ,
+703  ,
+191  ,
+190  ,
+174  ,
+170  ,
+426  ,
+298  ,
+266  ,
+258  ,
+256  ,
+320  ,
+336  ,
+340  ,
+852  ,
+980  ,
+1012 ,
+1020 ,
+764  ,
+700  ,
+684  ,
+680  ,
+168  ,
+40   ,
+8    ,
+	};
+
+	auto iter = std::find(list.begin(), list.end(), minsw);
+	
+	if (iter != list.end())
+	{
+		value = iter - list.begin();
+	}
+	else
+	{
+		return false;
+	}
+
+	return true;
+
 }
  
 bool DF_Encode::computeXOR05(std::vector<cv::Mat> patterns, cv::Mat& k1_map, cv::Mat& k2_map, cv::Mat& mask_map)
@@ -238,17 +1294,20 @@ bool DF_Encode::computeXOR05(std::vector<cv::Mat> patterns, cv::Mat& k1_map, cv:
 
 
 	cv::Mat threshold_map(nr, nc, CV_8U);
+	cv::Mat mask(nr, nc, CV_8U);
 
 	for (int r = 0; r < nr; r++)
 	{
 		uchar* ptr_b = black_map.ptr<uchar>(r);
 		uchar* ptr_w = white_map.ptr<uchar>(r);
 		uchar* ptr_t = threshold_map.ptr<uchar>(r);
+		uchar* ptr_m = mask.ptr<uchar>(r);
 
 		for (int c = 0; c < nc; c++)
 		{
 			float d = ptr_w[c] - ptr_b[c];
-			ptr_t[c] = 0.5 + d / 2.0;
+			ptr_t[c] = ptr_b[c] + 0.5 + d / 2.0;
+			ptr_m[c] = 0.5 + d / 2.0;
 		}
 
 	}
@@ -282,12 +1341,21 @@ bool DF_Encode::computeXOR05(std::vector<cv::Mat> patterns, cv::Mat& k1_map, cv:
 
 		}
 
+
+
 		bin_xor_patterns.push_back(bin_pattern.clone());
 	}
 
 	 
 	std::vector<cv::Mat> gray_patterns; 
 	grayCodeToXorCode(bin_xor_patterns, gray_patterns); 
+
+	for (int i = 0; i < gray_patterns.size(); i++)
+	{
+		std::string path = "../gray_" + std::to_string(i) + ".bmp";
+		cv::Mat img = gray_patterns[i].clone();
+		cv::imwrite(path, img);
+	}
 	 
 	decodeGrayCode(gray_patterns, threshold_map, k1_map, k2_map);
 
@@ -304,7 +1372,7 @@ bool DF_Encode::computeXOR05(std::vector<cv::Mat> patterns, cv::Mat& k1_map, cv:
 	//	cv::Mat diff = patterns[p_i] - gray_patterns[p_i];
 	//}
 
-	
+	mask_map = mask.clone();
 
 
 	return true;
@@ -325,6 +1393,83 @@ bool DF_Encode::grayCodeToBinCode(std::vector<bool> gray_code, std::vector<bool>
 		bin_code.push_back(val);
 	}
 
+	return true;
+}
+
+
+bool DF_Encode::decodeMinswGrayCode(std::vector<cv::Mat> patterns, cv::Mat average_brightness, cv::Mat& k_map)
+{
+	//bin threshold
+
+	int nr = average_brightness.rows;
+	int nc = average_brightness.cols;
+
+	//std::vector<std::vector<bool>> gray_code_list;
+	//threshold bin
+	std::vector<cv::Mat> bin_patterns;
+	for (int i = 0; i < patterns.size(); i++)
+	{
+		cv::Mat bin_mat(nr, nc, CV_8U, cv::Scalar(0));
+
+		for (int r = 0; r < nr; r++)
+		{
+			uchar* ptr_bin = bin_mat.ptr<uchar>(r);
+			uchar* ptr_avg = average_brightness.ptr<uchar>(r);
+			uchar* ptr_gray = patterns[i].ptr<uchar>(r);
+
+			for (int c = 0; c < nc; c++)
+			{
+				if (ptr_gray[c] < ptr_avg[c])
+				{
+					ptr_bin[c] = 0;
+				}
+				else
+				{
+					ptr_bin[c] = 255;
+				}
+			}
+		}
+		bin_patterns.push_back(bin_mat.clone());
+	}
+
+	cv::Mat k1(nr, nc, CV_16U, cv::Scalar(0)); 
+
+
+	for (int r = 0; r < nr; r++)
+	{
+		ushort* ptr_k1 = k1.ptr<ushort>(r); 
+
+		for (int c = 0; c < nc; c++)
+		{
+			std::vector<bool> gray_code_list; 
+
+			for (int i = 0; i < bin_patterns.size(); i++)
+			{
+				uchar val = bin_patterns[i].at<uchar>(r, c);
+
+				if (255 == val)
+				{
+					gray_code_list.push_back(true);
+				}
+				else
+				{
+					gray_code_list.push_back(false);
+				}
+			}
+			  
+			ushort k_1 = 0;
+			for (int i = 0; i < gray_code_list.size(); i++)
+			{
+				k_1 += gray_code_list[i] * std::pow(2, gray_code_list.size() - i - 1);
+				 
+			} 
+			ptr_k1[c] = k_1;
+		}
+
+	} 
+
+	k_map = k1.clone(); 
+	 
 	return true;
 }
 
@@ -363,14 +1508,14 @@ bool DF_Encode::decodeGrayCode(std::vector<cv::Mat> patterns, cv::Mat average_br
 		bin_patterns.push_back(bin_mat.clone());
 	}
 
-	cv::Mat k1(nr, nc, CV_8U, cv::Scalar(0));
-	cv::Mat k2(nr, nc, CV_8U, cv::Scalar(0));
+	cv::Mat k1(nr, nc, CV_16U, cv::Scalar(0));
+	cv::Mat k2(nr, nc, CV_16U, cv::Scalar(0));
 
 
 	for (int r = 0; r < nr; r++)
 	{
-		uchar* ptr_k1 = k1.ptr<uchar>(r);
-		uchar* ptr_k2 = k2.ptr<uchar>(r);
+		ushort* ptr_k1 = k1.ptr<ushort>(r);
+		ushort* ptr_k2 = k2.ptr<ushort>(r);
 
 		for (int c = 0; c < nc; c++)
 		{
@@ -393,8 +1538,8 @@ bool DF_Encode::decodeGrayCode(std::vector<cv::Mat> patterns, cv::Mat average_br
 
 			grayCodeToBinCode(gray_code_list, bin_code_list);
 
-			uchar k_2 = 0;
-			uchar k_1 = 0;
+			ushort k_2 = 0;
+			ushort k_1 = 0;
 			for (int i = 0; i < bin_code_list.size(); i++)
 			{
 				k_2 += bin_code_list[i] * std::pow(2, bin_code_list.size() - i - 1);
@@ -1621,6 +2766,12 @@ bool DF_Encode::selectMaskBaseConfidence(cv::Mat confidence, int threshold, cv::
 		return false;
 	}
 
+	cv::Mat confidence_map = confidence.clone();
+	if (confidence_map.type() != CV_64FC1)
+	{
+		confidence_map.convertTo(confidence_map, CV_64FC1);
+	}
+
 	int nr = confidence.rows;
 	int nc = confidence.cols;
 
@@ -1628,7 +2779,7 @@ bool DF_Encode::selectMaskBaseConfidence(cv::Mat confidence, int threshold, cv::
 
 	for (int r = 0; r < nr; r++)
 	{
-		double* ptr_c = confidence.ptr<double>(r);
+		double* ptr_c = confidence_map.ptr<double>(r);
 		uchar* ptr_m = mask.ptr<uchar>(r);
 
 		for (int c = 0; c < nc; c++)
@@ -1636,7 +2787,7 @@ bool DF_Encode::selectMaskBaseConfidence(cv::Mat confidence, int threshold, cv::
 			if (ptr_c[c] < threshold)
 			{
 				ptr_m[c] = 0;
-			}
+			} 
 
 		}
 	}

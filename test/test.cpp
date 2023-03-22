@@ -96,6 +96,7 @@ void capture_03();
 void capture_04();
 void read_03();
 void read_04();
+void read_05();
 void read_04_color();
 void read_06();
 void capture_04_repetition_02(int repetition);
@@ -208,6 +209,10 @@ int main(int argc, char* argv[])
 		else if ("patterns-04" == model)
 		{
 			read_04();
+		}
+		else if ("patterns-05" == model)
+		{
+			read_05();
 		}
 		else if ("patterns-04-c" == model)
 		{
@@ -770,6 +775,36 @@ void read_04_color()
 	solution_machine_.reconstructMixedVariableWavelengthXPatternsBaseTable(patterns_, calibration_param_, pointcloud_path);
 }
 
+void read_05()
+{
+	struct CameraCalibParam calibration_param_;
+	DfSolution solution_machine_;
+	std::vector<cv::Mat> patterns_;
+
+	bool ret = solution_machine_.readImages(patterns_path, patterns_);
+
+	if (!ret)
+	{
+		std::cout << "Read Image Error!";
+	}
+
+	ret = solution_machine_.readCameraCalibData(calib_path, calibration_param_);
+
+	if (!ret)
+	{
+		std::cout << "Read Calib Param Error!" << std::endl;
+	}
+
+	ret = solution_machine_.setProjectorVersion(version_number);
+	if (!ret)
+	{
+		std::cout << "Set Camera Version Error!" << std::endl;
+		return;
+	}
+
+	solution_machine_.reconstructPatterns05(patterns_, calibration_param_, pointcloud_path);
+}
+
 void read_04()
 {
 	struct CameraCalibParam calibration_param_;
@@ -797,5 +832,5 @@ void read_04()
 		return;
 	}
 	 
-	solution_machine_.reconstructPatterns08(patterns_, calibration_param_, pointcloud_path);
+	solution_machine_.reconstructMixedVariableWavelengthXPatternsBaseTable(patterns_, calibration_param_, pointcloud_path);
 }

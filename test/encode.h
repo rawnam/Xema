@@ -42,6 +42,10 @@ public:
 
 	bool computeXOR05(std::vector<cv::Mat> patterns, cv::Mat& k1_map, cv::Mat& k2_map, cv::Mat& mask_map);
 
+	bool minswCodeToValue(int minsw, int& value);
+
+	bool decodeMinswGrayCode(std::vector<cv::Mat> patterns, cv::Mat average_brightness, cv::Mat& k_map);
+
 	bool computePhaseShift(std::vector<cv::Mat> patterns, cv::Mat& wrap_map, cv::Mat& confidence_map, cv::Mat& average_map, cv::Mat& brightness_map, cv::Mat& mask_map);
 
 	bool unwrapBase2Kmap(cv::Mat wrap_map, cv::Mat k1_map, cv::Mat k2_map, cv::Mat& unwrap_map);

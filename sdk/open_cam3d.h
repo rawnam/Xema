@@ -389,6 +389,27 @@ DF_SDK_API int DfGetCameraRawDataTest(unsigned char* raw, int raw_buf_size);
 //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfGetCameraRawData03(unsigned char* raw, int raw_buf_size);
 
+//函数名： DfGetCameraRawData08
+//功能： 采集一组相移图，一共14幅，8个XOR码+6个垂直方向的六步相移条纹图+一个亮度图+一个暗图
+//输入参数：raw_buf_size（16张8位图的尺寸）
+//输出参数：raw
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetCameraRawData08(unsigned char* raw, int raw_buf_size);
+
+//函数名： DfGetCameraRawData05
+//功能： 采集一组相移图，一共16幅，8个xor码+6个垂直方向的六步相移条纹图 + 黑白2个图
+//输入参数：raw_buf_size（16张8位图的尺寸）
+//输出参数：raw
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetCameraRawData05(unsigned char* raw, int raw_buf_size);
+
+//函数名： DfGetCameraRawData06
+//功能： 采集一组相移图，一共18幅，10个minsw码+6个垂直方向的六步相移条纹图 + 黑白2个图
+//输入参数：raw_buf_size（18张8位图的尺寸）
+//输出参数：raw
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetCameraRawData06(unsigned char* raw, int raw_buf_size);
+
 //函数名： DfGetCameraRawData04
 //功能： 采集一组相移图，一共19幅，12个四步相移条纹图+6个垂直方向的六步相移条纹图+一个亮度图
 //输入参数：raw_buf_size（19张8位图的尺寸）

@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\calibration\calibrate_function.cpp" />
+    <ClCompile Include="..\firmware\easylogging++.cc" />
     <ClCompile Include="..\gui\PrecisionTest.cpp" />
     <ClCompile Include="..\test\AnalyseError.cpp" />
     <ClCompile Include="..\test\encode.cpp" />

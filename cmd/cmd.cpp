@@ -158,6 +158,10 @@ int get_pointcloud(const char* ip, const char* pointcloud_path);
 int get_raw_01(const char* ip, const char* raw_image_dir);
 int get_raw_02(const char* ip, const char* raw_image_dir);
 int get_raw_03(const char* ip, const char* raw_image_dir);
+int get_raw_04(const char* ip, const char* raw_image_dir);
+int get_raw_05(const char* ip, const char* raw_image_dir);
+int get_raw_06(const char* ip, const char* raw_image_dir);
+int get_raw_08(const char* ip, const char* raw_image_dir);
 int get_calib_param(const char* ip, const char* calib_param_path);
 int set_calib_param(const char* ip, const char* calib_param_path);
 int set_generate_brightness_param(const char* ip, int model, float exposure);
@@ -203,6 +207,10 @@ enum opt_set
 	GET_RAW_01,
 	GET_RAW_02,
 	GET_RAW_03,
+	GET_RAW_04,
+	GET_RAW_05,
+	GET_RAW_06,
+	GET_RAW_08,
 	GET_POINTCLOUD,
 	GET_FRAME_01,
 	GET_FRAME_03,
@@ -258,6 +266,10 @@ static struct option long_options[] =
 	{"get-raw-01",no_argument,NULL,GET_RAW_01},
 	{"get-raw-02",no_argument,NULL,GET_RAW_02},
 	{"get-raw-03",no_argument,NULL,GET_RAW_03},
+	{"get-raw-04",no_argument,NULL,GET_RAW_04},
+	{"get-raw-05",no_argument,NULL,GET_RAW_05},
+	{"get-raw-06",no_argument,NULL,GET_RAW_06},
+	{"get-raw-08",no_argument,NULL,GET_RAW_08},
 	{"get-repetition-phase-02",no_argument,NULL,GET_REPETITION_PHASE_02},
 	{"get-pointcloud",no_argument,NULL,GET_POINTCLOUD},
 	{"get-frame-01",no_argument,NULL,GET_FRAME_01},
@@ -378,6 +390,18 @@ int main(int argc, char* argv[])
 		break;
 	case GET_RAW_03:
 		get_raw_03(camera_id, path);
+		break;
+	case GET_RAW_04:
+		get_raw_04(camera_id, path);
+		break;
+	case GET_RAW_05:
+		get_raw_05(camera_id, path);
+		break;
+	case GET_RAW_06:
+		get_raw_06(camera_id, path);
+		break;
+	case GET_RAW_08:
+		get_raw_08(camera_id, path);
 		break;
 	case GET_REPETITION_PHASE_02:
 	{
@@ -1358,6 +1382,122 @@ int get_raw_01(const char* ip, const char* raw_image_dir)
 
 }
 
+
+int get_raw_04(const char* ip, const char* raw_image_dir)
+{
+	DfRegisterOnDropped(on_dropped);
+
+	int ret = DfConnectNet(ip);
+	if (ret == DF_FAILED)
+	{
+		return 0;
+	}
+
+	int width, height;
+	DfGetCameraResolution(&width, &height);
+
+	int image_size = width * height;
+
+	int patterns_num = 19;
+
+	unsigned char* raw_buf = new unsigned char[(long)(image_size * patterns_num)];
+
+	ret = DfGetCameraRawData04(raw_buf, image_size * patterns_num);
+
+	save_images(raw_image_dir, raw_buf, width, height, patterns_num);
+
+	delete[] raw_buf;
+
+	DfDisconnectNet();
+	return 1;
+}
+
+int get_raw_05(const char* ip, const char* raw_image_dir)
+{
+	DfRegisterOnDropped(on_dropped);
+
+	int ret = DfConnectNet(ip);
+	if (ret == DF_FAILED)
+	{
+		return 0;
+	}
+
+	int width, height;
+	DfGetCameraResolution(&width, &height);
+
+	int image_size = width * height;
+
+	int patterns_num = 16;
+
+	unsigned char* raw_buf = new unsigned char[(long)(image_size * patterns_num)];
+
+	ret = DfGetCameraRawData05(raw_buf, image_size * patterns_num);
+
+	save_images(raw_image_dir, raw_buf, width, height, patterns_num);
+
+	delete[] raw_buf;
+
+	DfDisconnectNet();
+	return 1;
+}
+
+int get_raw_06(const char* ip, const char* raw_image_dir)
+{
+	DfRegisterOnDropped(on_dropped);
+
+	int ret = DfConnectNet(ip);
+	if (ret == DF_FAILED)
+	{
+		return 0;
+	}
+
+	int width, height;
+	DfGetCameraResolution(&width, &height);
+
+	int image_size = width * height;
+
+	int patterns_num = 18;
+
+	unsigned char* raw_buf = new unsigned char[(long)(image_size * patterns_num)];
+
+	ret = DfGetCameraRawData06(raw_buf, image_size * patterns_num);
+
+	save_images(raw_image_dir, raw_buf, width, height, patterns_num);
+
+	delete[] raw_buf;
+
+	DfDisconnectNet();
+	return 1;
+}
+
+int get_raw_08(const char* ip, const char* raw_image_dir)
+{
+	DfRegisterOnDropped(on_dropped);
+
+	int ret = DfConnectNet(ip);
+	if (ret == DF_FAILED)
+	{
+		return 0;
+	}
+
+	int width, height;
+	DfGetCameraResolution(&width, &height);
+
+	int image_size = width * height;
+
+	int patterns_num = 36;
+
+	unsigned char* raw_buf = new unsigned char[(long)(image_size * patterns_num)];
+
+	ret = DfGetCameraRawData08(raw_buf, image_size * patterns_num);
+
+	save_images(raw_image_dir, raw_buf, width, height, patterns_num);
+
+	delete[] raw_buf;
+
+	DfDisconnectNet();
+	return 1;
+}
 
 int get_raw_03(const char* ip, const char* raw_image_dir)
 {
