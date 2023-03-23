@@ -1091,6 +1091,7 @@ void CameraCaptureGui::do_spin_gray_rectify_r(int val)
 {
 	if (val % 2 != 1)
 	{
+		ui.spinBox_rectify_phase_base_gray_r->setValue(val - 1);
 		return;
 	}
 
