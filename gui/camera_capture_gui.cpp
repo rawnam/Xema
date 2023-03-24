@@ -614,6 +614,12 @@ void CameraCaptureGui::setUiData()
 		ui.doubleSpinBox_rectify_phase_base_gray_s->setDisabled(true);
 		ui.spinBox_rectify_phase_base_gray_r->setDisabled(true);
 	}
+
+	ui.spinBox_rectify_phase_base_gray_r->hide();
+	ui.label_rectify_gray_r->hide();
+	ui.label_rectify_gray_s->hide();
+
+	
 }
 
 
