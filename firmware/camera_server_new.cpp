@@ -1463,8 +1463,18 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
         return DF_FAILED;
     }
 
-    t_merge_brightness.join();
-    scan3d_.copyBrightnessData(brightness);
+
+    if(1!=generate_brightness_model)
+    {
+        t_merge_brightness.detach();
+        scan3d_.captureTextureImage(generate_brightness_model,generate_brightness_exposure_time,brightness);
+    }
+    else
+    {
+        t_merge_brightness.join();
+        scan3d_.copyBrightnessData(brightness);
+    }
+  
 
     LOG(INFO) << "start send brightness, buffer_size= "<<brightness_buf_size;
     ret = send_buffer(client_sock, (const char *)brightness, brightness_buf_size);
@@ -1492,6 +1502,7 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
     delete[] brightness;  
 
     frame_status_ = DF_SUCCESS;
+     
     return DF_SUCCESS;
 
 }
@@ -1670,8 +1681,15 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
     scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
 
-             
-    scan3d_.copyBrightnessData(brightness);
+    if(1!=generate_brightness_model)
+    {
+        scan3d_.captureTextureImage(generate_brightness_model,generate_brightness_exposure_time,brightness);
+    }
+    else
+    { 
+         scan3d_.copyBrightnessData(brightness);
+    }
+              
     scan3d_.copyDepthData(depth_map); 
  
     LOG(INFO)<<"capture Frame04 Repetition02 Finished!";
@@ -1961,8 +1979,16 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
     scan3d_.removeOutlierBaseRadiusFilter();
 
      
+    if(1!=generate_brightness_model)
+    {
+        scan3d_.captureTextureImage(generate_brightness_model,generate_brightness_exposure_time,brightness);
+    }
+    else
+    { 
+         scan3d_.copyBrightnessData(brightness);
+    }
+
     LOG(INFO)<<"Reconstruct Frame04 Finished!";
-    scan3d_.copyBrightnessData(brightness);
     scan3d_.copyDepthData(depth_map);
 
  

@@ -937,10 +937,11 @@ int Scan3D::captureFrame04BaseConfidence()
     { 
         cuda_copy_brightness_from_memory(buff_brightness_);
     }
-    else
-    {
-        captureTextureImage(generate_brightness_model_, generate_brightness_exposure_,buff_brightness_);
-    }
+    // }
+    // else
+    // {
+    //     captureTextureImage(generate_brightness_model_, generate_brightness_exposure_,buff_brightness_);
+    // }
 
     return DF_SUCCESS;
 }
@@ -1002,10 +1003,10 @@ int Scan3D::captureFrame04HdrBaseConfidence()
     cuda_merge_hdr_data(hdr_num_, buff_depth_, buff_brightness_);  
 
     
-    if (1 != generate_brightness_model_)
-    { 
-        captureTextureImage(generate_brightness_model_, generate_brightness_exposure_, buff_brightness_);
-    }
+    // if (1 != generate_brightness_model_)
+    // { 
+    //     captureTextureImage(generate_brightness_model_, generate_brightness_exposure_, buff_brightness_);
+    // }
     /******************************************************************************************************/
  
     int ret = lc3010_.SetLedCurrent(led_current_, led_current_, led_current_); 
@@ -1307,15 +1308,15 @@ int Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
     cuda_copy_depth_from_memory(buff_depth_);
     cuda_copy_pointcloud_from_memory(buff_pointcloud_);
 
-    if (1 == generate_brightness_model_)
-    { 
+    // if (1 == generate_brightness_model_)
+    // { 
         cuda_copy_brightness_from_memory(buff_brightness_);
-    }
-    else
-    {
+    // }
+    // else
+    // {
 
-        captureTextureImage(generate_brightness_model_, generate_brightness_exposure_,buff_brightness_);
-    }
+    //     captureTextureImage(generate_brightness_model_, generate_brightness_exposure_,buff_brightness_);
+    // }
 
     return frame_status;
 }
