@@ -40,6 +40,8 @@ public:
 
 	bool reconstructPatterns05(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path = "./");
 
+	bool reconstructPatterns06(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path = "./");
+
 	bool reconstructPatterns08(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path = "./"); 
 
 	bool reconstructMixedVariableWavelengthXPatternsBaseMiniTable(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path = "./");

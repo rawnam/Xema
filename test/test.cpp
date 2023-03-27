@@ -99,6 +99,7 @@ void read_04();
 void read_05();
 void read_04_color();
 void read_06();
+void generate_patterns_06();
 void capture_04_repetition_02(int repetition);
 void read_04_repetition_02();
 void capture_04_repetition_01(int repetition);
@@ -221,6 +222,10 @@ int main(int argc, char* argv[])
 		else if ("patterns-06" == model)
 		{
 			read_06();
+		}
+		else if ("gen-patterns-06" == model)
+		{
+			generate_patterns_06();
 		}
 		else if ("patterns-04-repetition-02" == model)
 		{
@@ -712,6 +717,69 @@ void read_04_repetition_02()
 }
 
 
+void generate_patterns_06()
+{
+	DfSolution solution_machine_;
+	std::vector<cv::Mat> patterns_;
+	bool ret = solution_machine_.readImages(patterns_path, patterns_);
+
+	if (!ret)
+	{
+		std::cout << "Read Image Error!";
+	}
+
+	std::vector<cv::Mat> patterns_list;
+
+	int width = patterns_[0].cols;
+	int height = patterns_[0].rows;
+
+	for (int p_i = 0; p_i < patterns_.size(); p_i++)
+	{
+		cv::Mat temple = patterns_[p_i];
+
+		cv::Mat gen_pattern(height, width * 5,CV_8U,cv::Scalar(0));
+
+		for (int r = 0; r < height; r++)
+		{
+			for (int c = 0; c < width; c++)
+			{
+				uchar val = temple.at<uchar>(r, c);
+
+				for (int i = 0; i < 5; i++)
+				{
+					gen_pattern.at<uchar>(r, c * 5 + i) = val;
+				}
+			}
+		}
+
+		cv::Mat pattern_3010(720, 1280, CV_8U, cv::Scalar(0));
+
+		for (int r = 0; r < pattern_3010.rows; r++)
+		{
+
+			for (int c = 0; c < pattern_3010.cols; c++)
+			{
+				pattern_3010.at<uchar>(r, c) = gen_pattern.at<uchar>(r, c);
+			}
+		}
+
+		patterns_list.push_back(pattern_3010.clone());
+
+	}
+
+
+	for (int i = 0; i < patterns_list.size(); i++)
+	{ 
+		std::stringstream ss; 
+		ss << std::setw(2) << std::setfill('0') << i;
+		std::string filename = "../minsw_" + ss.str() + ".bmp";
+		bool ret = cv::imwrite(filename, patterns_list[i]);
+		std::cout << "save: " << filename << " " << ret << std::endl;
+	}
+
+
+}
+
 void read_06()
 {
 	struct CameraCalibParam calibration_param_;
@@ -740,7 +808,7 @@ void read_06()
 	}
 
 
-	solution_machine_.reconstructPatterns06BaseTable(patterns_, calibration_param_, pointcloud_path);
+	solution_machine_.reconstructPatterns06(patterns_, calibration_param_, pointcloud_path);
 }
 
 
