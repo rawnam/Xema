@@ -1397,6 +1397,90 @@ bool DF_Encode::grayCodeToBinCode(std::vector<bool> gray_code, std::vector<bool>
 }
 
 
+bool DF_Encode::decodeMinswGrayCode(std::vector<cv::Mat> patterns, std::vector<cv::Mat> threshold_list, cv::Mat& k_map)
+{
+	if (patterns.size() != threshold_list.size() || patterns.empty())
+	{
+		return false;
+	}
+
+	int nr = patterns[0].rows;
+	int nc = patterns[0].cols;
+
+
+	//std::vector<std::vector<bool>> gray_code_list;
+	//threshold bin
+	std::vector<cv::Mat> bin_patterns;
+	for (int i = 0; i < patterns.size(); i++)
+	{
+		cv::Mat bin_mat(nr, nc, CV_8U, cv::Scalar(0));
+
+		for (int r = 0; r < nr; r++)
+		{
+			uchar* ptr_bin = bin_mat.ptr<uchar>(r);
+			uchar* ptr_avg = threshold_list[i].ptr<uchar>(r);
+			uchar* ptr_gray = patterns[i].ptr<uchar>(r);
+
+
+			for (int c = 0; c < nc; c++)
+			{
+				if (ptr_gray[c] < ptr_avg[c])
+				{
+					ptr_bin[c] = 0;
+				}
+				else
+				{
+					ptr_bin[c] = 255;
+				}
+
+				 
+			}
+		}
+		bin_patterns.push_back(bin_mat.clone());
+	}
+
+	cv::Mat k1(nr, nc, CV_16U, cv::Scalar(0));
+
+
+	for (int r = 0; r < nr; r++)
+	{
+		ushort* ptr_k1 = k1.ptr<ushort>(r);
+
+		for (int c = 0; c < nc; c++)
+		{
+			std::vector<bool> gray_code_list;
+
+			for (int i = 0; i < bin_patterns.size(); i++)
+			{
+				uchar val = bin_patterns[i].at<uchar>(r, c);
+
+				if (255 == val)
+				{
+					gray_code_list.push_back(true);
+				}
+				else
+				{
+					gray_code_list.push_back(false);
+				}
+			}
+
+			ushort k_1 = 0;
+			for (int i = 0; i < gray_code_list.size(); i++)
+			{
+				k_1 += gray_code_list[i] * std::pow(2, gray_code_list.size() - i - 1);
+
+			}
+			ptr_k1[c] = k_1;
+		}
+
+	}
+
+	k_map = k1.clone();
+
+
+	return true;
+}
+
 bool DF_Encode::decodeMinswGrayCode(std::vector<cv::Mat> patterns, cv::Mat average_brightness, cv::Mat& k_map)
 {
 	//bin threshold
