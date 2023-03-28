@@ -1296,7 +1296,7 @@ int handle_cmd_get_raw_08(int client_sock)
         return DF_FAILED;	
     } 
 
-    int image_num= 36;
+    int image_num= 26;
 
     int width = 0;
     int height = 0;

@@ -664,7 +664,7 @@ int Scan3D::captureRaw08(unsigned char *buff)
 
     unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
 
-    for (int i = 0; i < 36; i++)
+    for (int i = 0; i < 26; i++)
     {
         LOG(INFO)<<"grap "<<i<<" image:";
         if (!camera_->grap(img_ptr))
