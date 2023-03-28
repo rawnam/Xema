@@ -729,6 +729,7 @@ void generate_patterns_06()
 	}
 
 	std::vector<cv::Mat> patterns_list;
+	std::vector<cv::Mat> inv_patterns_list;
 
 	int width = patterns_[0].cols;
 	int height = patterns_[0].rows;
@@ -763,7 +764,10 @@ void generate_patterns_06()
 			}
 		}
 
+		cv::Mat inv_pattern_3010 = 255 - pattern_3010;
+
 		patterns_list.push_back(pattern_3010.clone());
+		inv_patterns_list.push_back(inv_pattern_3010.clone());
 
 	}
 
@@ -775,6 +779,10 @@ void generate_patterns_06()
 		std::string filename = "../minsw_" + ss.str() + ".bmp";
 		bool ret = cv::imwrite(filename, patterns_list[i]);
 		std::cout << "save: " << filename << " " << ret << std::endl;
+
+		std::string filename_inv = "../minsw_inv_" + ss.str() + ".bmp";
+		ret = cv::imwrite(filename_inv, inv_patterns_list[i]);
+		std::cout << "save: " << filename_inv << " " << ret << std::endl;
 	}
 
 
@@ -808,7 +816,7 @@ void read_06()
 	}
 
 
-	solution_machine_.reconstructPatterns06(patterns_, calibration_param_, pointcloud_path);
+	solution_machine_.reconstructPatterns0602(patterns_, calibration_param_, pointcloud_path);
 }
 
 
