@@ -2850,7 +2850,7 @@ int handle_cmd_get_param_reflect_filter(int client_sock)
     }
  
   
-    LOG(INFO)<<"use_radius_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter; 
+    LOG(INFO)<<"use_reflect_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter; 
           
     return DF_SUCCESS;
 }
@@ -3002,6 +3002,90 @@ int handle_cmd_get_param_depth_filter(int client_sock)
     
     LOG(INFO)<<"use_depth_filter: "<<system_config_settings_machine_.Instance().firwmare_param_.use_depth_filter;
     LOG(INFO)<<"depth_filter_threshold: "<<system_config_settings_machine_.Instance().firwmare_param_.depth_filter_threshold;
+         
+
+    return DF_SUCCESS;
+}
+
+int handle_cmd_set_param_gray_rectify(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+
+
+    int switch_val = 0;
+    int radius = 9;
+    float sigma = 40;
+
+    int ret = recv_buffer(client_sock, (char*)(&switch_val), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+ 
+
+    ret = recv_buffer(client_sock, (char*)(&radius), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+     
+    ret = recv_buffer(client_sock, (char*)(&sigma), sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+
+    system_config_settings_machine_.Instance().firwmare_param_.use_gray_rectify = switch_val;
+    system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r = radius;
+    system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_sigma = sigma;
+
+ 
+    LOG(INFO)<<"use_gray_rectify: "<<system_config_settings_machine_.Instance().firwmare_param_.use_gray_rectify;
+    LOG(INFO)<<"gray_rectify_r: "<<system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r;
+    LOG(INFO)<<"gray_rectify_sigma: "<<system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_sigma;
+         
+
+    return DF_SUCCESS;
+}
+
+int handle_cmd_get_param_gray_rectify(int client_sock)
+{
+   if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+     
+    int ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.use_gray_rectify), sizeof(int) );
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+ 
+    ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+
+    ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_sigma), sizeof(float) );
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+
+    
+    LOG(INFO)<<"use_gray_rectify: "<<system_config_settings_machine_.Instance().firwmare_param_.use_gray_rectify;
+    LOG(INFO)<<"gray_rectify_r: "<<system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r;
+    LOG(INFO)<<"gray_rectify_sigma: "<<system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_sigma;
          
 
     return DF_SUCCESS;
@@ -4613,6 +4697,14 @@ int handle_commands(int client_sock)
 	case DF_CMD_GET_PARAM_DEPTH_FILTER:
 	    LOG(INFO)<<"DF_CMD_GET_PARAM_DEPTH_FILTER";   
     	ret = handle_cmd_get_param_depth_filter(client_sock);
+	    break;
+    case DF_CMD_SET_PARAM_GRAY_RECTIFY:
+	    LOG(INFO)<<"DF_CMD_SET_PARAM_GRAY_RECTIFY";   
+    	ret = handle_cmd_set_param_gray_rectify(client_sock);
+	    break;
+	case DF_CMD_GET_PARAM_GRAY_RECTIFY:
+	    LOG(INFO)<<"DF_CMD_GET_PARAM_GRAY_RECTIFY";   
+    	ret = handle_cmd_get_param_gray_rectify(client_sock);
 	    break;
 	case DF_CMD_SET_PARAM_BILATERAL_FILTER:
 	    LOG(INFO)<<"DF_CMD_SET_PARAM_BILATERAL_FILTER";   

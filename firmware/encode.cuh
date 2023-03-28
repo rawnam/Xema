@@ -37,4 +37,13 @@ __global__ void kernel_merge_six_step_phase_shift(unsigned short * const d_in_0,
 __global__ void kernel_merge_four_step_phase_shift(unsigned short * const d_in_0, unsigned short * const d_in_1, unsigned short * const d_in_2, 
 	unsigned short * const d_in_3,int repetition_count,uint32_t img_height, uint32_t img_width,float * const d_out, float * const confidence);
 
+__global__ void kernal_convolution_2D(int width,int height, unsigned char *input, unsigned char *output, float *mask, int masksize);
+
+__global__ void kernal_convolution_2D_short(int width,int height, unsigned short *input, unsigned short *output, float *mask, int masksize);
+
+__global__ void kernel_six_step_phase_rectify(int width,int height,float* computeWrapedPhase_good, float* computeWrapedPhase_bad, float* computeWrapedPhase_original);
+
+__global__ void kernel_four_step_phase_shift(int width,int height,unsigned char * const d_in_0, unsigned char * const d_in_1, unsigned char * const d_in_2, unsigned char * const d_in_3,
+float * const d_out, float * const confidence); 
+
 #endif

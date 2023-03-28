@@ -235,6 +235,24 @@ bool SettingsFileFunction::loadProcessingSettingsFile(QString path)
 			camera_config_.Instance().firwmare_param_.depth_filter_threshold = firmware_Obj.value("depth_filter_threshold").toDouble();
 		}
 
+		if (firmware_Obj.contains("use_gray_rectify") && firmware_Obj["use_gray_rectify"].isDouble())
+		{
+			qDebug() << "use_gray_rectify is:" << firmware_Obj.value("use_gray_rectify").toInt();
+			camera_config_.Instance().firwmare_param_.use_gray_rectify = firmware_Obj.value("use_gray_rectify").toInt();
+		}
+
+		if (firmware_Obj.contains("gray_rectify_r") && firmware_Obj["gray_rectify_r"].isDouble())
+		{
+			qDebug() << "gray_rectify_r is:" << firmware_Obj.value("gray_rectify_r").toDouble();
+			camera_config_.Instance().firwmare_param_.gray_rectify_r = firmware_Obj.value("gray_rectify_r").toInt();
+		}
+
+		if (firmware_Obj.contains("gray_rectify_sigma") && firmware_Obj["gray_rectify_sigma"].isDouble())
+		{
+			qDebug() << "gray_rectify_sigma is:" << firmware_Obj.value("gray_rectify_r").toDouble();
+			camera_config_.Instance().firwmare_param_.gray_rectify_sigma = firmware_Obj.value("gray_rectify_sigma").toDouble();
+		}
+
 		if (firmware_Obj.contains("confidence") && firmware_Obj["confidence"].isDouble())
 		{
 			qDebug() << "confidence is:" << firmware_Obj.value("confidence").toInt();
@@ -382,6 +400,9 @@ bool SettingsFileFunction::saveProcessingSettingsFile(QString path)
 	jsonObject_firmware.insert("use_depth_filter", camera_config_.Instance().firwmare_param_.use_depth_filter);
 	jsonObject_firmware.insert("depth_filter_threshold", camera_config_.Instance().firwmare_param_.depth_filter_threshold);
 
+	jsonObject_firmware.insert("use_gray_rectify", camera_config_.Instance().firwmare_param_.use_gray_rectify);
+	jsonObject_firmware.insert("gray_rectify_r", camera_config_.Instance().firwmare_param_.gray_rectify_r);
+	jsonObject_firmware.insert("gray_rectify_sigma", camera_config_.Instance().firwmare_param_.gray_rectify_sigma);
 
 	jsonObject_firmware.insert("confidence", camera_config_.Instance().firwmare_param_.confidence);
 	jsonObject_firmware.insert("fisher_confidence", camera_config_.Instance().firwmare_param_.fisher_confidence);

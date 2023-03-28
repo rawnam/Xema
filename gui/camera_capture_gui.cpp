@@ -265,7 +265,11 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.spinBox_camera_exposure_define, SIGNAL(valueChanged(int)), this, SLOT(do_spin_generate_brightness_exposure_changed(int)));
 
 	connect(ui.checkBox_depth_filter, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_depth_filter(bool)));
+	connect(ui.checkBox_rectify_phase_base_gray, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_rectify_phase_base_gray(bool)));
 
+
+	connect(ui.doubleSpinBox_rectify_phase_base_gray_s, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_gray_rectify_s(double)));
+	connect(ui.spinBox_rectify_phase_base_gray_r, SIGNAL(valueChanged(int)), this, SLOT(do_spin_gray_rectify_r(int)));
 
 	min_depth_value_ = 300;
 	max_depth_value_ = 3000;
@@ -601,6 +605,26 @@ void CameraCaptureGui::setUiData()
 		ui.checkBox_depth_filter->setChecked(false);
 		ui.doubleSpinBox_depth_filter->setDisabled(true);
 	}
+
+	ui.spinBox_rectify_phase_base_gray_r->setValue(firmware_config_param_.gray_rectify_r);
+	ui.doubleSpinBox_rectify_phase_base_gray_s->setValue(firmware_config_param_.gray_rectify_sigma);
+	if (1 == firmware_config_param_.use_gray_rectify)
+	{
+
+		ui.checkBox_rectify_phase_base_gray->setChecked(true);
+	}
+	else
+	{
+		ui.checkBox_rectify_phase_base_gray->setChecked(false);
+		ui.doubleSpinBox_rectify_phase_base_gray_s->setDisabled(true);
+		ui.spinBox_rectify_phase_base_gray_r->setDisabled(true);
+	}
+
+	ui.spinBox_rectify_phase_base_gray_r->hide();
+	ui.label_rectify_gray_r->hide();
+	ui.label_rectify_gray_s->hide();
+
+	
 }
 
 
@@ -918,6 +942,87 @@ void CameraCaptureGui::do_doubleSpin_gain(double val)
 }
 
 
+void CameraCaptureGui::updateRectifyGray(int use, int r, float s)
+{
+
+	if (camera_setting_flag_)
+	{
+		return;
+	}
+	 
+
+	//设置参数时加锁
+	camera_setting_flag_ = true;
+	if (connected_flag_)
+	{
+
+		int ret_code = -1;
+		//如果连续采集在用、先暂停
+		if (start_timer_flag_)
+		{ 
+			stopCapturingOneFrameBaseThread();
+
+			ret_code = DfSetParamGrayRectify(use, r,s);
+			if (0 == ret_code)
+			{
+				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
+				if (1 == use)
+				{
+					addLogMessage(u8"打开相位校正！");
+					QString str = u8"半径: " + QString::number(r);
+					addLogMessage(str); 
+					str = u8"标准差: " + QString::number(s);
+					addLogMessage(str);
+				}
+				else
+				{
+					addLogMessage(u8"关闭相位校正！");
+				}
+
+
+			}
+			else
+			{
+				addLogMessage(u8"出错！");
+			}
+
+
+			do_pushButton_capture_continuous();
+
+		}
+		else
+		{
+			ret_code = DfSetParamGrayRectify(use, r, s);
+			if (0 == ret_code)
+			{
+				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
+				if (1 == use)
+				{
+					addLogMessage(u8"打开相位校正！");
+					QString str = u8"半径: " + QString::number(r);
+					addLogMessage(str);
+					str = u8"标准差: " + QString::number(s);
+					addLogMessage(str);
+				}
+				else
+				{
+					addLogMessage(u8"关闭相位校正！");
+				}
+
+
+			}
+			else
+			{
+				addLogMessage(u8"出错！");
+			}
+
+		}
+
+	}
+
+	camera_setting_flag_ = false;
+}
+
 void CameraCaptureGui::updateDepthFilter(int use, float threshold)
 {
 
@@ -992,6 +1097,30 @@ void CameraCaptureGui::updateDepthFilter(int use, float threshold)
 	camera_setting_flag_ = false;
 }
 
+
+void CameraCaptureGui::do_spin_gray_rectify_r(int val)
+{
+	if (val % 2 != 1)
+	{
+		ui.spinBox_rectify_phase_base_gray_r->setValue(val - 1);
+		return;
+	}
+
+	firmware_config_param_.gray_rectify_r = val;
+
+	updateRectifyGray(firmware_config_param_.use_gray_rectify, firmware_config_param_.gray_rectify_r, firmware_config_param_.gray_rectify_sigma);
+
+
+}
+
+void CameraCaptureGui::do_doubleSpin_gray_rectify_s(double val)
+{
+	firmware_config_param_.gray_rectify_sigma = val;
+
+	updateRectifyGray(firmware_config_param_.use_gray_rectify, firmware_config_param_.gray_rectify_r, firmware_config_param_.gray_rectify_sigma);
+
+
+}
 
 void CameraCaptureGui::do_doubleSpin_depth_fisher(double val)
 {
@@ -1224,6 +1353,10 @@ bool CameraCaptureGui::setCameraConfigParam()
 			break;
 		}
 	}
+
+	ret_code = DfSetParamGrayRectify(firmware_config_param_.use_gray_rectify, firmware_config_param_.gray_rectify_r, firmware_config_param_.gray_rectify_sigma);
+
+	 
 
 	if (DF_UNKNOWN == ret_code)
 	{
@@ -3020,6 +3153,25 @@ void CameraCaptureGui::do_checkBox_toggled_over_exposure(bool state)
 	showImage();
 }
 
+
+void CameraCaptureGui::do_checkBox_toggled_rectify_phase_base_gray(bool state)
+{
+	if (state)
+	{
+		ui.doubleSpinBox_rectify_phase_base_gray_s->setEnabled(true);
+		ui.spinBox_rectify_phase_base_gray_r->setEnabled(true);
+		firmware_config_param_.use_gray_rectify = 1;
+	}
+	else
+	{
+		ui.doubleSpinBox_rectify_phase_base_gray_s->setDisabled(true);
+		ui.spinBox_rectify_phase_base_gray_r->setDisabled(true);
+		firmware_config_param_.use_gray_rectify = 0;
+	}
+
+	updateRectifyGray(firmware_config_param_.use_gray_rectify, firmware_config_param_.gray_rectify_r, firmware_config_param_.gray_rectify_sigma);
+
+}
 
 void CameraCaptureGui::do_checkBox_toggled_depth_filter(bool state)
 {

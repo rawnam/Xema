@@ -54,6 +54,9 @@ struct FirmwareConfigParam
 	float fisher_confidence;
 	int use_depth_filter;
 	float depth_filter_threshold;
+	int use_gray_rectify;
+	int gray_rectify_r;
+	float gray_rectify_sigma;
 };
 
 

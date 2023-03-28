@@ -295,3 +295,84 @@ __global__ void kernel_merge_four_step_phase_shift(unsigned short * const d_in_0
   
 	}
 }
+
+// 函数功能：实现卷积的核函数
+__global__ void kernal_convolution_2D(int width,int height, unsigned char *input, unsigned char *output, float *mask, int masksize) 
+{
+	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+	const unsigned int offset = idy * width + idx;
+	if (idy < height && idy > masksize / 2 - 1 && idx > masksize / 2 - 1 && idx < width) 
+	{
+		float pixVal = 0;
+		//start
+		int startCol = idx - masksize / 2;
+		int startRow = idy - masksize / 2;
+		//caculate the res
+		for (int i = 0; i < masksize; i++)
+		{
+			for (int j = 0; j < masksize; j++)
+			{
+				int curRow = startRow + i;
+				int curCol = startCol + j;
+				if (curRow > -1 && curRow<height && curCol>-1 && curCol < width)
+				{
+					pixVal += mask[i*masksize + j] * input[curRow*width + curCol];
+				}
+			}
+		}
+		output[offset] = pixVal;
+		
+	}
+}
+
+__global__ void kernal_convolution_2D_short(int width,int height, unsigned short *input, unsigned short *output, float *mask, int masksize)
+{
+	const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+	const unsigned int offset = idy * width + idx;
+	if (idy < height && idy > masksize / 2 - 1 && idx > masksize / 2 - 1 && idx < width) 
+	{
+		float pixVal = 0;
+		//start
+		int startCol = idx - masksize / 2;
+		int startRow = idy - masksize / 2;
+		//caculate the res
+		for (int i = 0; i < masksize; i++)
+		{
+			for (int j = 0; j < masksize; j++)
+			{
+				int curRow = startRow + i;
+				int curCol = startCol + j;
+				if (curRow > -1 && curRow<height && curCol>-1 && curCol < width)
+				{
+					pixVal += mask[i*masksize + j] * input[curRow*width + curCol];
+				}
+			}
+		}
+		output[offset] = pixVal;
+		
+	}
+}
+
+// 函数功能：实现六步相移并且计算差值
+__global__ void kernel_six_step_phase_rectify(int width,int height,float* computeWrapedPhase_good, float* computeWrapedPhase_bad, float* computeWrapedPhase_original)
+{
+    const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+	const unsigned int offset = idy * width + idx;
+
+	if (idx < width && idy < height && computeWrapedPhase_bad[offset] > 0 && computeWrapedPhase_good[offset] > 0)
+	{
+		computeWrapedPhase_original[offset] = computeWrapedPhase_original[offset] - computeWrapedPhase_bad[offset] + computeWrapedPhase_good[offset];
+		if (computeWrapedPhase_original[offset] > CV_2PI)
+		{
+			computeWrapedPhase_original[offset] = computeWrapedPhase_original[offset] - CV_2PI;
+		}
+		else if (computeWrapedPhase_original[offset] < 0)
+		{
+			computeWrapedPhase_original[offset] = computeWrapedPhase_original[offset] + CV_2PI;
+		}
+		
+	}
+}
