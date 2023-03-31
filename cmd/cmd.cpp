@@ -1456,7 +1456,7 @@ int get_raw_06(const char* ip, const char* raw_image_dir)
 
 	int image_size = width * height;
 
-	int patterns_num = 18;
+	int patterns_num = 16;
 
 	unsigned char* raw_buf = new unsigned char[(long)(image_size * patterns_num)];
 

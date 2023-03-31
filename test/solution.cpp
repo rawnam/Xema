@@ -2397,7 +2397,7 @@ bool DfSolution::reconstructPatterns0602(std::vector<cv::Mat> patterns, struct C
 		for (int c = 0; c < nc; c++)
 		{
 			int bin_value = -1;
-			bool ret = encode.minswCodeToValue(ptr_k2[c], bin_value);
+			bool ret = encode.minsw10CodeToValue(ptr_k2[c], bin_value);
 
 			if (ret)
 			{
@@ -2573,29 +2573,32 @@ bool DfSolution::reconstructPatterns06(std::vector<cv::Mat> patterns, struct Cam
 		return false;
 	}
 
-	std::vector<cv::Mat> phase_shift_patterns_img(patterns.begin(), patterns.begin() + 6);
-	std::vector<cv::Mat> minsw_gray_code_patterns_img(patterns.begin() + 6, patterns.begin() + 6 + 10);  
+	std::vector<cv::Mat> phase_shift_patterns_img(patterns.begin()+2, patterns.begin() + 8);
+	std::vector<cv::Mat> minsw_gray_code_patterns_img(patterns.begin() + 8, patterns.begin() + 8 + 8);  
 
-	cv::Mat white_map = patterns[16].clone();
-	cv::Mat black_map = patterns[17].clone();
+	cv::Mat map_white_map = patterns[0].clone();
+	cv::Mat map_black_map = patterns[1].clone();
  
 
 	int nr = patterns[0].rows;
 	int nc = patterns[0].cols;
 
 	cv::Mat threshold_map(nr, nc, CV_8U, cv::Scalar(128));
+	cv::Mat threshold_confidence(nr, nc, CV_8U, cv::Scalar(0));
 
 	 
 	for (int r = 0; r < nr; r++)
 	{
-		uchar* ptr_b = black_map.ptr<uchar>(r);
-		uchar* ptr_w = white_map.ptr<uchar>(r);
-		uchar* ptr_t = threshold_map.ptr<uchar>(r);
+		uchar* ptr_b = map_black_map.ptr<uchar>(r);
+		uchar* ptr_w = map_white_map.ptr<uchar>(r);
+		uchar* ptr_t = threshold_map.ptr<uchar>(r); 
+		uchar* ptr_c = threshold_confidence.ptr<uchar>(r);
 
 		for (int c = 0; c < nc; c++)
 		{
 			float d = ptr_w[c] - ptr_b[c];
 			ptr_t[c] = ptr_b[c] + 0.5 + d / 2.0;
+			ptr_c[c] = std::abs(d);
 		}
 
 	}
@@ -2614,7 +2617,7 @@ bool DfSolution::reconstructPatterns06(std::vector<cv::Mat> patterns, struct Cam
 		for (int c = 0; c < nc; c++)
 		{
 			int bin_value = -1;
-			bool ret = encode.minswCodeToValue(ptr_k2[c], bin_value);
+			bool ret = encode.minsw8CodeToValue(ptr_k2[c], bin_value);
 
 			if (ret)
 			{
@@ -2672,9 +2675,11 @@ bool DfSolution::reconstructPatterns06(std::vector<cv::Mat> patterns, struct Cam
 
 	unwrap /= ver_period;
 	encode.selectMaskBaseConfidence(confidence, confidence_val, mask_phase);
-	//encode_machine_.selectMaskBaseConfidence(hor_confidence_map_4, confidence_val, unwrap_mask);
+	//encode_machine_.selectMaskBaseConfidence(hor_confidence_map_4, confidence_val, unwrap_mask); 
 
+	encode.maskMap(mask_phase, unwrap);
 
+	encode.selectMaskBaseConfidence(threshold_confidence, 5, mask_phase);
 	encode.maskMap(mask_phase, unwrap);
 
 	unwrap.convertTo(unwrap, CV_64FC1);
@@ -2769,9 +2774,9 @@ bool DfSolution::reconstructPatterns06(std::vector<cv::Mat> patterns, struct Cam
 
 	//cv::imwrite(save_err_tiff, err_map);
 	cv::imwrite(save_depth_tiff, z_map);
-	cv::imwrite(save_brightness_dir, white_map);
+	cv::imwrite(save_brightness_dir, map_white_map);
 	cv::imwrite(save_depth_dir, color_map);
-	SavePointToTxt(deep_map_table, save_points_dir, white_map);
+	SavePointToTxt(deep_map_table, save_points_dir, map_white_map);
 
 
 	std::cout << "pointcloud: " << save_points_dir;
@@ -2789,27 +2794,27 @@ bool DfSolution::reconstructPatterns08(std::vector<cv::Mat> patterns, struct Cam
 	}
 
 	std::vector<cv::Mat> phase_shift_patterns_img(patterns.begin(), patterns.begin() + 6);
-	std::vector<cv::Mat> minsw_gray_code_patterns_img(patterns.begin() + 6, patterns.begin()+ 6+10);
-	std::vector<cv::Mat> inv_minsw_gray_code_patterns_img(patterns.begin() + 16, patterns.begin() + 16 + 10);
+	std::vector<cv::Mat> minsw10_gray_code_patterns_img(patterns.begin() + 6, patterns.begin()+ 6+10);
+	std::vector<cv::Mat> minsw8_gray_code_patterns_img(patterns.begin() + 16, patterns.begin() + 16 + 8);
  
+
+	cv::Mat white_map = patterns[24];
+	cv::Mat black_map = patterns[25];
 	
 	int nr = patterns[0].rows;
 	int nc = patterns[0].cols;
-	
 
-	std::vector<cv::Mat> threshold_list;
+	cv::Mat threshold_map(nr, nc, CV_8U, cv::Scalar(128));
+	 
 
 	cv::Mat threshold_mask(nr, nc, CV_8U, cv::Scalar(255));
 
-	for (int p_i = 0; p_i < minsw_gray_code_patterns_img.size(); p_i++)
-	{
-
-		cv::Mat threshold_map(nr, nc, CV_8U, cv::Scalar(128));
-
+	for (int p_i = 0; p_i < minsw10_gray_code_patterns_img.size(); p_i++)
+	{ 
 		for (int r = 0; r < nr; r++)
 		{
-			uchar* ptr_b = inv_minsw_gray_code_patterns_img[p_i].ptr<uchar>(r);
-			uchar* ptr_w = minsw_gray_code_patterns_img[p_i].ptr<uchar>(r);
+			uchar* ptr_b = black_map.ptr<uchar>(r);
+			uchar* ptr_w = white_map.ptr<uchar>(r);
 			uchar* ptr_t = threshold_map.ptr<uchar>(r);
 			uchar* ptr_m = threshold_mask.ptr<uchar>(r);
 
@@ -2822,13 +2827,10 @@ bool DfSolution::reconstructPatterns08(std::vector<cv::Mat> patterns, struct Cam
 					ptr_m[c] = diff;
 				}
 
-				float d = ptr_w[c] + ptr_b[c];
-				ptr_t[c] = 0.5 + d / 2.0;
-			}
-
-		}
-
-		threshold_list.push_back(threshold_map.clone());
+				float d = ptr_w[c] - ptr_b[c];
+				ptr_t[c] = ptr_b[c] + 0.5 + d/2.0 ;
+			} 
+		} 
 	}
 	 
 
@@ -2836,22 +2838,48 @@ bool DfSolution::reconstructPatterns08(std::vector<cv::Mat> patterns, struct Cam
 
 
 	DF_Encode encode;
-	cv::Mat  sw_k_map;
-	cv::Mat  sw_mask;
-	//minsw_gray_code_patterns_img.pop_back();
-	//minsw_gray_code_patterns_img.pop_back();
-	bool ret = encode.decodeMinswGrayCode(minsw_gray_code_patterns_img, threshold_list, sw_k_map);
+	cv::Mat  sw10_k_map;
+	cv::Mat  sw10_mask;
 
-	cv::Mat minsw_map(nr, nc, CV_32F, cv::Scalar(0));
+	cv::Mat  sw8_k_map;
+	cv::Mat  sw8_mask;
+
+	//minsw_gray_code_patterns_img.pop_back();
+	//minsw_gray_code_patterns_img.pop_back();
+	bool ret = encode.decodeMinswGrayCode(minsw10_gray_code_patterns_img, threshold_map, sw10_k_map);
+	ret = encode.decodeMinswGrayCode(minsw8_gray_code_patterns_img, threshold_map, sw8_k_map);
+
+	cv::Mat minsw10_map(nr, nc, CV_32F, cv::Scalar(0));
+	cv::Mat minsw8_map(nr, nc, CV_32F, cv::Scalar(0));
 
 	for (int r = 0; r < nr; r++)
 	{
-		float* ptr_sw = minsw_map.ptr<float>(r);
-		ushort* ptr_k2 = sw_k_map.ptr<ushort>(r);
+		float* ptr_sw = minsw10_map.ptr<float>(r);
+		ushort* ptr_k2 = sw10_k_map.ptr<ushort>(r);
 		for (int c = 0; c < nc; c++)
 		{
 			int bin_value = -1;
-			bool ret = encode.minswCodeToValue(ptr_k2[c], bin_value);
+			bool ret = encode.minsw10CodeToValue(ptr_k2[c], bin_value);
+
+			if (ret)
+			{
+				ptr_sw[c] = bin_value;
+			}
+			else
+			{
+				ptr_sw[c] = -1;
+			}
+		}
+	}
+	/*******************************************************************************************************************/
+	for (int r = 0; r < nr; r++)
+	{
+		float* ptr_sw = minsw8_map.ptr<float>(r);
+		ushort* ptr_k2 = sw8_k_map.ptr<ushort>(r);
+		for (int c = 0; c < nc; c++)
+		{
+			int bin_value = -1;
+			bool ret = encode.minsw8CodeToValue(ptr_k2[c], bin_value);
 
 			if (ret)
 			{
@@ -2864,18 +2892,36 @@ bool DfSolution::reconstructPatterns08(std::vector<cv::Mat> patterns, struct Cam
 		}
 	}
 
+	cv::Mat decode_color_map = minsw8_map.clone();
+	decode_color_map.convertTo(decode_color_map, CV_8U);
+	cv::applyColorMap(decode_color_map, decode_color_map, cv::COLORMAP_JET);
 
-	cv::Mat k2_map;
 
-	minsw_map.convertTo(k2_map, CV_16U);
+	std::string save_decode_dir = pointcloud_path + "/decode_minsw8.bmp";
+	cv::imwrite(save_decode_dir, decode_color_map);
 
-	cv::Mat k1_map(nr, nc, CV_16U, cv::Scalar(0));
+
+	decode_color_map = minsw10_map.clone();
+	decode_color_map.convertTo(decode_color_map, CV_8U);
+	cv::applyColorMap(decode_color_map, decode_color_map, cv::COLORMAP_JET);
+
+
+	save_decode_dir = pointcloud_path + "/decode_minsw10.bmp";
+	cv::imwrite(save_decode_dir, decode_color_map);
+	/****************************************************************************************************************/
+
+
+	cv::Mat minsw10_k2_map;
+
+	minsw10_map.convertTo(minsw10_k2_map, CV_16U);
+
+	cv::Mat minsw10_k1_map(nr, nc, CV_16U, cv::Scalar(0));
 
 
 	for (int r = 0; r < nr; r++)
 	{
-		ushort* ptr_k2 = k2_map.ptr<ushort>(r);
-		ushort* ptr_k1 = k1_map.ptr<ushort>(r);
+		ushort* ptr_k2 = minsw10_k2_map.ptr<ushort>(r);
+		ushort* ptr_k1 = minsw10_k1_map.ptr<ushort>(r);
 		for (int c = 0; c < nc; c++)
 		{
 			ptr_k1[c] = ptr_k2[c] / 2;
@@ -2891,7 +2937,7 @@ bool DfSolution::reconstructPatterns08(std::vector<cv::Mat> patterns, struct Cam
 	ret = encode.computePhaseShift(phase_shift_patterns_img, wrap, confidence, average, brightness, mask);
 	// 
 	cv::Mat unwrap;
-	ret = encode.unwrapBase2Kmap(wrap, k1_map, k2_map, unwrap);
+	ret = encode.unwrapBase2Kmap(wrap, minsw10_k1_map, minsw10_k2_map, unwrap);
 
 
 	////gray_code 

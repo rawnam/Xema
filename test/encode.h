@@ -42,7 +42,9 @@ public:
 
 	bool computeXOR05(std::vector<cv::Mat> patterns, cv::Mat& k1_map, cv::Mat& k2_map, cv::Mat& mask_map);
 
-	bool minswCodeToValue(int minsw, int& value);
+	bool minsw10CodeToValue(int minsw, int& value);
+
+	bool minsw8CodeToValue(int minsw, int& value);
 
 	bool decodeMinswGrayCode(std::vector<cv::Mat> patterns, cv::Mat average_brightness, cv::Mat& k_map);
 
