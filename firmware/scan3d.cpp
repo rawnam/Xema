@@ -613,7 +613,7 @@ int Scan3D::captureRaw05(unsigned char *buff)
 
 int Scan3D::captureRaw06(unsigned char *buff)
 {
-   int patterns_num = 18;
+   int patterns_num = 16;
 
     lc3010_.pattern_mode06();
     if (!camera_->streamOn())

@@ -717,16 +717,16 @@ int LightCrafter3010::pattern_mode05()
 
 int LightCrafter3010::pattern_mode06()
 {
-    unsigned char pattern_index[] = {2,8,9};
-    unsigned char pattern_nums[] = {6,10,2};
+    unsigned char pattern_index[] = {8,2,7};
+    unsigned char pattern_nums[] = {2,6,8};
     return write_pattern_table(pattern_index, pattern_nums, 3, camera_exposure_);
 }
 
 int LightCrafter3010::pattern_mode08() 
 {
-    unsigned char pattern_index[] = {2,8};
-    unsigned char pattern_nums[] = {6,20};
-    return write_pattern_table(pattern_index, pattern_nums, 2, camera_exposure_);
+    unsigned char pattern_index[] = {2,8,9};
+    unsigned char pattern_nums[] = {6,18,2};
+    return write_pattern_table(pattern_index, pattern_nums, 3, camera_exposure_);
 }
 
 void LightCrafter3010::read_pattern_status()
