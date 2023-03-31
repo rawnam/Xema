@@ -724,8 +724,8 @@ int LightCrafter3010::pattern_mode06()
 
 int LightCrafter3010::pattern_mode08() 
 {
-    unsigned char pattern_index[] = {2,7};
-    unsigned char pattern_nums[] = {6,30};
+    unsigned char pattern_index[] = {2,8};
+    unsigned char pattern_nums[] = {6,20};
     return write_pattern_table(pattern_index, pattern_nums, 2, camera_exposure_);
 }
 
