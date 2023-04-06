@@ -2070,8 +2070,8 @@ bool CameraCaptureGui::captureOneFrameData()
 
 
 		float temperature = 0;
-		//ret_code = DfGetDeviceTemperature(temperature);
-		ret_code = DfGetProjectorTemperature(temperature);
+		ret_code = DfGetDeviceTemperature(temperature);
+		//ret_code = DfGetProjectorTemperature(temperature);
 
 
 		emit send_temperature_update(temperature);

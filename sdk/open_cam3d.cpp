@@ -2879,6 +2879,9 @@ DF_SDK_API int DfGetDeviceTemperature(float& temperature)
 			close_socket(g_sock);
 			return DF_FAILED;
 		}
+
+
+		LOG(ERROR) << "CPU temperature: "<< temperature;
 	}
 	else if (command == DF_CMD_REJECT)
 	{
@@ -3359,6 +3362,9 @@ DF_SDK_API int DfGetProjectorTemperature(float& temperature)
 			close_socket(g_sock);
 			return DF_FAILED;
 		}
+
+
+		LOG(ERROR) << "projector temperature: " << temperature;
 	}
 	else if (command == DF_CMD_REJECT)
 	{
