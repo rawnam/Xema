@@ -1484,7 +1484,7 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
 
     float temperature = lc3010.get_projector_temperature();
 
-    LOG(INFO) << "temperature: " << temperature << " deg";
+    LOG(INFO) << "projector temperature: " << temperature << " deg";
 
     if (ret == DF_FAILED)
     {
@@ -1590,7 +1590,7 @@ int handle_cmd_get_phase_02_repetition_02_parallel(int client_sock)
     LOG(INFO) << "Send Phase 02";
 
     float temperature = lc3010.get_projector_temperature();
-    LOG(INFO) << "temperature: " << temperature << " deg";
+    LOG(INFO) << "projector temperature: " << temperature << " deg";
 
     if (ret == DF_FAILED)
     {
@@ -1730,7 +1730,7 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
 
     float temperature = lc3010.get_projector_temperature();
 
-    LOG(INFO) << "temperature: " << temperature << " deg";
+    LOG(INFO) << "projector temperature: " << temperature << " deg";
 
     if (ret == DF_FAILED)
     {
@@ -1840,7 +1840,7 @@ int handle_cmd_get_frame_04_repetition_01_parallel(int client_sock)
 
     float temperature = lc3010.get_projector_temperature();
 
-    LOG(INFO) << "temperature: " << temperature << " deg";
+    LOG(INFO) << "projector temperature: " << temperature << " deg";
 
     if (ret == DF_FAILED)
     {
@@ -2028,7 +2028,7 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
 
     float temperature = lc3010.get_projector_temperature();
 
-    LOG(INFO) << "temperature: " << temperature << " deg";
+    LOG(INFO) << "projector temperature: " << temperature << " deg";
 
     if (ret == DF_FAILED)
     {
@@ -2109,7 +2109,7 @@ int handle_cmd_get_frame_05_parallel(int client_sock)
 
     float temperature = lc3010.get_projector_temperature();
 
-    LOG(INFO) << "temperature: " << temperature << " deg";
+    LOG(INFO) << "projector temperature: " << temperature << " deg";
 
     if (ret == DF_FAILED)
     {
@@ -2186,7 +2186,7 @@ int handle_cmd_get_frame_03_parallel(int client_sock)
 
     float temperature = lc3010.get_projector_temperature();
 
-    LOG(INFO) << "temperature: " << temperature << " deg";
+    LOG(INFO) << "projector temperature: " << temperature << " deg";
 
     if (ret == DF_FAILED)
     {
@@ -2288,7 +2288,7 @@ int handle_cmd_test_get_frame_01(int client_sock)
 
     float temperature = lc3010.get_projector_temperature();
 
-    LOG(INFO) << "temperature: " << temperature << " deg";
+    LOG(INFO) << "projector temperature: " << temperature << " deg";
 
     if (ret == DF_FAILED)
     {
@@ -2365,7 +2365,7 @@ int handle_cmd_get_frame_01(int client_sock)
 
     float temperature = lc3010.get_projector_temperature();
 
-    LOG(INFO) << "temperature: " << temperature << " deg";
+    LOG(INFO) << "projector temperature: " << temperature << " deg";
 
     if (ret == DF_FAILED)
     {
@@ -2438,7 +2438,7 @@ int handle_get_temperature(int client_sock)
         return DF_FAILED;
     }
     float temperature = read_temperature(0);
-    LOG(INFO) << "temperature:" << temperature;
+    LOG(INFO) << "CPU temperature:" << temperature;
     int ret = send_buffer(client_sock, (char *)(&temperature), sizeof(temperature));
     if (ret == DF_FAILED)
     {
