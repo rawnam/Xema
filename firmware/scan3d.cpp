@@ -21,7 +21,7 @@ Scan3D::Scan3D()
     camera_opened_flag_ = false;
 
     
-    fisher_confidence_val_ = -30;
+    fisher_confidence_val_ = -50;
 }
 
 Scan3D::~Scan3D()
@@ -919,7 +919,11 @@ int Scan3D::captureFrame04BaseConfidence()
                 cuda_rectify_six_step_pattern_phase(0, system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
             }
             cuda_unwrap_phase_shift_base_fisher_confidence(3);
-            fisher_filter(fisher_confidence_val_);
+            LOG(INFO) << "fisher_confidence_val： " << fisher_confidence_val_;
+            if (-50 < fisher_confidence_val_)
+            {
+                fisher_filter(fisher_confidence_val_);
+            }
             cuda_normalize_phase(0);
 
             cuda_generate_pointcloud_base_table();
@@ -1309,7 +1313,12 @@ int Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
     }
     cuda_unwrap_phase_shift_base_fisher_confidence(3);
 
-    fisher_filter(fisher_confidence_val_);
+    LOG(INFO) << "fisher_confidence_val： " << fisher_confidence_val_;
+    if (-50 < fisher_confidence_val_)
+    {
+        fisher_filter(fisher_confidence_val_);
+    }
+
     cuda_normalize_phase(0);
 
     LOG(INFO) << "parallel_cuda_unwrap_phase";
