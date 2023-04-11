@@ -1,9 +1,10 @@
+#pragma once
 #include "scan3d.h"
 #include "easylogging++.h"
 // #include "encode_cuda.cuh" 
 #include "../test/LookupTableFunction.h"  
 #include "protocol.h"
-#include "management.cuh" 
+#include "management.cuh"  
 
  
 Scan3D::Scan3D()
@@ -914,9 +915,10 @@ bool Scan3D::captureFrame04()
     return true;
 }
 
+
 int Scan3D::captureFrame04BaseConfidence()
 {
-    
+
     int ret = DF_SUCCESS;
 
     ret = lc3010_.pattern_mode04();
@@ -1005,6 +1007,84 @@ int Scan3D::captureFrame04BaseConfidence()
         default:
             break;
         }
+    }
+
+    delete[] img_ptr;
+
+    camera_->streamOff();
+    LOG(INFO) << "Stream Off";
+    
+    cuda_copy_depth_from_memory(buff_depth_);
+    cuda_copy_pointcloud_from_memory(buff_pointcloud_);
+
+    if (1 == generate_brightness_model_)
+    { 
+        cuda_copy_brightness_from_memory(buff_brightness_);
+    }
+    else
+    {
+        captureTextureImage(generate_brightness_model_, generate_brightness_exposure_,buff_brightness_);
+    }
+
+    return DF_SUCCESS;
+}
+
+int Scan3D::captureFrame06()
+{
+    
+    int ret = DF_SUCCESS;
+
+    ret = lc3010_.pattern_mode06();
+    if(DF_SUCCESS != ret)
+    {
+        return ret;
+    }
+
+
+    LOG(INFO) << "cuda_clear_reconstruct_cache:";
+    cuda_clear_reconstruct_cache();
+
+    LOG(INFO) << "Stream On:";
+    if (!camera_->streamOn())
+    {
+        LOG(INFO) << "Stream On Error";
+        return DF_ERROR_CAMERA_STREAM;
+    }
+
+    lc3010_.start_pattern_sequence();
+
+    unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
+
+    for (int i = 0; i < 16; i++)
+    {
+        LOG(INFO)<<"grap "<<i<<" image:";
+        if (!camera_->grap(img_ptr))
+        {
+            
+            delete[] img_ptr; 
+            camera_->streamOff();
+            return DF_ERROR_CAMERA_GRAP;
+        }
+        LOG(INFO)<<"finished!";
+
+        if(0 == i)
+        {
+            cuda_copy_brightness_to_memory(img_ptr);
+        }
+
+
+        cuda_copy_minsw8_pattern_to_memory(img_ptr, i);  
+
+        cuda_handle_minsw8(i);
+        // copy to gpu
+  
+        if(15 == i)
+        { 
+            cuda_normalize_phase(0); 
+            cuda_generate_pointcloud_base_table();
+            LOG(INFO) << "cuda_generate_pointcloud_base_table"; 
+        } 
+   
     }
 
     delete[] img_ptr;

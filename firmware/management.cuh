@@ -39,7 +39,6 @@ __device__ int d_image_height_ = 0;
  
 
 
-
 /**********************************************************************/
 //basic memory
 __device__ unsigned char* d_patterns_list_[MAX_PATTERNS_NUMBER];
@@ -65,6 +64,9 @@ __device__ float* d_camera_distortion_= NULL;
 __device__ float* d_projector_distortion_= NULL;
 __device__ float* d_rotation_matrix_= NULL;
 __device__ float* d_translation_matrix_= NULL;
+
+
+__device__ unsigned char* d_minsw8_table_= NULL;
  
    
 __device__ float d_baseline_ = 0; 
@@ -148,6 +150,12 @@ void fisher_filter(float fisher_confidence_val);
 
 void depth_filter(float depth_threshold_val);
 
+  
+/****************************************************************************************/
+
+int cuda_copy_minsw8_pattern_to_memory(unsigned char* pattern_ptr,int serial_flag);
+
+int cuda_handle_minsw8(int flag);
 
 /***********************************************************************************/
 //reconstruct
