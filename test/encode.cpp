@@ -237,30 +237,46 @@ bool DF_Encode::minsw8CodeToValue(int minsw, int& value)
 
 	value = -1;
 
-	std::vector<int> list{ 0, 1, 3, 7, 15, 31, 30, 62, 126, 254, 246, 247, 245, 213, 209, 145,
-	153, 152, 136, 8, 40, 42, 43, 35, 99, 103, 71, 70, 68, 76, 204, 220, 252, 253, 189, 185,
-	177, 179, 178, 146, 210, 82, 90, 91, 75, 107, 111, 109, 101, 100, 36, 164, 132, 134, 135,
-	143, 159, 155, 187, 186, 250, 242, 114, 112, 80, 81, 17, 21, 29, 13, 12, 44, 46, 174, 166,
-	167, 231, 199, 195, 193, 201, 200, 216, 88, 120, 56, 57, 49, 51, 55, 23, 22, 86, 94, 222,
-	206, 238, 239, 237, 233, 225, 161, 160, 128, 130, 2, 10, 11, 27, 59, 63, 127, 119, 118, 116,
-	244, 212, 148, 149, 157, 141, 137, 169, 168, 170, 162, 34, 98, 66, 67, 65, 69, 77, 93, 92,
-	124, 60, 188, 180, 181, 183, 151, 147, 211, 219, 218, 202, 74, 106, 104, 105, 97, 33, 37,
-	5, 4, 6, 14, 142, 158, 190, 191, 255, 251, 243, 241, 240, 208, 144, 16, 24, 25, 9, 41, 45,
-	47, 39, 38, 102, 230, 198, 196, 197, 205, 221, 217, 249, 248, 184, 176, 48, 50, 18, 19, 83,
-	87, 95, 79, 78, 110, 108, 236, 228, 229, 165, 133, 129, 131, 139, 138, 154, 26, 58, 122, 123,
-	115, 113, 117, 85, 84, 20, 28, 156, 140, 172, 173, 175, 171, 163, 227, 226, 194, 192, 64, 72,
-	73, 89, 121, 125, 61, 53, 52, 54, 182, 150, 214, 215, 223, 207, 203, 235, 234, 232, 224, 96, 32 };
+	//std::vector<int> list{ 0, 1, 3, 7, 15, 31, 30, 62, 126, 254, 246, 247, 245, 213, 209, 145,
+	//153, 152, 136, 8, 40, 42, 43, 35, 99, 103, 71, 70, 68, 76, 204, 220, 252, 253, 189, 185,
+	//177, 179, 178, 146, 210, 82, 90, 91, 75, 107, 111, 109, 101, 100, 36, 164, 132, 134, 135,
+	//143, 159, 155, 187, 186, 250, 242, 114, 112, 80, 81, 17, 21, 29, 13, 12, 44, 46, 174, 166,
+	//167, 231, 199, 195, 193, 201, 200, 216, 88, 120, 56, 57, 49, 51, 55, 23, 22, 86, 94, 222,
+	//206, 238, 239, 237, 233, 225, 161, 160, 128, 130, 2, 10, 11, 27, 59, 63, 127, 119, 118, 116,
+	//244, 212, 148, 149, 157, 141, 137, 169, 168, 170, 162, 34, 98, 66, 67, 65, 69, 77, 93, 92,
+	//124, 60, 188, 180, 181, 183, 151, 147, 211, 219, 218, 202, 74, 106, 104, 105, 97, 33, 37,
+	//5, 4, 6, 14, 142, 158, 190, 191, 255, 251, 243, 241, 240, 208, 144, 16, 24, 25, 9, 41, 45,
+	//47, 39, 38, 102, 230, 198, 196, 197, 205, 221, 217, 249, 248, 184, 176, 48, 50, 18, 19, 83,
+	//87, 95, 79, 78, 110, 108, 236, 228, 229, 165, 133, 129, 131, 139, 138, 154, 26, 58, 122, 123,
+	//115, 113, 117, 85, 84, 20, 28, 156, 140, 172, 173, 175, 171, 163, 227, 226, 194, 192, 64, 72,
+	//73, 89, 121, 125, 61, 53, 52, 54, 182, 150, 214, 215, 223, 207, 203, 235, 234, 232, 224, 96, 32 };
 
-	auto iter = std::find(list.begin(), list.end(), minsw);
+	//auto iter = std::find(list.begin(), list.end(), minsw);
 
-	if (iter != list.end())
-	{
-		value = iter - list.begin();
-	}
-	else
-	{
-		return false;
-	}
+	//if (iter != list.end())
+	//{
+	//	value = iter - list.begin();
+	//}
+	//else
+	//{
+	//	return false;
+	//}
+
+	std::vector<int> list{ 0, 1, 105, 2, 155, 154, 156, 3, 19, 172, 106, 107, 70, 69, 157, 4, 169,
+		66, 192, 193, 220, 67, 91, 90, 170, 171, 211, 108, 221, 68, 6, 5, 255, 152, 126, 23, 50, 
+		153, 177, 176, 20, 173, 21, 22, 71, 174, 72, 175, 190, 87, 191, 88, 241, 240, 242, 89, 85,
+		86, 212, 109, 136, 239, 7, 110, 233, 130, 128, 129, 28, 131, 27, 26, 234, 235, 147, 44, 29,
+		132, 198, 197, 64, 65, 41, 194, 219, 218, 92, 195, 83, 236, 42, 43, 134, 133, 93, 196, 254,
+		151, 127, 24, 49, 48, 178, 25, 149, 150, 148, 45, 200, 47, 199, 46, 63, 216, 62, 215, 114, 
+		217, 113, 112, 84, 237, 213, 214, 135, 238, 8, 111, 103, 206, 104, 207, 52, 205, 53, 54, 
+		18, 121, 209, 208, 223, 120, 158, 55, 168, 15, 39, 142, 117, 118, 244, 141, 17, 16, 210, 57,
+		222, 119, 159, 56, 102, 101, 125, 228, 51, 204, 74, 75, 123, 122, 124, 227, 224, 225, 73, 
+		226, 189, 36, 38, 37, 138, 139, 243, 140, 188, 35, 59, 58, 137, 34, 160, 161, 232, 79, 231,
+		78, 181, 182, 180, 77, 81, 80, 146, 249, 30, 183, 95, 248, 167, 14, 40, 143, 116, 13, 245,
+		246, 82, 185, 145, 144, 31, 184, 94, 247, 253, 100, 230, 229, 202, 203, 179, 76, 252, 99, 
+		251, 250, 201, 98, 96, 97, 166, 165, 61, 164, 115, 12, 10, 11, 187, 186, 60, 163, 32, 33, 9, 162 };
+
+	value = list[minsw];
 
 	return true;
 
@@ -1446,6 +1462,7 @@ bool DF_Encode::decodeMinswGrayCode(std::vector<cv::Mat> patterns, std::vector<c
 	int nr = patterns[0].rows;
 	int nc = patterns[0].cols;
 
+	cv::Mat bit_value_map(nr, nc, CV_8U, cv::Scalar(0));
 
 	//std::vector<std::vector<bool>> gray_code_list;
 	//threshold bin
@@ -1453,25 +1470,37 @@ bool DF_Encode::decodeMinswGrayCode(std::vector<cv::Mat> patterns, std::vector<c
 	for (int i = 0; i < patterns.size(); i++)
 	{
 		cv::Mat bin_mat(nr, nc, CV_8U, cv::Scalar(0));
+		int mv_i = (patterns.size() - i - 1);
 
 		for (int r = 0; r < nr; r++)
 		{
 			uchar* ptr_bin = bin_mat.ptr<uchar>(r);
 			uchar* ptr_avg = threshold_list[i].ptr<uchar>(r);
 			uchar* ptr_gray = patterns[i].ptr<uchar>(r);
-
+			uchar* ptr_val = bit_value_map.ptr<uchar>(r);
+			 
 
 			for (int c = 0; c < nc; c++)
 			{
+				uchar val = ptr_val[c];
+  
+				uchar mask = 1 << mv_i; 
+				val = val & (~mask);  
+				uchar set_bit = 0;
+				  
 				if (ptr_gray[c] < ptr_avg[c])
 				{
-					ptr_bin[c] = 0;
+					ptr_bin[c] = 0; 
 				}
 				else
 				{
 					ptr_bin[c] = 255;
+					set_bit = 1 << mv_i;
 				}
 
+
+				val = val | set_bit;
+				ptr_val[c] = val;
 				 
 			}
 		}
@@ -1527,21 +1556,33 @@ bool DF_Encode::decodeMinswGrayCode(std::vector<cv::Mat> patterns, cv::Mat avera
 	int nr = average_brightness.rows;
 	int nc = average_brightness.cols;
 
+	cv::Mat bit_value_map(nr, nc, CV_16U, cv::Scalar(0));
+
+   
 	//std::vector<std::vector<bool>> gray_code_list;
 	//threshold bin
 	std::vector<cv::Mat> bin_patterns;
 	for (int i = 0; i < patterns.size(); i++)
 	{
 		cv::Mat bin_mat(nr, nc, CV_8U, cv::Scalar(0));
+		int mv_i = (patterns.size() - i - 1);
 
 		for (int r = 0; r < nr; r++)
 		{
 			uchar* ptr_bin = bin_mat.ptr<uchar>(r);
 			uchar* ptr_avg = average_brightness.ptr<uchar>(r);
 			uchar* ptr_gray = patterns[i].ptr<uchar>(r);
+			ushort* ptr_val = bit_value_map.ptr<ushort>(r);
 
 			for (int c = 0; c < nc; c++)
 			{
+
+				ushort val = ptr_val[c];
+
+				ushort mask = 1 << mv_i;
+				val = val & (~mask);
+				ushort set_bit = 0;
+
 				if (ptr_gray[c] < ptr_avg[c])
 				{
 					ptr_bin[c] = 0;
@@ -1549,7 +1590,21 @@ bool DF_Encode::decodeMinswGrayCode(std::vector<cv::Mat> patterns, cv::Mat avera
 				else
 				{
 					ptr_bin[c] = 255;
+					set_bit = 1 << mv_i;
 				}
+
+
+				val = val | set_bit;
+				ptr_val[c] = val;
+
+				//if (ptr_gray[c] < ptr_avg[c])
+				//{
+				//	ptr_bin[c] = 0;
+				//}
+				//else
+				//{
+				//	ptr_bin[c] = 255;
+				//}
 			}
 		}
 		bin_patterns.push_back(bin_mat.clone());
@@ -1590,6 +1645,8 @@ bool DF_Encode::decodeMinswGrayCode(std::vector<cv::Mat> patterns, cv::Mat avera
 		}
 
 	} 
+
+	cv::Mat diff = bit_value_map - k1;
 
 	k_map = k1.clone(); 
 	 
