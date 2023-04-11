@@ -61,13 +61,13 @@ public:
 
     bool captureFrame04();
 
-    int captureFrame04BaseConfidence();
+    int captureFrame04BaseConfidence(); 
 
     bool captureFrame04Hdr();
     
     int captureFrame04HdrBaseConfidence(); 
     
-    void mergeBrightness();
+    void mergeBrightness();  
 
     bool captureFrame04Repetition01(int repetition_count); 
 
@@ -76,6 +76,8 @@ public:
     int captureFrame04Repetition02BaseConfidence(int repetition_count);
 
     bool captureFrame05();
+    
+    int captureFrame06();
     
     bool captureFrame03();
     
