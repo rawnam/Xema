@@ -7,11 +7,11 @@ const int Minsw8MapSeries = 17;
 const int binMapSeries = 18;
    
 
-int cuda_copy_minsw8_pattern_to_memory(unsigned char* pattern_ptr,int serial_flag);
+__global__ void kernel_generate_merge_threshold_map(int width,int height,unsigned short * const d_in_white, unsigned short * const d_in_black,unsigned short * const d_out_threshold);
 
-int cuda_handle_minsw8(int flag);
-    
 __global__ void kernel_generate_threshold_map(int width,int height,unsigned char * const d_in_white, unsigned char * const d_in_black,unsigned char * const d_out_threshold);
+
+__global__ void kernel_threshold_merge_patterns(int width,int height,unsigned short * const d_in_pattern, unsigned short * const d_in_threshold,int places,unsigned char* const d_out_bin);
 
 __global__ void kernel_threshold_patterns(int width,int height,unsigned char * const d_in_pattern, unsigned char * const d_in_threshold,int places,unsigned char* const d_out_bin);
  

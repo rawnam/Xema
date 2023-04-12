@@ -157,6 +157,8 @@ int cuda_copy_minsw8_pattern_to_memory(unsigned char* pattern_ptr,int serial_fla
 
 int cuda_handle_minsw8(int flag);
 
+int cuda_handle_repetition_model06(int repetition_count);
+
 /***********************************************************************************/
 //reconstruct
 

@@ -3,6 +3,19 @@
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 
+
+__global__ void kernel_generate_merge_threshold_map(int width,int height,unsigned short * const d_in_white, unsigned short * const d_in_black,unsigned short * const d_out_threshold)
+{
+    const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+    const unsigned int offset = idy * width + idx;
+
+    if (idx < width && idy < height)
+    { 
+        unsigned short val = 0.5 + (d_in_white[offset] - d_in_black[offset])/2;
+        d_out_threshold[offset] = d_in_black[offset] + val;
+    }
+}
  
 __global__ void kernel_generate_threshold_map(int width,int height,unsigned char * const d_in_white, unsigned char * const d_in_black,unsigned char * d_out_threshold)
 {
@@ -14,6 +27,33 @@ __global__ void kernel_generate_threshold_map(int width,int height,unsigned char
     { 
         unsigned char val = 0.5 + (d_in_white[offset] - d_in_black[offset])/2;
         d_out_threshold[offset] = d_in_black[offset] + val;
+    }
+}
+
+__global__ void kernel_threshold_merge_patterns(int width,int height,unsigned short * const d_in_pattern, unsigned short * const d_in_threshold,int places,unsigned char* const d_out_bin)
+{
+    const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+    const unsigned int offset = idy * width + idx;
+
+    if (idx < width && idy < height)
+    { 
+        unsigned char val = d_out_bin[offset];
+
+        unsigned char mv_i = (7- places);
+
+        unsigned char mask = 1 << mv_i;
+        val = val & (~mask);
+        unsigned char set_bit = 0;
+
+        if(d_in_pattern[offset] > d_in_threshold[offset] )
+        { 
+            set_bit = 1 << mv_i;
+        }
+ 
+
+        val = val | set_bit;
+        d_out_bin[offset] = val;
     }
 }
 

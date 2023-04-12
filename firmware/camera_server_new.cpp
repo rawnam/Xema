@@ -1445,6 +1445,105 @@ int handle_cmd_get_raw_01(int client_sock)
    
 }  
 
+
+int handle_cmd_get_frame_06_hdr(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;	
+    }
+
+    LOG(INFO)<<"Frame06 HDR Exposure:"; 
+    frame_status_ = DF_FRAME_CAPTURING;
+
+
+    int depth_buf_size = camera_width_*camera_height_*4;
+    float* depth_map = new float[depth_buf_size];
+
+    int brightness_buf_size = camera_width_*camera_height_*1;
+    unsigned char* brightness = new unsigned char[brightness_buf_size]; 
+
+    int ret = scan3d_.captureFrame06Hdr(); 
+
+    if(DF_SUCCESS != ret)
+    { 
+         LOG(ERROR)<<"captureFrame06Hdr code: "<<ret;
+         frame_status_ = ret;
+    }
+
+    std::thread  t_merge_brightness(&Scan3D::mergeBrightness, &scan3d_);
+ 
+    scan3d_.removeOutlierBaseDepthFilter();
+    scan3d_.removeOutlierBaseRadiusFilter();
+         
+    scan3d_.copyDepthData(depth_map);
+
+ 
+    LOG(INFO)<<"copy depth";  
+    LOG(INFO)<<"Reconstruct Frame04 Finished!";
+   
+
+    if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
+    { 
+        cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+        cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
+        cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
+        memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
+        LOG(INFO) << "Bilateral";
+    }
+
+   /***************************************************************************************************/
+    LOG(INFO) << "start send depth, buffer_size= "<< depth_buf_size;
+    ret = send_buffer(client_sock, (const char *)depth_map, depth_buf_size);
+    LOG(INFO) << "depth ret= "<<ret;
+
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!";
+        // delete [] buffer;
+        delete[] depth_map;
+        
+        t_merge_brightness.join();
+        delete[] brightness;
+
+        frame_status_ = DF_ERROR_NETWORK;
+        return DF_FAILED;
+    }
+
+    t_merge_brightness.join();
+    scan3d_.copyBrightnessData(brightness);
+
+    LOG(INFO) << "start send brightness, buffer_size= "<<brightness_buf_size;
+    ret = send_buffer(client_sock, (const char *)brightness, brightness_buf_size);
+    LOG(INFO) << "brightness ret= "<<ret;
+
+    LOG(INFO) << "Send Frame06";
+
+    float temperature = lc3010.get_projector_temperature();
+
+    LOG(INFO) << "temperature: " << temperature << " deg";
+
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) <<"send error, close this connection!";
+        // delete [] buffer;
+        delete[] depth_map;
+        delete[] brightness;
+
+        frame_status_ = DF_ERROR_NETWORK;
+        return DF_FAILED;
+    }
+    LOG(INFO) << "frame sent!";
+    // delete [] buffer;
+    delete[] depth_map;
+    delete[] brightness;  
+
+    frame_status_ = DF_SUCCESS;
+    return DF_SUCCESS;
+
+}
+
+
 int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
 {
     if(check_token(client_sock) == DF_FAILED)
@@ -1643,6 +1742,124 @@ int handle_cmd_get_phase_02_repetition_02_parallel(int client_sock)
     delete[] brightness;
     return DF_SUCCESS;
 }
+
+
+int handle_cmd_get_frame_06_repetition(int client_sock)
+{
+    /**************************************************************************************/
+
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	return DF_FAILED;
+    }
+	
+    frame_status_ = DF_FRAME_CAPTURING;
+    
+    int repetition_count = 1;
+
+    int ret = recv_buffer(client_sock, (char*)(&repetition_count), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+        frame_status_ = DF_ERROR_NETWORK;
+    	return DF_FAILED;
+    }
+    LOG(INFO)<<"repetition_count: "<<repetition_count<<"\n";
+    /***************************************************************************************/
+
+
+    int depth_buf_size = camera_width_*camera_height_*4;
+    float* depth_map = new float[depth_buf_size];
+
+    int brightness_buf_size = camera_width_*camera_height_*1;
+    unsigned char* brightness = new unsigned char[brightness_buf_size]; 
+
+    if(repetition_count< 1)
+    {
+      repetition_count = 1;
+    }
+    
+    if(repetition_count> 10)
+    {
+      repetition_count = 10;
+    }
+
+    ret = scan3d_.captureFrame06Repetition(repetition_count);
+    if (DF_SUCCESS != ret)
+    {
+      LOG(ERROR) << "captureFrame04BaseConfidence code: " << ret;
+      frame_status_ = ret;
+    }
+ 
+    scan3d_.removeOutlierBaseDepthFilter();
+    scan3d_.removeOutlierBaseRadiusFilter();
+
+             
+    scan3d_.copyBrightnessData(brightness);
+    scan3d_.copyDepthData(depth_map); 
+ 
+    LOG(INFO)<<"capture Frame04 Repetition02 Finished!";
+
+    if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
+    { 
+        cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+        cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
+        cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
+        memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
+        LOG(INFO) << "Bilateral";
+
+
+    }
+
+
+   /***************************************************************************************************/
+    LOG(INFO) << "start send depth, buffer_size= "<< depth_buf_size;
+    ret = send_buffer(client_sock, (const char *)depth_map, depth_buf_size);
+    LOG(INFO) << "depth ret= "<<ret;
+
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!";
+        // delete [] buffer;
+        delete[] depth_map;
+        delete[] brightness;
+
+        frame_status_ = DF_ERROR_NETWORK;
+        return DF_FAILED;
+    }
+
+    LOG(INFO) << "start send brightness, buffer_size= "<<brightness_buf_size;
+    ret = send_buffer(client_sock, (const char *)brightness, brightness_buf_size);
+    LOG(INFO) << "brightness ret= "<<ret;
+
+    LOG(INFO) << "Send Frame06 repetition";
+
+    float temperature = lc3010.get_projector_temperature();
+
+    LOG(INFO) << "temperature: " << temperature << " deg";
+
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) <<"send error, close this connection!";
+        // delete [] buffer;
+        delete[] depth_map;
+        delete[] brightness;
+
+        frame_status_ = DF_ERROR_NETWORK;
+        return DF_FAILED;
+    }
+    LOG(INFO) << "frame sent!";
+    // delete [] buffer;
+    delete[] depth_map;
+    delete[] brightness;
+
+    frame_status_ = DF_SUCCESS;
+    return DF_SUCCESS;
+
+    
+
+}
+
 
 
 int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
@@ -1912,8 +2129,7 @@ int handle_cmd_get_standard_plane_param_parallel(int client_sock)
         memcpy(plane_param, R, sizeof(float) * 9);
         memcpy(plane_param+9, T, sizeof(float) * 3);
     }
-
-
+ 
 
     LOG(INFO)<<("start send plane param, buffer_size=%d\n", plane_buf_size);
     int ret = send_buffer(client_sock, (const char*)plane_param, plane_buf_size);
@@ -4517,6 +4733,14 @@ int handle_commands(int client_sock)
         LOG(INFO) << "DF_CMD_GET_FRAME_06";
         ret = handle_cmd_get_frame_06(client_sock);
         break;
+    case DF_CMD_GET_FRAME_06_HDR:
+        LOG(INFO) << "DF_CMD_GET_FRAME_06";
+        ret = handle_cmd_get_frame_06_hdr(client_sock);
+        break;
+    case DF_CMD_GET_REPETITION_FRAME_06:
+        LOG(INFO) << "DF_CMD_GET_FRAME_06";
+        ret = handle_cmd_get_frame_06_repetition(client_sock);
+        break;  
 	case DF_CMD_GET_POINTCLOUD:
 	    LOG(INFO)<<"DF_CMD_GET_POINTCLOUD"; 
 	    ret = handle_cmd_get_point_cloud(client_sock);

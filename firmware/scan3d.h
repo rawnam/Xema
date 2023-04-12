@@ -78,6 +78,10 @@ public:
     bool captureFrame05();
     
     int captureFrame06();
+
+    int captureFrame06Hdr();
+
+    int captureFrame06Repetition(int repetition_count);
     
     bool captureFrame03();
     

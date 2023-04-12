@@ -1093,6 +1093,32 @@ int cuda_copy_minsw8_pattern_to_memory(unsigned char* pattern_ptr,int serial_fla
 	CHECK(cudaMemcpyAsync(d_patterns_list_[serial_flag], smooth_mat.data, d_image_height_*d_image_width_* sizeof(unsigned char), cudaMemcpyHostToDevice)); 
 }
 
+
+int cuda_handle_repetition_model06(int repetition_count)
+{
+    kernel_generate_merge_threshold_map << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,
+	d_repetition_02_merge_patterns_list_[0], d_repetition_02_merge_patterns_list_[1],d_repetition_02_merge_patterns_list_[ThresholdMapSeries]);
+ 
+
+	kernel_merge_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_repetition_02_merge_patterns_list_[2], d_repetition_02_merge_patterns_list_[3],
+		d_repetition_02_merge_patterns_list_[4],d_repetition_02_merge_patterns_list_[5],d_repetition_02_merge_patterns_list_[6],d_repetition_02_merge_patterns_list_[7] ,
+		repetition_count,h_image_height_, h_image_width_, d_wrap_map_list_[3], d_confidence_map_list_[3]);
+
+	for(int i= 8;i<16;i++)
+	{
+		kernel_threshold_merge_patterns << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,
+		d_repetition_02_merge_patterns_list_[i], d_repetition_02_merge_patterns_list_[ThresholdMapSeries],
+        i-8,d_patterns_list_[Minsw8MapSeries]);
+
+	}
+
+	kernel_minsw8_to_bin<<<blocksPerGrid, threadsPerBlock>>>(d_image_width_, d_image_height_, d_minsw8_table_, d_patterns_list_[Minsw8MapSeries], d_patterns_list_[binMapSeries]);
+
+	kernel_bin_unwrap<<<blocksPerGrid, threadsPerBlock>>>(d_image_width_, d_image_height_, d_patterns_list_[binMapSeries], d_wrap_map_list_[3], d_unwrap_map_list_[0]);
+
+	return 0;
+}
+
  int cuda_handle_minsw8(int flag)
  {
 
