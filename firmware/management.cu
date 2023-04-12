@@ -432,6 +432,8 @@ void cuda_clear_reconstruct_cache()
 	CHECK(cudaMemset(d_brightness_map_,0, d_image_height_*d_image_width_ * sizeof(char))); 
 	CHECK(cudaMemset(d_depth_map_,0, d_image_height_*d_image_width_ * sizeof(float))); 
 	CHECK(cudaMemset(d_point_cloud_map_,0,3* d_image_height_*d_image_width_ * sizeof(float))); 
+	CHECK(cudaMemset(d_mask_map_,0,d_image_height_*d_image_width_ * sizeof(unsigned char))); 
+    CHECK(cudaMemset(d_fisher_confidence_map,0,d_image_height_*d_image_width_ * sizeof(float))); 
 }
 
 
@@ -1121,20 +1123,21 @@ void cuda_filter_reflect_noise(float * const unwrap_map)
 void fisher_filter(float fisher_confidence_val)
 {
 	//按行来组织线程
-    dim3 threadsPerBlock_p(4, 4);
+    dim3 threadsPerBlock_p(32, 1);
     dim3 blocksPerGrid_p;
-	if(1200 == h_image_height_)
+	if(1200 == h_image_height_)//1920
 	{
-		blocksPerGrid_p.x = (40 + threadsPerBlock_p.x - 1) / threadsPerBlock_p.x;
-		blocksPerGrid_p.y = (30 + threadsPerBlock_p.y - 1) / threadsPerBlock_p.y;
+		blocksPerGrid_p.x = 1;
+		blocksPerGrid_p.y = 1200;
 	}
-	else if(2048 == h_image_height_)
+	else if(2048 == h_image_height_)//2448
 	{
-		blocksPerGrid_p.x = (64 + threadsPerBlock_p.x - 1) / threadsPerBlock_p.x;
-		blocksPerGrid_p.y = (32 + threadsPerBlock_p.y - 1) / threadsPerBlock_p.y;
+		blocksPerGrid_p.x = 1;
+		blocksPerGrid_p.y = 2048;
 	}
+	cudaDeviceSynchronize();
 	LOG(INFO)<<"fisher start"; 
-	kernel_fisher_filter <<< blocksPerGrid_p, threadsPerBlock_p >>> (h_image_height_, h_image_width_, (FISHER_CENTER_LOW + (fisher_confidence_val * FISHER_CENTER_RATE)), d_fisher_confidence_map, d_fisher_mask_, d_unwrap_map_list_[0]);//
+	kernel_fisher_filter <<< blocksPerGrid_p, threadsPerBlock_p >>> (h_image_height_, h_image_width_, (FISHER_CENTER_LOW + (fisher_confidence_val * FISHER_CENTER_RATE)), d_fisher_confidence_map, d_fisher_mask_, d_unwrap_map_list_[0]);
 	cudaDeviceSynchronize();
 	LOG(INFO)<<"fisher end"; 
 }
