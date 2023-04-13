@@ -28,6 +28,12 @@ extern "C"
 		float distortion[1 * 12];//<k1,k2,p1,p2,k3,k4,k5,k6,s1,s2,s3,s4>
 
 	};
+
+	enum class XemaEngine
+	{
+		Normal = 0,
+		Reflect = 1,
+	};
 	 
 	//函数名： DfConnect
 	//功能： 连接相机
@@ -42,6 +48,13 @@ extern "C"
 	//输出参数： width(图像宽)、height(图像高)
 	//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
 	DF_SDK_API int  DfGetCameraResolution(int* width, int* height);
+
+	//函数名： DfSetCaptureEngine
+	//功能： 设置采集引擎
+	//输入参数：engine
+	//输出参数：  
+	//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
+	DF_SDK_API int DfSetCaptureEngine(XemaEngine engine);
 
 	//函数名： DfCaptureData
 	//功能： 采集一帧数据并阻塞至返回状态
@@ -487,6 +500,30 @@ DF_SDK_API int DfGetFrame04(float* depth, int depth_buf_size,
 //输出参数：depth（深度图）、brightness（亮度图）
 //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfGetFrame05(float* depth, int depth_buf_size,
+	unsigned char* brightness, int brightness_buf_size);
+
+//函数名： DfGetFrame06
+//功能： 获取一帧数据（亮度图+深度图），基于Raw06相位图
+//输入参数：depth_buf_size（深度图尺寸）、brightness_buf_size（亮度图尺寸）
+//输出参数：depth（深度图）、brightness（亮度图）
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetFrame06(float* depth, int depth_buf_size,
+	unsigned char* brightness, int brightness_buf_size);
+
+//函数名： DfGetFrame06Hdr
+//功能： 获取一帧数据（亮度图+深度图），基于Raw06相位图
+//输入参数：depth_buf_size（深度图尺寸）、brightness_buf_size（亮度图尺寸）
+//输出参数：depth（深度图）、brightness（亮度图）
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetFrame06Hdr(float* depth, int depth_buf_size,
+	unsigned char* brightness, int brightness_buf_size);
+
+//函数名： DfGetRepetitionFrame06
+//功能： 获取一帧数据（亮度图+深度图），基于Raw06图重复count次
+//输入参数：count（重复次数）、depth_buf_size（深度图尺寸）、brightness_buf_size（亮度图尺寸）
+//输出参数：depth（深度图）、brightness（亮度图）
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetRepetitionFrame06(int count, float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size);
 
 //函数名： DfGetRepetitionFrame04
