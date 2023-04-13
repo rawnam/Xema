@@ -28,11 +28,18 @@ extern "C"
 		float distortion[1 * 12];//<k1,k2,p1,p2,k3,k4,k5,k6,s1,s2,s3,s4>
 
 	};
+
+	enum class XemaEngine
+	{
+		Normal = 0,
+		Reflect = 1,
+	};
+
 	//函数名： DfConnect
-   //功能： 连接相机
-   //输入参数： camera_id（相机ip地址）
-   //输出参数： 无
-   //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+	//功能： 连接相机
+	//输入参数： camera_id（相机ip地址）
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
 	DF_SDK_API int DfConnect(const char* camera_id);
 
 	//函数名： DfGetCameraResolution
@@ -41,6 +48,20 @@ extern "C"
 	//输出参数： width(图像宽)、height(图像高)
 	//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
 	DF_SDK_API int  DfGetCameraResolution(int* width, int* height);
+
+	//函数名： DfSetCaptureEngine
+	//功能： 设置采集引擎
+	//输入参数：engine
+	//输出参数：  
+	//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
+	DF_SDK_API int DfSetCaptureEngine(XemaEngine engine);
+
+	//函数名： DfGetCaptureEngine
+	//功能： 设置采集引擎
+	//输入参数：
+	//输出参数：engine
+	//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
+	DF_SDK_API int DfGetCaptureEngine(XemaEngine& engine);
 
 	//函数名： DfCaptureData
 	//功能： 采集一帧数据并阻塞至返回状态
@@ -63,12 +84,26 @@ extern "C"
 	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 	DF_SDK_API int DfGetDepthDataFloat(float* depth);
 
+	//函数名： DfGetUndistortDepthDataFloat
+	//功能： 获取去畸变后的深度图
+	//输入参数：无
+	//输出参数： depth(深度图)
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfGetUndistortDepthDataFloat(float* depth);
+
 	//函数名： DfGetBrightnessData
 	//功能： 获取亮度图
 	//输入参数：无
 	//输出参数： brightness(亮度图)
 	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 	DF_SDK_API int DfGetBrightnessData(unsigned char* brightness);
+
+	//函数名： DfGetUndistortBrightnessData
+	//功能： 获取去畸变后的亮度图
+	//输入参数：无
+	//输出参数： brightness(亮度图)
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfGetUndistortBrightnessData(unsigned char* brightness);
 
 	//函数名： DfGetHeightMapData
 	//功能： 获取校正到基准平面的高度映射图
@@ -262,7 +297,7 @@ extern "C"
 
 	//函数名： DfSetParamRadiusFilter
 	//功能： 设置深度图滤波参数
-	//输入参数：use(开关：1开、0关)、depth_filterthreshold(深度图在1000mm距离过滤的噪声阈值)
+	//输入参数：use(开关：1开、0关)、depth_filterthreshold(阈值0-100)
 	//输出参数： 无
 	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 	DF_SDK_API int DfSetParamDepthFilter(int use, float depth_filter_threshold);

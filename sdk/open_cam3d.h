@@ -56,6 +56,13 @@ extern "C"
 	//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
 	DF_SDK_API int DfSetCaptureEngine(XemaEngine engine);
 
+	//函数名： DfGetCaptureEngine
+	//功能： 设置采集引擎
+	//输入参数：
+	//输出参数：engine
+	//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
+	DF_SDK_API int DfGetCaptureEngine(XemaEngine& engine);
+
 	//函数名： DfCaptureData
 	//功能： 采集一帧数据并阻塞至返回状态
 	//输入参数： exposure_num（曝光次数）：设置值为1为单曝光，大于1为多曝光模式（具体参数在相机gui中设置）.

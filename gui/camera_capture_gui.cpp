@@ -1682,8 +1682,18 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 
 	if (DF_SUCCESS != ret_code)
 	{
-		addLogMessage(u8"采集数据异常： " + QString::number(ret_code));
-		ret_code = 0;
+		if (DF_UNKNOWN == ret_code)
+		{
+			addLogMessage(u8"相机固件低！");
+		}
+		else
+		{
+			addLogMessage(u8"采集数据异常： " + QString::number(ret_code));
+			ret_code = 0;
+
+		}
+
+
 	}
 
 
@@ -1864,10 +1874,20 @@ bool CameraCaptureGui::captureOneFrameData()
 	
 	ret_code = DfCaptureData(exposure_num, c_time);
 
+
+
 	if (DF_SUCCESS != ret_code)
 	{ 
-		addLogMessage(u8"采集数据异常： "+ QString::number(ret_code));
-		ret_code = 0;
+		if (DF_UNKNOWN == ret_code)
+		{
+			addLogMessage(u8"相机固件低！");
+		}
+		else
+		{
+			addLogMessage(u8"采集数据异常： " + QString::number(ret_code));
+			ret_code = 0;
+
+		}
 	}
 
 

@@ -129,6 +129,12 @@ int main()
 				std::cout << "Set Camera Exposure Error!" << std::endl;
 			}
 
+			ret_code = p_camera->setCaptureEngine(XemaEngine::Reflect);
+			if (0 != ret_code)
+			{
+				std::cout << "Set Capture Engine Error!" << std::endl;
+			}
+
 			//采集一帧单次曝光的数据
 			ret_code = p_camera->captureData(1, timestamp_data);
 			std::cout << "Capture Single Exposure Data" << std::endl;

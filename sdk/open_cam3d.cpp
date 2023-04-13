@@ -789,7 +789,7 @@ DF_SDK_API int DfGetCameraResolution(int* width, int* height)
 DF_SDK_API int DfCaptureRepetitionData(int repetition_count, int exposure_num, char* timestamp)
 {
 
-	bool ret = -1;
+	int ret = -1;
 
 	//if (exposure_num > 1)
 	//{
@@ -827,6 +827,18 @@ DF_SDK_API int DfCaptureRepetitionData(int repetition_count, int exposure_num, c
 	return 0;
 }
 
+//函数名： DfGetCaptureEngine
+//功能： 设置采集引擎
+//输入参数：
+//输出参数：engine
+//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
+DF_SDK_API int DfGetCaptureEngine(XemaEngine& engine)
+{
+	engine = engine_;
+
+	return 0;
+}
+
 //函数名： DfSetCaptureEngine
 //功能： 设置采集引擎
 //输入参数：engine
@@ -848,7 +860,7 @@ DF_SDK_API int DfCaptureData(int exposure_num, char* timestamp)
 {
 
 	LOG(INFO) << "DfCaptureData: "<< exposure_num;
-	bool ret = -1;
+	int ret = -1;
 
 	if (exposure_num > 1)
 	{
@@ -2034,7 +2046,7 @@ DF_SDK_API int DfGetRepetitionFrame06(int count, float* depth, int depth_buf_siz
 		LOG(INFO) << "--";
 	}
 
-	LOG(INFO) << "GetRepetition01Frame04";
+	LOG(INFO) << "GetRepetitionFrame06";
 	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
 	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
@@ -2388,6 +2400,11 @@ DF_SDK_API int DfGetFrame06Hdr(float* depth, int depth_buf_size,
 		close_socket(g_sock);
 		return DF_BUSY;
 	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
 
 	close_socket(g_sock);
 
@@ -2459,6 +2476,12 @@ DF_SDK_API int DfGetFrame06(float* depth, int depth_buf_size,
 		LOG(INFO) << "Get frame rejected";
 		close_socket(g_sock);
 		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		LOG(INFO) << "Get frame DF_CMD_UNKNOWN";
+		return DF_UNKNOWN;
 	}
 
 	close_socket(g_sock);

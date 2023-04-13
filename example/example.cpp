@@ -209,6 +209,13 @@ int main()
 				{
 					std::cout << "Set Multiple Exposure Model Error;" << std::endl;
 				}
+
+				ret_code = DfSetCaptureEngine(XemaEngine::Reflect);
+				if (0 != ret_code)
+				{
+					std::cout << "Set Capture Engine Error;" << std::endl;
+				}
+
 				ret_code = DfCaptureData(num, timestamp_data);
 				std::cout << "Capture HDR Data" << std::endl;
 				std::cout << "timestamp: " << timestamp_data << std::endl;
