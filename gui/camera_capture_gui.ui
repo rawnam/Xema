@@ -288,7 +288,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_depth_grey">
+           <widget class="QRadioButton" name="radioButton_height_color">
             <property name="text">
              <string>高度图</string>
             </property>
@@ -583,7 +583,7 @@
                     <number>1</number>
                    </property>
                    <property name="value">
-                    <double>10.000000000000000</double>
+                    <double>3.000000000000000</double>
                    </property>
                   </widget>
                  </item>
@@ -1161,7 +1161,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_image"/>
   <buttongroup name="buttonGroup_exposure"/>
+  <buttongroup name="buttonGroup_image"/>
  </buttongroups>
 </ui>

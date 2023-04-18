@@ -68,7 +68,7 @@ SystemConfigDataStruct::SystemConfigDataStruct()
 	instance_.firwmare_param_.use_bilateral_filter = 1;
 	instance_.firwmare_param_.bilateral_filter_param_d = 3;
 
-	instance_.firwmare_param_.confidence = 10;
+	instance_.firwmare_param_.confidence = 3;
 
 	instance_.firwmare_param_.use_radius_filter = 0; 
 	instance_.firwmare_param_.radius_filter_r = 2.5; 

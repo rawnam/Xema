@@ -61,7 +61,7 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	}
 
   
-	radio_button_flag_ = SELECT_BRIGHTNESS_FLAG_;
+	//radio_button_flag_ = SELECT_BRIGHTNESS_FLAG_;
 	showImage();
 
 	ui.comboBox_ip->hide();
@@ -235,10 +235,15 @@ bool CameraCaptureGui::initializeFunction()
 
 	connect(ui.radioButton_brightness, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_brightness(bool)));
 	connect(ui.radioButton_depth_color, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_color_depth(bool)));
-	connect(ui.radioButton_depth_grey, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_gray_depth(bool)));
+	connect(ui.radioButton_height_color, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_color_height(bool)));
+
+	connect(ui.radioButton_single_exposure, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_signal(bool)));
+	connect(ui.radioButton_hdr_exposure, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_hdr(bool)));
+	connect(ui.radioButton_repetition_exposure, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_repetition(bool)));
 	 
 	connect(ui.comboBox_ip, SIGNAL(activated(int)), this, SLOT(do_comboBox_activated_ip(int))); 
 	connect(ui.checkBox_over_exposure, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_over_exposure(bool)));
+	connect(ui.checkBox_auto_save, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_auto_save(bool)));
 
 	connect(ui.pushButton_connect, SIGNAL(clicked()), this, SLOT(do_pushButton_connect()));
 	connect(ui.pushButton_refresh, SIGNAL(clicked()), this, SLOT(do_pushButton_refresh()));
@@ -624,7 +629,83 @@ void CameraCaptureGui::setUiData()
 	ui.label_rectify_gray_r->hide();
 	ui.label_rectify_gray_s->hide();
 
-	
+	switch (firmware_config_param_.generate_brightness_model)
+	{
+	case 1:
+	{
+		ui.radioButton_generate_brightness_default->setChecked(true);
+		ui.spinBox_camera_exposure_define->setValue(firmware_config_param_.generate_brightness_exposure);
+	}
+	break;
+	case 2:
+	{
+		ui.radioButton_generate_brightness_illuminsation_define->setChecked(true);
+		ui.spinBox_camera_exposure_define->setValue(firmware_config_param_.generate_brightness_exposure);
+	}
+	break;
+	case 3:
+	{
+		ui.radioButton_generate_brightness_darkness_define->setChecked(true);
+		ui.spinBox_camera_exposure_define->setValue(firmware_config_param_.generate_brightness_exposure);
+	}
+	break;
+	default:
+		break;
+	}
+
+	if (processing_gui_settings_data_.Instance().show_over_exposure)
+	{
+		ui.checkBox_over_exposure->setChecked(true);
+	}
+
+	if (processing_gui_settings_data_.Instance().auto_save)
+	{
+		ui.checkBox_auto_save->setChecked(true);
+	}
+
+	switch (processing_gui_settings_data_.Instance().exposure_model)
+	{
+	case EXPOSURE_MODEL_SINGLE_:
+	{
+		ui.radioButton_single_exposure->setChecked(true);
+	}
+	break;
+	case EXPOSURE_MODEL_HDR_:
+	{
+		ui.radioButton_hdr_exposure->setChecked(true);
+	}
+	break;
+	case EXPOSURE_MODEL_REPETITION_:
+	{
+		ui.radioButton_repetition_exposure->setChecked(true);
+	}
+	break;
+	default:
+		break;
+	}
+
+	int test = processing_gui_settings_data_.Instance().show_image_flag;
+
+	switch (processing_gui_settings_data_.Instance().show_image_flag)
+	{
+	case SELECT_BRIGHTNESS_FLAG_:
+	{
+		ui.radioButton_brightness->setChecked(true);
+	}
+	break;
+	case SELECT_COLOR_DEPTH_FLAG_:
+	{
+		ui.radioButton_depth_color->setChecked(true);
+	}
+	break;
+	case SELECT_HEIGHT_MAP_FLAG_:
+	{
+		ui.radioButton_height_color->setChecked(true);
+	}
+	break;
+	default:
+		break;
+	} 
 }
 
 
@@ -714,6 +795,11 @@ void CameraCaptureGui::do_spin_repetition_count_changed(int val)
 	processing_gui_settings_data_.Instance().repetition_count = val;
 }
 
+
+void CameraCaptureGui::do_spin_camera_exposure_define_changed(int val)
+{
+	firmware_config_param_.generate_brightness_exposure = val;
+}
 
 void CameraCaptureGui::do_spin_camera_exposure_changed(int val)
 {
@@ -1519,6 +1605,7 @@ void CameraCaptureGui::updateGenerateBrightnessParam()
 		}
 
 	}
+
 	camera_setting_flag_ = false;
 }
 
@@ -3151,6 +3238,7 @@ void CameraCaptureGui::do_checkBox_toggled_over_exposure(bool state)
 {
 	renderBrightnessImage(brightness_map_); 
 	showImage();
+	processing_gui_settings_data_.Instance().show_over_exposure = state;
 }
 
 
@@ -3188,6 +3276,12 @@ void CameraCaptureGui::do_checkBox_toggled_depth_filter(bool state)
 
 
 	updateDepthFilter(firmware_config_param_.use_depth_filter, firmware_config_param_.depth_filter_threshold);
+}
+
+  
+void CameraCaptureGui::do_checkBox_toggled_auto_save(bool state) 
+{
+	processing_gui_settings_data_.Instance().auto_save = state;
 }
 
 void CameraCaptureGui::do_checkBox_toggled_hdr(bool state)
@@ -3229,6 +3323,7 @@ void CameraCaptureGui::do_QRadioButton_toggled_brightness(bool state)
 	if (state)
 	{
 		radio_button_flag_ = SELECT_BRIGHTNESS_FLAG_;
+		processing_gui_settings_data_.Instance().show_image_flag = SELECT_BRIGHTNESS_FLAG_;
 		//qDebug() << "state: " << radio_button_flag_;
 		showImage();
 	}
@@ -3239,18 +3334,50 @@ void CameraCaptureGui::do_QRadioButton_toggled_color_depth(bool state)
 	if (state)
 	{
 		radio_button_flag_ = SELECT_COLOR_DEPTH_FLAG_;
+		processing_gui_settings_data_.Instance().show_image_flag = SELECT_COLOR_DEPTH_FLAG_;
 		//qDebug() << "state: " << radio_button_flag_;
 		showImage();
 	}
 }
 
-void CameraCaptureGui::do_QRadioButton_toggled_gray_depth(bool state)
+void CameraCaptureGui::do_QRadioButton_toggled_color_height(bool state)
 {
 	if (state)
 	{
 		radio_button_flag_ = SELECT_HEIGHT_MAP_FLAG_;
+		processing_gui_settings_data_.Instance().show_image_flag = SELECT_HEIGHT_MAP_FLAG_;
 		//qDebug() << "state: " << radio_button_flag_;
 		showImage();
+	}
+}
+
+void CameraCaptureGui::do_QRadioButton_toggled_signal(bool state)
+{
+	if (state)
+	{
+		exposure_model_ = EXPOSURE_MODEL_SINGLE_; 
+
+		processing_gui_settings_data_.Instance().exposure_model = exposure_model_;
+	}
+}
+
+void CameraCaptureGui::do_QRadioButton_toggled_hdr(bool state)
+{
+	if (state)
+	{
+		exposure_model_ = EXPOSURE_MODEL_HDR_;
+
+		processing_gui_settings_data_.Instance().exposure_model = exposure_model_;
+	}
+}
+
+void CameraCaptureGui::do_QRadioButton_toggled_repetition(bool state)
+{
+	if (state)
+	{
+		exposure_model_ = EXPOSURE_MODEL_REPETITION_;
+
+		processing_gui_settings_data_.Instance().exposure_model = exposure_model_;
 	}
 }
 
@@ -3261,6 +3388,7 @@ void CameraCaptureGui::do_QRadioButton_toggled_generate_brightness_default(bool 
 	{
 		generate_brightness_model_ = GENERATE_BRIGHTNESS_DEFAULT_;
 		updateGenerateBrightnessParam();
+		firmware_config_param_.generate_brightness_model = generate_brightness_model_;
 	}
 }
 
@@ -3270,6 +3398,7 @@ void CameraCaptureGui::do_QRadioButton_toggled_generate_brightness_illumination(
 	{
 		generate_brightness_model_ = GENERATE_BRIGHTNESS_ILLUMINATION_;
 		updateGenerateBrightnessParam();
+		firmware_config_param_.generate_brightness_model = generate_brightness_model_;
 	}
 }
 
@@ -3279,12 +3408,14 @@ void CameraCaptureGui::do_QRadioButton_toggled_generate_brightness_darkness(bool
 	{
 		generate_brightness_model_ = GENERATE_BRIGHTNESS_DARKNESS_;
 		updateGenerateBrightnessParam();
+		firmware_config_param_.generate_brightness_model = generate_brightness_model_;
 	}
 }
 
 void CameraCaptureGui::do_spin_generate_brightness_exposure_changed(int val)
 {
 	generate_brightness_exposure_ = val;
+	firmware_config_param_.generate_brightness_exposure = generate_brightness_exposure_;
 
 	updateGenerateBrightnessParam();
 }
@@ -3293,19 +3424,19 @@ bool CameraCaptureGui::showImage()
 {
 	switch (radio_button_flag_)
 	{
-	case 1:
+	case SELECT_BRIGHTNESS_FLAG_:
 	{
 		setImage(render_image_brightness_);
 	}
 	break;
 
-	case 2:
+	case SELECT_HEIGHT_MAP_FLAG_:
 	{
 		setImage(render_image_color_height_);
 	}
 	break;
 
-	case 3:
+	case SELECT_COLOR_DEPTH_FLAG_:
 	{
 		setImage(render_image_color_depth_);
 	}
@@ -3314,6 +3445,8 @@ bool CameraCaptureGui::showImage()
 	default:
 		break;
 	}
+
+	 
 
 	return true;
 }

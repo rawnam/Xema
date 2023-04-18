@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include "../firmware/system_config_settings.h"
+ 
 
 struct  GuiConfigDataStruct
 {
@@ -18,7 +19,10 @@ struct  GuiConfigDataStruct
 
 	QString last_path;
 	int exposure_model;
+	bool show_over_exposure; 
+	bool auto_save;
 
+	int show_image_flag;
 
 	bool loadFromSettings(const QString& f);
 	bool saveToSettings(const QString& f);

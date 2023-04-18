@@ -22,7 +22,7 @@ camera_gui::camera_gui(QWidget* parent)
 	ui.setupUi(this);
 
 	default_config_path_ = "../camera_config.json";
-	last_config_path_ = "../dfx802_config.json";
+	last_config_path_ = "../xema_config.json";
 
 	label_temperature_ = new QLabel(this);
 	ui.statusBar->addPermanentWidget(label_temperature_);

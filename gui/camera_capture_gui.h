@@ -14,13 +14,13 @@
 #include "../firmware/version.h"
 #include "save_gui.h"
 
-#define SELECT_BRIGHTNESS_FLAG_ 1;
-#define SELECT_HEIGHT_MAP_FLAG_ 2;
-#define SELECT_COLOR_DEPTH_FLAG_ 3;
+const int  SELECT_BRIGHTNESS_FLAG_ = 1;
+const int  SELECT_HEIGHT_MAP_FLAG_ = 2;
+const int  SELECT_COLOR_DEPTH_FLAG_ = 3;
 
-#define GENERATE_BRIGHTNESS_DEFAULT_ 1;
-#define GENERATE_BRIGHTNESS_ILLUMINATION_ 2;
-#define GENERATE_BRIGHTNESS_DARKNESS_ 3;
+const int  GENERATE_BRIGHTNESS_DEFAULT_  = 1;
+const int  GENERATE_BRIGHTNESS_ILLUMINATION_ =  2;
+const int  GENERATE_BRIGHTNESS_DARKNESS_ =  3;
 
 const int EXPOSURE_MODEL_SINGLE_ = 0;
 const int EXPOSURE_MODEL_HDR_ = 1;
@@ -153,7 +153,13 @@ private slots:
 
 	void do_QRadioButton_toggled_color_depth(bool state);
 
-	void do_QRadioButton_toggled_gray_depth(bool state);
+	void do_QRadioButton_toggled_color_height(bool state);
+
+	void do_QRadioButton_toggled_signal(bool state);
+
+	void do_QRadioButton_toggled_hdr(bool state);
+
+	void do_QRadioButton_toggled_repetition(bool state); 
 
 	void do_QRadioButton_toggled_generate_brightness_default(bool state);
 
@@ -171,7 +177,9 @@ private slots:
 	//void do_checkBox_toggled_bilateral_filter(bool state);
 	void do_comboBox_activated_ip(int index);
 
-	void do_checkBox_toggled_hdr(bool state);
+	void do_checkBox_toggled_hdr(bool state); 
+
+	void do_checkBox_toggled_auto_save(bool state);
 
 	void do_checkBox_toggled_rectify_phase_base_gray(bool state);
 
@@ -214,6 +222,8 @@ private slots:
 	void do_spin_led_current_changed(int val);
 
 	void do_spin_camera_exposure_changed(int val);
+
+	void do_spin_camera_exposure_define_changed(int val);
 
 	void do_spin_generate_brightness_exposure_changed(int val);
 	/******************************************************************************************/
