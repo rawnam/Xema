@@ -65,6 +65,7 @@ SettingsFileFunction::SettingsFileFunction()
 	gui_config_.Instance().show_image_flag = 1;
 	gui_config_.Instance().auto_save = false;
 	gui_config_.Instance().show_over_exposure = true;
+	 
 
 	firmware_config_param_.generate_brightness_exposure = 12000;
 	firmware_config_param_.generate_brightness_model = 1;

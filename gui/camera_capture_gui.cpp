@@ -43,12 +43,12 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 
 
 
-
-	initializeFunction();
+	radio_button_flag_ = SELECT_BRIGHTNESS_FLAG_;
 	setUiData();
 	undateSystemConfigUiData();
 	//修复默认值不触发hdr表更新
 	do_spin_exposure_num_changed(firmware_config_param_.mixed_exposure_num);
+	initializeFunction();
 
 	last_path_ = processing_gui_settings_data_.last_path;
 	sys_path_ = processing_gui_settings_data_.last_path;
@@ -62,7 +62,7 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 
   
 	//radio_button_flag_ = SELECT_BRIGHTNESS_FLAG_;
-	showImage();
+	//showImage();
 
 	ui.comboBox_ip->hide();
 	ui.pushButton_refresh->hide();
@@ -683,8 +683,7 @@ void CameraCaptureGui::setUiData()
 	default:
 		break;
 	}
-
-	int test = processing_gui_settings_data_.Instance().show_image_flag;
+	 
 
 	switch (processing_gui_settings_data_.Instance().show_image_flag)
 	{
@@ -706,6 +705,10 @@ void CameraCaptureGui::setUiData()
 	default:
 		break;
 	} 
+
+
+	radio_button_flag_ = processing_gui_settings_data_.Instance().show_image_flag;
+	showImage();
 }
 
 
