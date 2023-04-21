@@ -657,10 +657,18 @@ void CameraCaptureGui::setUiData()
 	{
 		ui.checkBox_over_exposure->setChecked(true);
 	}
+	else
+	{
+		ui.checkBox_over_exposure->setChecked(false);
+	}
 
 	if (processing_gui_settings_data_.Instance().auto_save)
 	{
 		ui.checkBox_auto_save->setChecked(true);
+	}
+	else
+	{
+		ui.checkBox_auto_save->setChecked(false);
 	}
 
 	switch (processing_gui_settings_data_.Instance().exposure_model)
