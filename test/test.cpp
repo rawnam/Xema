@@ -96,8 +96,10 @@ void capture_03();
 void capture_04();
 void read_03();
 void read_04();
+void read_05();
 void read_04_color();
 void read_06();
+void generate_patterns_06();
 void capture_04_repetition_02(int repetition);
 void read_04_repetition_02();
 void capture_04_repetition_01(int repetition);
@@ -209,6 +211,10 @@ int main(int argc, char* argv[])
 		{
 			read_04();
 		}
+		else if ("patterns-05" == model)
+		{
+			read_05();
+		}
 		else if ("patterns-04-c" == model)
 		{
 			read_04_color();
@@ -216,6 +222,10 @@ int main(int argc, char* argv[])
 		else if ("patterns-06" == model)
 		{
 			read_06();
+		}
+		else if ("gen-patterns-06" == model)
+		{
+			generate_patterns_06();
 		}
 		else if ("patterns-04-repetition-02" == model)
 		{
@@ -707,6 +717,154 @@ void read_04_repetition_02()
 }
 
 
+void generate_patterns_06()
+{
+	/**************************************************************************************/
+
+	//DfSolution solution_machine_;
+	//std::vector<cv::Mat> patterns_;
+	//bool ret = solution_machine_.readImages(patterns_path, patterns_);
+
+	//if (!ret)
+	//{
+	//	std::cout << "Read Image Error!";
+	//}
+
+	//std::vector<cv::Mat> patterns_list;
+	//std::vector<cv::Mat> inv_patterns_list;
+
+	//int width = patterns_[0].cols;
+	//int height = patterns_[0].rows;
+
+	//for (int p_i = 0; p_i < patterns_.size(); p_i++)
+	//{
+	//	cv::Mat temple = patterns_[p_i];
+
+	//	cv::Mat gen_pattern(height, width * 5,CV_8U,cv::Scalar(0));
+
+	//	for (int r = 0; r < height; r++)
+	//	{
+	//		for (int c = 0; c < width; c++)
+	//		{
+	//			uchar val = temple.at<uchar>(r, c);
+
+	//			for (int i = 0; i < 5; i++)
+	//			{
+	//				gen_pattern.at<uchar>(r, c * 5 + i) = val;
+	//			}
+	//		}
+	//	}
+
+	//	cv::Mat pattern_3010(720, 1280, CV_8U, cv::Scalar(0));
+
+	//	for (int r = 0; r < pattern_3010.rows; r++)
+	//	{
+
+	//		for (int c = 0; c < pattern_3010.cols; c++)
+	//		{
+	//			pattern_3010.at<uchar>(r, c) = gen_pattern.at<uchar>(r, c);
+	//		}
+	//	}
+
+	//	cv::Mat inv_pattern_3010 = 255 - pattern_3010;
+
+	//	patterns_list.push_back(pattern_3010.clone());
+	//	inv_patterns_list.push_back(inv_pattern_3010.clone());
+
+	//}
+
+
+	//for (int i = 0; i < patterns_list.size(); i++)
+	//{ 
+	//	std::stringstream ss; 
+	//	ss << std::setw(2) << std::setfill('0') << i;
+	//	std::string filename = "../minsw_" + ss.str() + ".bmp";
+	//	bool ret = cv::imwrite(filename, patterns_list[i]);
+	//	std::cout << "save: " << filename << " " << ret << std::endl;
+
+	//	std::string filename_inv = "../minsw_inv_" + ss.str() + ".bmp";
+	//	ret = cv::imwrite(filename_inv, inv_patterns_list[i]);
+	//	std::cout << "save: " << filename_inv << " " << ret << std::endl;
+	//}
+
+	/*******************************************************************************************************/
+	std::vector<int> list{ 0, 1, 3, 7, 15, 31, 30, 62, 126, 254, 246, 247, 245, 213, 209, 145,
+		153, 152, 136, 8, 40, 42, 43, 35, 99, 103, 71, 70, 68, 76, 204, 220, 252, 253, 189, 185,
+		177, 179, 178, 146, 210, 82, 90, 91, 75, 107, 111, 109, 101, 100, 36, 164, 132, 134, 135,
+		143, 159, 155, 187, 186, 250, 242, 114, 112, 80, 81, 17, 21, 29, 13, 12, 44, 46, 174, 166,
+		167, 231, 199, 195, 193, 201, 200, 216, 88, 120, 56, 57, 49, 51, 55, 23, 22, 86, 94, 222,
+		206, 238, 239, 237, 233, 225, 161, 160, 128, 130, 2, 10, 11, 27, 59, 63, 127, 119, 118, 116,
+		244, 212, 148, 149, 157, 141, 137, 169, 168, 170, 162, 34, 98, 66, 67, 65, 69, 77, 93, 92,
+		124, 60, 188, 180, 181, 183, 151, 147, 211, 219, 218, 202, 74, 106, 104, 105, 97, 33, 37,
+		5, 4, 6, 14, 142, 158, 190, 191, 255, 251, 243, 241, 240, 208, 144, 16, 24, 25, 9, 41, 45,
+		47, 39, 38, 102, 230, 198, 196, 197, 205, 221, 217, 249, 248, 184, 176, 48, 50, 18, 19, 83,
+		87, 95, 79, 78, 110, 108, 236, 228, 229, 165, 133, 129, 131, 139, 138, 154, 26, 58, 122, 123,
+		115, 113, 117, 85, 84, 20, 28, 156, 140, 172, 173, 175, 171, 163, 227, 226, 194, 192, 64, 72,
+		73, 89, 121, 125, 61, 53, 52, 54, 182, 150, 214, 215, 223, 207, 203, 235, 234, 232, 224, 96, 32 };
+
+	cv::Mat bin_map(8, 256, CV_8U, cv::Scalar(0));
+
+	for (int c = 0; c < bin_map.cols; c++)
+	{
+		int bit_num = 8;
+		std::vector<int> bit_list;
+		int bin_code = list[c];
+
+		for (int b_i = 0; b_i < bit_num; b_i++)
+		{
+			int bin_val = bin_code / ((int)std::pow(2, bit_num - b_i - 1));
+			bin_code = bin_code % ((int)std::pow(2, bit_num - b_i - 1));
+			//std::cout << bin_val << std::endl;
+			bit_list.push_back(255*bin_val);
+		}
+
+
+		for (int r = 0; r < bin_map.rows; r++)
+		{
+			bin_map.at<uchar>(r, c) = bit_list[r];
+		}
+	}
+
+
+
+	std::vector<cv::Mat> minsw_8_patterns;
+
+	for(int r = 0;r< bin_map.rows;r++)
+	{
+		cv::Mat pattern(720, 1280, CV_8U, cv::Scalar(0));
+
+		for (int c = 0; c < bin_map.cols; c++)
+		{
+			for (int p_r = 0; p_r < pattern.rows; p_r++)
+			{
+				for (int rep = 0; rep < 5; rep++)
+				{
+					pattern.at<uchar>(p_r, 5 * c + rep) = bin_map.at<uchar>(r,c);
+
+				}
+			}
+
+		}
+
+		minsw_8_patterns.push_back(pattern.clone());
+	
+	}
+
+
+	cv::imwrite("../bin_map_minsw8.bmp", bin_map);
+	for (int i = 0; i < minsw_8_patterns.size(); i++)
+{ 
+	std::stringstream ss; 
+	ss << std::setw(2) << std::setfill('0') << i;
+	std::string filename = "../minsw8_" + ss.str() + ".bmp";
+	bool ret = cv::imwrite(filename, minsw_8_patterns[i]);
+	std::cout << "save: " << filename << " " << ret << std::endl;
+
+ 
+}
+
+}
+
 void read_06()
 {
 	struct CameraCalibParam calibration_param_;
@@ -735,7 +893,7 @@ void read_06()
 	}
 
 
-	solution_machine_.reconstructPatterns06BaseTable(patterns_, calibration_param_, pointcloud_path);
+	solution_machine_.reconstructPatterns06(patterns_, calibration_param_, pointcloud_path);
 }
 
 
@@ -770,7 +928,7 @@ void read_04_color()
 	solution_machine_.reconstructMixedVariableWavelengthXPatternsBaseTable(patterns_, calibration_param_, pointcloud_path);
 }
 
-void read_04()
+void read_05()
 {
 	struct CameraCalibParam calibration_param_;
 	DfSolution solution_machine_;
@@ -797,6 +955,35 @@ void read_04()
 		return;
 	}
 
+	solution_machine_.reconstructPatterns05(patterns_, calibration_param_, pointcloud_path);
+}
 
+void read_04()
+{
+	struct CameraCalibParam calibration_param_;
+	DfSolution solution_machine_;
+	std::vector<cv::Mat> patterns_;
+
+	bool ret = solution_machine_.readImages(patterns_path, patterns_);
+
+	if (!ret)
+	{
+		std::cout << "Read Image Error!";
+	}
+
+	ret = solution_machine_.readCameraCalibData(calib_path, calibration_param_);
+
+	if (!ret)
+	{
+		std::cout << "Read Calib Param Error!" << std::endl;
+	}
+
+	ret = solution_machine_.setProjectorVersion(version_number);
+	if (!ret)
+	{
+		std::cout << "Set Camera Version Error!" << std::endl;
+		return;
+	}
+	 
 	solution_machine_.reconstructMixedVariableWavelengthXPatternsBaseTable(patterns_, calibration_param_, pointcloud_path);
 }

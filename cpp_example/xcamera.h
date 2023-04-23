@@ -28,6 +28,12 @@ extern "C" {
 
         }CalibrationParam;
 
+		enum class XemaEngine
+		{
+			Normal = 0,
+			Reflect = 1,
+		};
+
         class XCamera
         {
         public:
@@ -47,6 +53,20 @@ extern "C" {
 			//输出参数： width(图像宽)、height(图像高)
 			//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
 			virtual  int  getCameraResolution(int* width, int* height) = 0;
+
+			//函数名： DfSetCaptureEngine
+			//功能： 设置采集引擎
+			//输入参数：engine
+			//输出参数：  
+			//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
+			virtual int setCaptureEngine(XemaEngine engine) = 0;
+
+			//函数名： DfGetCaptureEngine
+			//功能： 设置采集引擎
+			//输入参数：
+			//输出参数：engine
+			//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
+			virtual int getCaptureEngine(XemaEngine& engine) = 0;
 			 
 			//功能： 采集一帧数据并阻塞至返回状态
 			//输入参数： exposure_num（曝光次数）：设置值为1为单曝光，大于1为多曝光模式（具体参数在相机gui中设置）.

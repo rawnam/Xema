@@ -83,8 +83,7 @@ unsigned char* const d_in_4,unsigned char* const d_in_5, float * const d_out, fl
 
 		float a = c_0 *d_in_3[offset] + c_1 *d_in_4[offset] + c_2 *d_in_5[offset] + c_3* d_in_0[offset] +c_4*d_in_1[offset] + c_5*d_in_2[offset];
 		float b = s_0 *d_in_3[offset] + s_1 *d_in_4[offset] + s_2 *d_in_5[offset] + s_3* d_in_0[offset] +s_4*d_in_1[offset] + s_5*d_in_2[offset];
-
-
+  
 		int over_num = 0;
 		if(d_in_0[offset]>= 255)
 		{

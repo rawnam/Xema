@@ -1,4 +1,5 @@
 #include "management.cuh"
+#include "minsw.cuh"
 
 #include <opencv2/photo.hpp>
 
@@ -18,10 +19,10 @@ bool merge_brightness_flag_ = true;
   }\
 }
 
+
 dim3 threadsPerBlock(8, 8);
 dim3 blocksPerGrid((d_image_width_ + threadsPerBlock.x - 1) / threadsPerBlock.x,
 (d_image_height_ + threadsPerBlock.y - 1) / threadsPerBlock.y);
-
 
 
 // int d_image_width_ = 1920;
@@ -93,6 +94,7 @@ bool cuda_set_camera_resolution(int width,int height)
 
 	blocksPerGrid.x = (width + threadsPerBlock.x - 1) / threadsPerBlock.x;
 	blocksPerGrid.y = (height + threadsPerBlock.y - 1) / threadsPerBlock.y;
+ 
 
 	return true;
 }
@@ -170,7 +172,26 @@ bool cuda_malloc_basic_memory()
 
 	cudaMalloc((void**)&d_rotation_matrix_, 3 * 3 * sizeof(float));
 	cudaMalloc((void**)&d_translation_matrix_, 1 * 3 * sizeof(float));
+ 
 
+	cudaMalloc((void**)&d_minsw8_table_, 256* sizeof(unsigned char));
+
+	unsigned char array[256] = { 0, 1, 105, 2, 155, 154, 156, 3, 19, 172, 106, 107, 70, 69, 157, 4, 169,
+		66, 192, 193, 220, 67, 91, 90, 170, 171, 211, 108, 221, 68, 6, 5, 255, 152, 126, 23, 50, 
+		153, 177, 176, 20, 173, 21, 22, 71, 174, 72, 175, 190, 87, 191, 88, 241, 240, 242, 89, 85,
+		86, 212, 109, 136, 239, 7, 110, 233, 130, 128, 129, 28, 131, 27, 26, 234, 235, 147, 44, 29,
+		132, 198, 197, 64, 65, 41, 194, 219, 218, 92, 195, 83, 236, 42, 43, 134, 133, 93, 196, 254,
+		151, 127, 24, 49, 48, 178, 25, 149, 150, 148, 45, 200, 47, 199, 46, 63, 216, 62, 215, 114, 
+		217, 113, 112, 84, 237, 213, 214, 135, 238, 8, 111, 103, 206, 104, 207, 52, 205, 53, 54, 
+		18, 121, 209, 208, 223, 120, 158, 55, 168, 15, 39, 142, 117, 118, 244, 141, 17, 16, 210, 57,
+		222, 119, 159, 56, 102, 101, 125, 228, 51, 204, 74, 75, 123, 122, 124, 227, 224, 225, 73, 
+		226, 189, 36, 38, 37, 138, 139, 243, 140, 188, 35, 59, 58, 137, 34, 160, 161, 232, 79, 231,
+		78, 181, 182, 180, 77, 81, 80, 146, 249, 30, 183, 95, 248, 167, 14, 40, 143, 116, 13, 245,
+		246, 82, 185, 145, 144, 31, 184, 94, 247, 253, 100, 230, 229, 202, 203, 179, 76, 252, 99, 
+		251, 250, 201, 98, 96, 97, 166, 165, 61, 164, 115, 12, 10, 11, 187, 186, 60, 163, 32, 33, 9, 162 };
+
+		
+	CHECK(cudaMemcpy(d_minsw8_table_, array, 256 * sizeof(unsigned char), cudaMemcpyHostToDevice));
 
 	cudaMalloc((void**)&d_fisher_confidence_map, d_image_height_*d_image_width_ * sizeof(float));
 	cudaMalloc((void**)&d_convolution_kernal_map, SIZE_OF_CONVOLUTION_KERNAL*SIZE_OF_CONVOLUTION_KERNAL * sizeof(float));
@@ -263,6 +284,9 @@ bool cuda_free_basic_memory()
 	cudaFree(d_projector_distortion_); 
 	cudaFree(d_rotation_matrix_);
 	cudaFree(d_translation_matrix_);
+
+    cudaFree(d_minsw8_table_);
+	
  
     cudaFree(d_single_pattern_mapping_);
     cudaFree(d_single_pattern_minimapping_);
@@ -799,7 +823,7 @@ bool cuda_generate_pointcloud_base_table()
 	kernel_reconstruct_pointcloud_base_table << <blocksPerGrid, threadsPerBlock>> > (d_image_width_,d_image_height_,d_xL_rotate_x_,d_xL_rotate_y_,d_single_pattern_mapping_,d_R_1_,d_baseline_,
 	d_confidence_map_list_[3],d_unwrap_map_list_[0],d_point_cloud_map_,d_depth_map_);
 
-	// cv::Mat depth(2048,2448,CV_32FC1,cv::Scalar(0));
+	// cv::Mat depth(d_image_height_,d_image_width_,CV_32FC1,cv::Scalar(0));
 	// CHECK(cudaMemcpy(depth.data, d_depth_map_, 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
 	// cv::imwrite("depth.tiff", depth);
 }
@@ -1163,6 +1187,113 @@ void depth_filter(float depth_threshold_val)
 	cudaDeviceSynchronize();
 	LOG(INFO)<<"depth filter end"; 
 }
+
+/****************************************************************************************************************************/
+
+int cuda_copy_minsw8_pattern_to_memory(unsigned char* pattern_ptr,int serial_flag)
+{
+	if(serial_flag> 16)
+	{
+		return -1;
+	}
+ 
+
+	cv::Mat smooth_mat(d_image_height_, d_image_width_, CV_8UC1, pattern_ptr);
+	if (7< serial_flag || serial_flag < 2)
+	{
+		LOG(INFO) << "Start GaussianBlur:";
+		cv::GaussianBlur(smooth_mat, smooth_mat, cv::Size(5, 5), 1, 1);
+
+		LOG(INFO) << "finished GaussianBlur!";
+	}
+
+	CHECK(cudaMemcpyAsync(d_patterns_list_[serial_flag], smooth_mat.data, d_image_height_*d_image_width_* sizeof(unsigned char), cudaMemcpyHostToDevice)); 
+}
+
+
+int cuda_handle_repetition_model06(int repetition_count)
+{
+    kernel_generate_merge_threshold_map << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,
+	d_repetition_02_merge_patterns_list_[0], d_repetition_02_merge_patterns_list_[1],d_repetition_02_merge_patterns_list_[ThresholdMapSeries]);
+ 
+
+	kernel_merge_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_repetition_02_merge_patterns_list_[2], d_repetition_02_merge_patterns_list_[3],
+		d_repetition_02_merge_patterns_list_[4],d_repetition_02_merge_patterns_list_[5],d_repetition_02_merge_patterns_list_[6],d_repetition_02_merge_patterns_list_[7] ,
+		repetition_count,h_image_height_, h_image_width_, d_wrap_map_list_[3], d_confidence_map_list_[3]);
+
+	for(int i= 8;i<16;i++)
+	{
+		kernel_threshold_merge_patterns << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,
+		d_repetition_02_merge_patterns_list_[i], d_repetition_02_merge_patterns_list_[ThresholdMapSeries],
+        i-8,d_patterns_list_[Minsw8MapSeries]);
+
+	}
+
+	kernel_minsw8_to_bin<<<blocksPerGrid, threadsPerBlock>>>(d_image_width_, d_image_height_, d_minsw8_table_, d_patterns_list_[Minsw8MapSeries], d_patterns_list_[binMapSeries]);
+
+	kernel_bin_unwrap<<<blocksPerGrid, threadsPerBlock>>>(d_image_width_, d_image_height_, d_patterns_list_[binMapSeries], d_wrap_map_list_[3], d_unwrap_map_list_[0]);
+
+	return 0;
+}
+
+ int cuda_handle_minsw8(int flag)
+ {
+
+    dim3 threadsPerBlock(8, 8);
+    dim3 blocksPerGrid((d_image_width_ + threadsPerBlock.x - 1) / threadsPerBlock.x,
+    (d_image_height_ + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+	switch(flag)
+	{
+		case 2:
+		{ 
+            //生成阈值图
+             kernel_generate_threshold_map << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_patterns_list_[0], d_patterns_list_[1],d_patterns_list_[ThresholdMapSeries]);
+ 
+			 
+        } 
+    		break;
+        case 8:
+		{ 
+            //六步相移
+            int i= 2; 
+			kernel_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_patterns_list_[i+0],
+             d_patterns_list_[i + 1], d_patterns_list_[i + 2],d_patterns_list_[i + 3],d_patterns_list_[i + 4],d_patterns_list_[i + 5]
+              ,d_wrap_map_list_[3], d_confidence_map_list_[3]); 
+ 
+        } 
+    		break;
+ 
+  
+		default :
+			break;
+	}
+
+
+    if(flag> 7 && flag< 16)
+    {
+        kernel_threshold_patterns << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_patterns_list_[flag], d_patterns_list_[ThresholdMapSeries],
+        flag-8,d_patterns_list_[Minsw8MapSeries]);
+    }
+
+    if(15 == flag)
+    {
+        kernel_minsw8_to_bin << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_minsw8_table_,d_patterns_list_[Minsw8MapSeries], d_patterns_list_[binMapSeries]);
+
+        kernel_bin_unwrap << <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_patterns_list_[binMapSeries],d_wrap_map_list_[3],d_unwrap_map_list_[0]);
+
+		// cudaDeviceSynchronize();
+		// cv::Mat phase(d_image_height_, d_image_width_, CV_8U, cv::Scalar(0));
+		// CHECK(cudaMemcpy(phase.data, d_patterns_list_[binMapSeries], 1 * d_image_height_ * d_image_width_ * sizeof(uchar), cudaMemcpyDeviceToHost));
+		// cv::imwrite("code.bmp", phase);
+
+		// cv::Mat threshold_map(d_image_height_, d_image_width_, CV_32F, cv::Scalar(0));
+		// CHECK(cudaMemcpy(threshold_map.data, d_unwrap_map_list_[0], 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+		// cv::imwrite("threshold_map.tiff", threshold_map);
+	}
+
+    return 0;
+ }
 
 /*****************************************************************************************************************************************************/
 //repetition

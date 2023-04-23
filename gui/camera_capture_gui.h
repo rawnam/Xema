@@ -171,6 +171,8 @@ private slots:
 	//void do_checkBox_toggled_bilateral_filter(bool state);
 	void do_comboBox_activated_ip(int index);
 
+	void do_comboBox_activated_engine(int index);
+
 	void do_checkBox_toggled_hdr(bool state);
 
 	void do_checkBox_toggled_rectify_phase_base_gray(bool state);

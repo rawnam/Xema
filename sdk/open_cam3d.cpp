@@ -28,6 +28,8 @@ using namespace std::chrono;
 //socket
 INITIALIZE_EASYLOGGINGPP
 
+XemaEngine engine_ = XemaEngine::Normal;
+
 //const int image_width = 1920;
 //const int image_height = 1200;
 //const int image_size = image_width * image_height;
@@ -848,7 +850,7 @@ DF_SDK_API int DfGetCameraResolution(int* width, int* height)
 DF_SDK_API int DfCaptureRepetitionData(int repetition_count, int exposure_num, char* timestamp)
 {
 
-	bool ret = -1;
+	int ret = -1;
 
 	//if (exposure_num > 1)
 	//{
@@ -886,6 +888,30 @@ DF_SDK_API int DfCaptureRepetitionData(int repetition_count, int exposure_num, c
 	return 0;
 }
 
+//函数名： DfGetCaptureEngine
+//功能： 设置采集引擎
+//输入参数：
+//输出参数：engine
+//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
+DF_SDK_API int DfGetCaptureEngine(XemaEngine& engine)
+{
+	engine = engine_;
+
+	return 0;
+}
+
+//函数名： DfSetCaptureEngine
+//功能： 设置采集引擎
+//输入参数：engine
+//输出参数：  
+//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
+DF_SDK_API int DfSetCaptureEngine(XemaEngine engine)
+{
+	engine_ = engine;
+
+	return 0;
+}
+
 //函数名： DfCaptureData
 //功能： 采集一帧数据并阻塞至返回状态
 //输入参数： exposure_num（曝光次数）：大于1的为多曝光模式
@@ -895,7 +921,7 @@ DF_SDK_API int DfCaptureData(int exposure_num, char* timestamp)
 {
 
 	LOG(INFO) << "DfCaptureData: "<< exposure_num;
-	bool ret = -1;
+	int ret = -1;
 
 	if (exposure_num > 1)
 	{
@@ -903,20 +929,60 @@ DF_SDK_API int DfCaptureData(int exposure_num, char* timestamp)
 		{
 		case 1:
 		{
-			ret = DfGetFrameHdr(depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
-			if (DF_SUCCESS != ret)
+			switch (engine_)
 			{
-				return ret;
+			case XemaEngine::Normal:
+			{
+				ret = DfGetFrameHdr(depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_); 
+				if (DF_SUCCESS != ret)
+				{
+					return ret;
+				}
 			}
+				break;
+			case XemaEngine::Reflect:
+			{
+				ret = DfGetFrame06Hdr(depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
+				if (DF_SUCCESS != ret)
+				{
+					return ret;
+				}
+			}
+				break;
+			default:
+				break;
+			}
+ 
 		}
 		break;
+
 		case 2:
 		{
-			ret = DfGetRepetitionFrame04(repetition_exposure_model_, depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
-			if (DF_SUCCESS != ret)
+			switch (engine_)
 			{
-				return ret;
+			case XemaEngine::Normal:
+			{
+				ret = DfGetRepetitionFrame04(repetition_exposure_model_, depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
+				if (DF_SUCCESS != ret)
+				{
+					return ret;
+				}
 			}
+			break;
+			case XemaEngine::Reflect:
+			{
+				ret = DfGetRepetitionFrame06(repetition_exposure_model_, depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
+				if (DF_SUCCESS != ret)
+				{
+					return ret;
+				}
+			}
+			break;
+			default:
+				break;
+			}
+
+
 
 		}
 		default:
@@ -926,15 +992,36 @@ DF_SDK_API int DfCaptureData(int exposure_num, char* timestamp)
 	}
 	else
 	{
-		 
-		ret = DfGetFrame04(depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
-		if (DF_SUCCESS != ret)
+		switch (engine_)
 		{
-			return ret;
+		case XemaEngine::Normal:
+		{
+			ret = DfGetFrame04(depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
+			if (DF_SUCCESS != ret)
+			{
+				return ret;
+			}
 		}
+		break;
+		case XemaEngine::Reflect:
+		{
+			ret = DfGetFrame06(depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
+			if (DF_SUCCESS != ret)
+			{
+				return ret;
+			}
+		}
+		break;
+		default:
+			break;
+		}
+
+
+
 	}
-
-
+ 
+	 
+	 
 	std::string time = get_timestamp();
 	for (int i = 0; i < time.length(); i++)
 	{
@@ -2006,6 +2093,89 @@ DF_SDK_API int DfGetRepetitionPhase02(int count, float* phase_x, float* phase_y,
 	return DF_SUCCESS;
 }
 
+//函数名： DfGetRepetitionFrame06
+//功能： 获取一帧数据（亮度图+深度图），基于Raw06图重复count次
+//输入参数：count（重复次数）、depth_buf_size（深度图尺寸）、brightness_buf_size（亮度图尺寸）
+//输出参数：depth（深度图）、brightness（亮度图）
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetRepetitionFrame06(int count, float* depth, int depth_buf_size,
+	unsigned char* brightness, int brightness_buf_size)
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	LOG(INFO) << "GetRepetitionFrame06";
+	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
+
+	ret = send_command(DF_CMD_GET_REPETITION_FRAME_06, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
+	if (command == DF_CMD_OK)
+	{
+		ret = send_buffer((char*)(&count), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		LOG(INFO) << "token checked ok";
+		LOG(INFO) << "receiving buffer, depth_buf_size=" << depth_buf_size;
+		ret = recv_buffer((char*)depth, depth_buf_size, g_sock);
+		LOG(INFO) << "depth received";
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		LOG(INFO) << "receiving buffer, brightness_buf_size=" << brightness_buf_size;
+		ret = recv_buffer((char*)brightness, brightness_buf_size, g_sock);
+		LOG(INFO) << "brightness received";
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+
+		//brightness = (unsigned char*)depth + depth_buf_size;
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		LOG(INFO) << "Get frame rejected";
+		close_socket(g_sock);
+		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	LOG(INFO) << "Get frame success";
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
 
 //函数名： DfGetRepetitionFrame04
 //功能： 获取一帧数据（亮度图+深度图），基于Raw04相位图，6步相移的图重复count次
@@ -2230,6 +2400,156 @@ DF_SDK_API int DfGetFrame03(float* depth, int depth_buf_size,
 
 	LOG(INFO) << "Get frame success";
 	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+DF_SDK_API int DfGetFrame06Hdr(float* depth, int depth_buf_size,
+	unsigned char* brightness, int brightness_buf_size)
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+	LOG(INFO) << "GetFrame06Hdr";
+	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	} 
+	
+	ret = send_command(DF_CMD_GET_FRAME_06_HDR, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
+	if (command == DF_CMD_OK)
+	{
+		LOG(INFO) << "token checked ok";
+		LOG(INFO) << "receiving buffer, depth_buf_size=" << depth_buf_size;
+		ret = recv_buffer((char*)depth, depth_buf_size, g_sock);
+		LOG(INFO) << "depth received";
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		LOG(INFO) << "receiving buffer, brightness_buf_size=" << brightness_buf_size;
+		ret = recv_buffer((char*)brightness, brightness_buf_size, g_sock);
+		LOG(INFO) << "brightness received";
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		//brightness = (unsigned char*)depth + depth_buf_size;
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		LOG(INFO) << "Get frame rejected";
+		close_socket(g_sock);
+		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+
+
+	LOG(INFO) << "Get FRAME 06 HDR success";
+	return DF_SUCCESS;
+}
+
+//函数名： DfGetFrame06
+//功能： 获取一帧数据（亮度图+深度图），基于Raw06相位图
+//输入参数：depth_buf_size（深度图尺寸）、brightness_buf_size（亮度图尺寸）
+//输出参数：depth（深度图）、brightness（亮度图）
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetFrame06(float* depth, int depth_buf_size,
+	unsigned char* brightness, int brightness_buf_size)
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+	LOG(INFO) << "GetFrame06";
+	assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+	assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
+
+	ret = send_command(DF_CMD_GET_FRAME_06, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
+	if (command == DF_CMD_OK)
+	{
+		LOG(INFO) << "token checked ok";
+		LOG(INFO) << "receiving buffer, depth_buf_size=" << depth_buf_size;
+		ret = recv_buffer((char*)depth, depth_buf_size, g_sock);
+		LOG(INFO) << "depth received";
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		LOG(INFO) << "receiving buffer, brightness_buf_size=" << brightness_buf_size;
+		ret = recv_buffer((char*)brightness, brightness_buf_size, g_sock);
+		LOG(INFO) << "brightness received";
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		//brightness = (unsigned char*)depth + depth_buf_size;
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		LOG(INFO) << "Get frame rejected";
+		close_socket(g_sock);
+		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		LOG(INFO) << "Get frame DF_CMD_UNKNOWN";
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+
+ 
+
+	LOG(INFO) << "Get frame06 success";
 	return DF_SUCCESS;
 }
 
@@ -2588,6 +2908,186 @@ DF_SDK_API int DfGetCameraRawData04(unsigned char* raw, int raw_buf_size)
 			return DF_FAILED;
 		}
 		ret = send_command(DF_CMD_GET_RAW_04, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			LOG(INFO) << "token checked ok";
+			LOG(INFO) << "receiving buffer, raw_buf_size=" << raw_buf_size;
+			ret = recv_buffer((char*)raw, raw_buf_size, g_sock);
+			LOG(INFO) << "images received";
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			LOG(INFO) << "Get raw rejected";
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+
+		LOG(INFO) << "Get raw success";
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+	return DF_FAILED;
+}
+
+//函数名： DfGetCameraRawData05
+//功能： 采集一组相移图，一共16幅，8个xor码+6个垂直方向的六步相移条纹图 + 黑白2个图
+//输入参数：raw_buf_size（16张8位图的尺寸）
+//输出参数：raw
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetCameraRawData05(unsigned char* raw, int raw_buf_size)
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	if (raw)
+	{
+		LOG(INFO) << "DfGetCameraRawData05";
+		assert(raw_buf_size >= image_size_ * sizeof(unsigned char) * 16);
+		int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_GET_RAW_05, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			LOG(INFO) << "token checked ok";
+			LOG(INFO) << "receiving buffer, raw_buf_size=" << raw_buf_size;
+			ret = recv_buffer((char*)raw, raw_buf_size, g_sock);
+			LOG(INFO) << "images received";
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			LOG(INFO) << "Get raw rejected";
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+
+		LOG(INFO) << "Get raw success";
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+	return DF_FAILED;
+}
+
+//函数名： DfGetCameraRawData06
+//功能： 采集一组相移图，一共18幅，10个minsw码+6个垂直方向的六步相移条纹图 + 黑白2个图
+//输入参数：raw_buf_size（18张8位图的尺寸）
+//输出参数：raw
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetCameraRawData06(unsigned char* raw, int raw_buf_size)
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	if (raw)
+	{
+		LOG(INFO) << "DfGetCameraRawData06";
+		assert(raw_buf_size >= image_size_ * sizeof(unsigned char) * 18);
+		int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_GET_RAW_06, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			LOG(INFO) << "token checked ok";
+			LOG(INFO) << "receiving buffer, raw_buf_size=" << raw_buf_size;
+			ret = recv_buffer((char*)raw, raw_buf_size, g_sock);
+			LOG(INFO) << "images received";
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			LOG(INFO) << "Get raw rejected";
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+
+		LOG(INFO) << "Get raw success";
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+	return DF_FAILED;
+}
+
+//函数名： DfGetCameraRawData08
+//功能： 采集一组相移图，一共14幅，8个XOR码+6个垂直方向的六步相移条纹图+一个亮度图+一个暗图
+//输入参数：raw_buf_size（16张8位图的尺寸）
+//输出参数：raw
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetCameraRawData08(unsigned char* raw, int raw_buf_size)
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	if (raw)
+	{
+		LOG(INFO) << "DfGetCameraRawData08";
+		assert(raw_buf_size >= image_size_ * sizeof(unsigned char) * 16);
+		int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_GET_RAW_08, g_sock);
 		ret = send_buffer((char*)&token, sizeof(token), g_sock);
 		int command;
 		ret = recv_command(&command, g_sock);

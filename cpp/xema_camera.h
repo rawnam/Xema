@@ -38,6 +38,20 @@ extern "C" {
 			//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
 			int  getCameraResolution(int* width, int* height)override;
 
+			//函数名： DfSetCaptureEngine
+			//功能： 设置采集引擎
+			//输入参数：engine
+			//输出参数：  
+			//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
+			virtual int setCaptureEngine(XemaEngine engine)override;
+
+			//函数名： DfGetCaptureEngine
+			//功能： 设置采集引擎
+			//输入参数：
+			//输出参数：engine
+			//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
+			virtual int getCaptureEngine(XemaEngine& engine)override;
+
 			//功能： 采集一帧数据并阻塞至返回状态
 			//输入参数： exposure_num（曝光次数）：设置值为1为单曝光，大于1为多曝光模式（具体参数在相机gui中设置）.
 			//输出参数： timestamp(时间戳)
@@ -263,7 +277,13 @@ extern "C" {
 
 			int getRepetitionFrame04(int count, float* depth, int depth_buf_size, unsigned char* brightness, int brightness_buf_size);
 
-			int getFrameHdr(float* depth, int depth_buf_size, unsigned char* brightness, int brightness_buf_size);
+			int getFrame04Hdr(float* depth, int depth_buf_size, unsigned char* brightness, int brightness_buf_size);
+ 
+			int getFrame06(float* depth, int depth_buf_size,unsigned char* brightness, int brightness_buf_size);
+
+			int getFrame06Hdr(float* depth, int depth_buf_size,unsigned char* brightness, int brightness_buf_size);
+
+			int getRepetitionFrame06(int count, float* depth, int depth_buf_size,unsigned char* brightness, int brightness_buf_size);
 
 			int getSystemConfigParam(struct SystemConfigParam& config_param);
  
@@ -293,6 +313,7 @@ extern "C" {
 		private:
 			int (*p_OnDropped_)(void*) = 0;
 
+			XemaEngine engine_ = XemaEngine::Normal;
 
 			std::string camera_ip_;
 			int multiple_exposure_model_ = 1;

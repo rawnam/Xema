@@ -38,6 +38,14 @@ public:
 
 	bool reconstructPatterns06BaseTable(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path = "./");
 
+	bool reconstructPatterns05(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path = "./");
+
+	bool reconstructPatterns06(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path = "./");
+
+	bool reconstructPatterns0602(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path = "./");
+
+	bool reconstructPatterns08(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path = "./"); 
+
 	bool reconstructMixedVariableWavelengthXPatternsBaseMiniTable(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string pointcloud_path = "./");
 
 	bool testCalibrationParamBasePlane(std::vector<cv::Mat> patterns, struct CameraCalibParam calib_param, std::string err_map_path = "./");

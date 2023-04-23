@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\cmd\getopt.c" />
+    <ClCompile Include="..\firmware\easylogging++.cc" />
     <ClCompile Include="..\test\encode.cpp" />
     <ClCompile Include="..\test\support_function.cpp" />
     <ClCompile Include="calibrate_function.cpp" />

@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\calibration\calibrate_function.cpp" />
     <ClCompile Include="..\cmd\getopt.c" />
+    <ClCompile Include="..\firmware\easylogging++.cc" />
     <ClCompile Include="..\gui\PrecisionTest.cpp" />
     <ClCompile Include="AnalyseError.cpp" />
     <ClCompile Include="encode.cpp" />

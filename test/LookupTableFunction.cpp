@@ -829,6 +829,11 @@ double LookupTableFunction::Bilinear_interpolation(double x, double y, cv::Mat& 
 	int x2 = x1 + 1;
 	int y2 = y1 + 1;
 
+	if (x2 >= mapping.cols || y2 >= mapping.rows)
+	{
+		return -2;
+	}
+
 	//row-y,col-x
 
 	if (x1 == 1919) {

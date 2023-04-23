@@ -43,6 +43,9 @@ def depth2cloud_undistort(depth, color, camera_mtx, camera_dist):
                 y = ixiy[0, 0, 1] * z
                 pts = np.array([x, y, z, r, g, b])
                 pointcloud.append(pts)
+            else:
+                pts = np.array([0, 0, 0, 0, 0, 0])
+                pointcloud.append(pts)
 
     pointcloud = np.array(pointcloud)
 

@@ -49,19 +49,25 @@ public:
     
     bool captureRaw04(unsigned char* buff); 
     
+    int captureRaw05(unsigned char* buff); 
+    
+    int captureRaw06(unsigned char* buff); 
+
+    int captureRaw08(unsigned char* buff); 
+    
     bool captureRaw04Repetition01(int repetition_count,unsigned char* buff);
 
     bool capturePhase02Repetition02(int repetition_count,float* phase_x,float* phase_y,unsigned char* brightness);
 
     bool captureFrame04();
 
-    int captureFrame04BaseConfidence();
+    int captureFrame04BaseConfidence(); 
 
     bool captureFrame04Hdr();
     
     int captureFrame04HdrBaseConfidence(); 
     
-    void mergeBrightness();
+    void mergeBrightness();  
 
     bool captureFrame04Repetition01(int repetition_count); 
 
@@ -70,6 +76,12 @@ public:
     int captureFrame04Repetition02BaseConfidence(int repetition_count);
 
     bool captureFrame05();
+    
+    int captureFrame06();
+
+    int captureFrame06Hdr();
+
+    int captureFrame06Repetition(int repetition_count);
     
     bool captureFrame03();
     

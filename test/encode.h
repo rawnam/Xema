@@ -36,10 +36,24 @@ public:
 
 	bool decodeGrayCode(std::vector<cv::Mat> patterns, cv::Mat average_brightness, cv::Mat& k1_map, cv::Mat& k2_map);
 
-	bool grayCodeToBinCode(std::vector<bool> gray_code, std::vector<bool>& bin_code);
+	bool grayCodeToBinCode(std::vector<bool> gray_code, std::vector<bool>& bin_code); 
+
+	bool grayCodeToXorCode(std::vector<cv::Mat> gray_code, std::vector<cv::Mat>& xor_code);
+
+	bool computeXOR05(std::vector<cv::Mat> patterns, cv::Mat& k1_map, cv::Mat& k2_map, cv::Mat& mask_map);
+
+	bool minsw10CodeToValue(int minsw, int& value);
+
+	bool minsw8CodeToValue(int minsw, int& value);
+
+	bool decodeMinswGrayCode(std::vector<cv::Mat> patterns, cv::Mat average_brightness, cv::Mat& k_map);
+
+	bool decodeMinswGrayCode(std::vector<cv::Mat> patterns, std::vector<cv::Mat> threshold_list, cv::Mat& k_map);
 
 	bool computePhaseShift(std::vector<cv::Mat> patterns, cv::Mat& wrap_map, cv::Mat& confidence_map, cv::Mat& average_map, cv::Mat& brightness_map, cv::Mat& mask_map);
 
 	bool unwrapBase2Kmap(cv::Mat wrap_map, cv::Mat k1_map, cv::Mat k2_map, cv::Mat& unwrap_map);
+
+
 };
 
