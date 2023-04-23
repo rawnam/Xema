@@ -57,7 +57,7 @@ extern "C"
 	DF_SDK_API int DfSetCaptureEngine(XemaEngine engine);
 
 	//函数名： DfGetCaptureEngine
-	//功能： 设置采集引擎
+	//功能： 获取采集引擎模式
 	//输入参数：
 	//输出参数：engine
 	//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
