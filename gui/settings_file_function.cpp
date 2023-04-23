@@ -62,6 +62,10 @@ SettingsFileFunction::SettingsFileFunction()
 	gui_config_.Instance().repetition_count = 0;
 	gui_config_.Instance().last_path = "../TestData";
 	gui_config_.Instance().exposure_model = 0;
+	gui_config_.Instance().show_image_flag = 1;
+	gui_config_.Instance().auto_save = false;
+	gui_config_.Instance().show_over_exposure = true;
+	 
 
 	firmware_config_param_.generate_brightness_exposure = 12000;
 	firmware_config_param_.generate_brightness_model = 1;
@@ -312,6 +316,22 @@ bool SettingsFileFunction::loadProcessingSettingsFile(QString path)
 		{
 			gui_config_.Instance().exposure_model = gui_Obj.value("exposure_model").toInt();
 		}
+		 
+  
+		if (gui_Obj.contains("show_over_exposure") && gui_Obj["show_over_exposure"].isBool())
+		{
+			gui_config_.Instance().show_over_exposure = gui_Obj.value("show_over_exposure").toBool();
+		}
+
+		if (gui_Obj.contains("auto_save") && gui_Obj["auto_save"].isBool())
+		{
+			gui_config_.Instance().auto_save = gui_Obj.value("auto_save").toBool();
+		}
+
+		if (gui_Obj.contains("show_image_flag") && gui_Obj["show_image_flag"].isDouble())
+		{
+			gui_config_.Instance().show_image_flag = gui_Obj.value("show_image_flag").toInt();
+		}
 	}
 
 
@@ -420,8 +440,11 @@ bool SettingsFileFunction::saveProcessingSettingsFile(QString path)
 	jsonObject_gui.insert("use_hdr_model", gui_config_.Instance().use_hdr_model);
 	jsonObject_gui.insert("calibration_board", gui_config_.Instance().calibration_board);
 	jsonObject_gui.insert("repetition_count", gui_config_.Instance().repetition_count); 
-	jsonObject_gui.insert("last_path", gui_config_.Instance().last_path);
-	jsonObject_gui.insert("exposure_model", gui_config_.Instance().exposure_model);
+	jsonObject_gui.insert("last_path", gui_config_.Instance().last_path); 
+	jsonObject_gui.insert("exposure_model", gui_config_.Instance().exposure_model); 
+	jsonObject_gui.insert("show_over_exposure", gui_config_.Instance().show_over_exposure);
+	jsonObject_gui.insert("auto_save", gui_config_.Instance().auto_save); 
+	jsonObject_gui.insert("show_image_flag", gui_config_.Instance().show_image_flag);
 
 	rootObject.insert("gui", jsonObject_gui);
 
