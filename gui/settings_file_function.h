@@ -23,6 +23,7 @@ struct  GuiConfigDataStruct
 	bool auto_save;
 
 	int show_image_flag;
+	int engine;
 
 	bool loadFromSettings(const QString& f);
 	bool saveToSettings(const QString& f);

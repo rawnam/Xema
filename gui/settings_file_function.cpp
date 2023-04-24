@@ -63,8 +63,9 @@ SettingsFileFunction::SettingsFileFunction()
 	gui_config_.Instance().last_path = "../TestData";
 	gui_config_.Instance().exposure_model = 0;
 	gui_config_.Instance().show_image_flag = 1;
-	gui_config_.Instance().auto_save = false;
+	gui_config_.Instance().auto_save = false; 
 	gui_config_.Instance().show_over_exposure = true;
+	gui_config_.Instance().engine = 0;
 	 
 
 	firmware_config_param_.generate_brightness_exposure = 12000;
@@ -332,6 +333,11 @@ bool SettingsFileFunction::loadProcessingSettingsFile(QString path)
 		{
 			gui_config_.Instance().show_image_flag = gui_Obj.value("show_image_flag").toInt();
 		}
+
+		if (gui_Obj.contains("engine") && gui_Obj["engine"].isDouble())
+		{
+			gui_config_.Instance().engine = gui_Obj.value("engine").toInt();
+		}
 	}
 
 
@@ -445,6 +451,7 @@ bool SettingsFileFunction::saveProcessingSettingsFile(QString path)
 	jsonObject_gui.insert("show_over_exposure", gui_config_.Instance().show_over_exposure);
 	jsonObject_gui.insert("auto_save", gui_config_.Instance().auto_save); 
 	jsonObject_gui.insert("show_image_flag", gui_config_.Instance().show_image_flag);
+	jsonObject_gui.insert("engine", gui_config_.Instance().engine);
 
 	rootObject.insert("gui", jsonObject_gui);
 

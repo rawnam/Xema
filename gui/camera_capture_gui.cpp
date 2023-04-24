@@ -718,6 +718,22 @@ void CameraCaptureGui::setUiData()
 
 	radio_button_flag_ = processing_gui_settings_data_.Instance().show_image_flag;
 	showImage();
+
+	switch (processing_gui_settings_data_.Instance().engine)
+	{
+	case (int)XemaEngine::Normal:
+	{
+		ui.comboBox_engine->setCurrentIndex((int)XemaEngine::Normal);
+	}
+	break;
+	case (int)XemaEngine::Reflect:
+	{
+		ui.comboBox_engine->setCurrentIndex((int)XemaEngine::Reflect); 
+	}
+	break;
+	default:
+		break;
+	}
 }
 
 
@@ -3269,12 +3285,14 @@ void CameraCaptureGui::do_comboBox_activated_engine(int index)
 	case 0:
 	{
 		DfSetCaptureEngine(XemaEngine::Normal);
+		processing_gui_settings_data_.Instance().engine = index;
 	}
 	break;
 
 	case 1:
 	{
 		DfSetCaptureEngine(XemaEngine::Reflect);
+		processing_gui_settings_data_.Instance().engine = index;
 	}
 
 	break;
@@ -3282,6 +3300,7 @@ void CameraCaptureGui::do_comboBox_activated_engine(int index)
 	default:
 		break;
 	}
+
 }
 
 void CameraCaptureGui::do_comboBox_activated_ip(int index)
