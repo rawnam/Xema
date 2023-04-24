@@ -564,6 +564,8 @@ void CameraCaptureGui::undateSystemConfigUiData()
 
 	ui.spinBox_camera_exposure->setMaximum(exposure_time_max_);
 	ui.spinBox_camera_exposure->setMinimum(exposure_time_min_);
+
+	do_comboBox_activated_engine(processing_gui_settings_data_.Instance().engine);
 }
 
 void CameraCaptureGui::setUiData()
