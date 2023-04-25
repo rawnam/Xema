@@ -211,10 +211,22 @@ int LightCrafter3010::SetLedCurrent(unsigned short R, unsigned short G, unsigned
     buffer[1] = ((R>>8)&0x03);
     buffer[0] = (R & 0xff);
 
+    write(0x5C, buffer, 6);
     write(Write_Led_Current, buffer, 6);
 
+    // for(int i= 0;i< 6;i+=2)
+    // {
+    //     int val = buffer[i]+buffer[i+1]*256;
+    //     LOG(INFO)<<" Write_Led_Current: "<<i<<" "<<val;
+    // }
      
     read(Read_Led_Current, ver_buffer, 6);
+
+    // for(int i= 0;i< 6;i+=2)
+    // {
+    //     int val = ver_buffer[i]+ver_buffer[i+1]*256;
+    //     LOG(INFO)<<" Read_Led_Current: "<<i<<" "<<val;
+    // }
 
     ret = memcmp(buffer,ver_buffer,6*sizeof(char));
 
