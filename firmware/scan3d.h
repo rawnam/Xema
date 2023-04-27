@@ -116,6 +116,7 @@ private:
  
     Camera* camera_;
     LightCrafter3010 lc3010_;
+    int patterns_sets_num_;
 
     int projector_version_;
     bool camera_opened_flag_;

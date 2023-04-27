@@ -39,6 +39,7 @@ int i2c_select(int bus, unsigned long dev_addr, unsigned long tenbit);
 void i2c_iaddr_convert(unsigned int int_addr, unsigned int iaddr_bytes, unsigned char *addr);
 
 /* I2C file I/O read, write */
+ssize_t i2c_read_with_param(const I2CDevice *device, unsigned int iaddr,unsigned char param, void *buf, size_t len);
 ssize_t i2c_read(const I2CDevice *device, unsigned int iaddr, void *buf, size_t len);
 ssize_t i2c_write(const I2CDevice *device, unsigned int iaddr, const void *buf, size_t len);
 

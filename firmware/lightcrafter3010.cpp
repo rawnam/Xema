@@ -37,6 +37,11 @@ LightCrafter3010::LightCrafter3010()
     dlp_min_exposure_ = 1700;
     camera_min_exposure_ = 6000;
 }
+ 
+size_t LightCrafter3010::read_with_param(char inner_addr,unsigned char param, void* buffer, size_t buffer_size)
+{
+    return	i2c_read_with_param(&_device, inner_addr,param, buffer, buffer_size);
+}
 
 size_t LightCrafter3010::read(char inner_addr, void* buffer, size_t buffer_size)
 {
@@ -114,6 +119,35 @@ int LightCrafter3010::init()
 
     return DF_SUCCESS;
 
+}
+
+
+int LightCrafter3010::read_patterns_sets_num(int &num)
+{
+
+    num = 0;
+    for(int i= 0;i< 64;i++)
+    {
+        unsigned char ver_buffer[25];
+        memset(ver_buffer,0,25*sizeof(char));
+
+        ver_buffer[0] = 2;
+        write(Write_Pattern_Order, ver_buffer, 25);
+ 
+        memset(ver_buffer,0,25*sizeof(char));
+        read_with_param(Read_Pattern_Order,i, ver_buffer, 25);
+ 
+
+        if(255 == ver_buffer[0])
+        {
+            break;
+        }
+
+        num = i+1; 
+
+    }
+
+    return 0;
 }
   
 void LightCrafter3010::set_trigger_out_delay(int delay_time)
@@ -573,6 +607,8 @@ int LightCrafter3010::write_pattern_table(unsigned char* pattern_index, unsigned
 
         buffer[0] = 0x00;
     }
+
+
 
 
 
