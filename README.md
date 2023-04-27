@@ -100,10 +100,15 @@
 <a href='https://github.com/Open3DV/xema_hardware/blob/main/pcb/XEMA%20Jetson%20Nano%20Carrier%20Board.pcb'>XEMA Jetson Nano carrier board  layout (pcb)</a>
 <br> <a href='https://github.com/Open3DV/xema_hardware/blob/main/pcb/XEMA%20Jetson%20Nano%20Carrier%20Board.sch'>XEMA Jetson Nano carrier board schematics (sch)</a>
 
+### Purchase XEMA camera or its DIY kit in the Taobao links below:<br>
+<a href='https://item.taobao.com/item.htm?spm=a230r.7195193.1997079397.8.3dc842deinrFRl&id=693155032629&abbucket=6'>XEMA-S / XEMA-L Camera </a><br>
+<a href='https://item.taobao.com/item.htm?spm=2013.1.w4004-24671353614.6.243b11c2sjZSTQ&id=694002907610'>XEMA-S DIY kits</a><br>
+<a href='https://item.taobao.com/item.htm?spm=a230r.7195193.1997079397.9.3dc842deinrFRl&id=693408027639&abbucket=6'>XEMA-L DIY kits</a><br>
 
-<img src='images/logo/dexforce.png' width=150>
-
-Email: <info@dexforce.com>
+## Contact:
+<img src='images/logo/dexforce.png' width=150 ></img><br>
+Wechat: W13631674014 <br>
+Email: <wudi@dexforce.com>
 
 ## Partners:
  <table>
