@@ -205,6 +205,42 @@ ssize_t i2c_ioctl_write(const I2CDevice *device, unsigned int iaddr, const void 
 }
 
 
+ssize_t i2c_read_with_param(const I2CDevice *device, unsigned int iaddr,unsigned char param, void *buf, size_t len)
+{
+    ssize_t cnt;
+    unsigned char addr[INT_ADDR_MAX_BYTES];
+    unsigned char delay = GET_I2C_DELAY(device->delay);
+
+    /* Set i2c slave address */
+    if (i2c_select(device->bus, device->addr, device->tenbit) == -1) {
+
+        return -1;
+    }
+
+    /* Convert i2c internal address */
+    memset(addr, 0, sizeof(addr));
+    i2c_iaddr_convert(iaddr, device->iaddr_bytes, addr);
+    memcpy(addr+device->iaddr_bytes, &param, 1);
+
+    /* Write internal address to devide  */
+    if (write(device->bus, addr, device->iaddr_bytes + 1) != device->iaddr_bytes+1) {
+
+        perror("Write i2c internal address error");
+        return -1;
+    }
+    /* Wait a while */
+    i2c_delay(delay);
+
+    /* Read count bytes data from int_addr specify address */
+    if ((cnt = read(device->bus, buf, len)) == -1) {
+
+        perror("Read i2c data error");
+        return -1;
+    }
+
+    return cnt;
+}
+
 /*
 **	@brief	:	read #len bytes data from #device #iaddr to #buf
 **	#device	:	I2CDevice struct, must call i2c_device_init first

@@ -1590,7 +1590,10 @@ int handle_cmd_get_frame_06_hdr(int client_sock)
     delete[] depth_map;
     delete[] brightness;  
 
-    frame_status_ = DF_SUCCESS;
+    if (DF_FRAME_CAPTURING == frame_status_)
+    {
+        frame_status_ = DF_SUCCESS;
+    }
     return DF_SUCCESS;
 
 }
@@ -1719,7 +1722,10 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
     delete[] depth_map;
     delete[] brightness;  
 
-    frame_status_ = DF_SUCCESS;
+    if (DF_FRAME_CAPTURING == frame_status_)
+    {
+        frame_status_ = DF_SUCCESS;
+    }
      
     return DF_SUCCESS;
 
@@ -1937,7 +1943,10 @@ int handle_cmd_get_frame_06_repetition(int client_sock)
     delete[] depth_map;
     delete[] brightness;
 
-    frame_status_ = DF_SUCCESS;
+    if (DF_FRAME_CAPTURING == frame_status_)
+    {
+        frame_status_ = DF_SUCCESS;
+    }
     return DF_SUCCESS;
 
     
@@ -2083,7 +2092,10 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
     delete[] depth_map;
     delete[] brightness;
 
-    frame_status_ = DF_SUCCESS;
+    if (DF_FRAME_CAPTURING == frame_status_)
+    {
+        frame_status_ = DF_SUCCESS;
+    }
     return DF_SUCCESS;
 
     
@@ -2354,7 +2366,10 @@ int handle_cmd_get_frame_06(int client_sock)
     delete[] depth_map;
     delete[] brightness;
 
-    frame_status_ = DF_SUCCESS;
+    if (DF_FRAME_CAPTURING == frame_status_)
+    {
+        frame_status_ = DF_SUCCESS;
+    }
 
     return DF_SUCCESS;
 }
@@ -2378,7 +2393,7 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
  
 
     LOG(INFO)<<"captureFrame04"; 
-    ret = scan3d_.captureFrame04();
+    ret = scan3d_.captureFrame04BaseConfidence();
     if(DF_SUCCESS != ret)
     { 
          LOG(ERROR)<<"captureFrame04 code: "<<ret;
@@ -2474,7 +2489,10 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
     delete[] depth_map;
     delete[] brightness;
 
-    frame_status_ = DF_SUCCESS;
+    if (DF_FRAME_CAPTURING == frame_status_)
+    {
+        frame_status_ = DF_SUCCESS;
+    }
 
     return DF_SUCCESS;
 }

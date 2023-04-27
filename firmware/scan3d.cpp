@@ -23,6 +23,8 @@ Scan3D::Scan3D()
 
     
     fisher_confidence_val_ = -50;
+
+    patterns_sets_num_ = 0;
 }
 
 Scan3D::~Scan3D()
@@ -39,6 +41,14 @@ int Scan3D::init()
     {
         LOG(ERROR) << "lc3010 init FAILED; CODE : " << ret;
     }
+ 
+    ret = lc3010_.read_patterns_sets_num(patterns_sets_num_);
+    if (DF_SUCCESS != ret)
+    {
+        LOG(ERROR) << "read patterns sets FAILED; CODE : " << ret;
+    }
+
+    LOG(INFO)<<"pattern_sets_num: "<<patterns_sets_num_;
 
     ret = lc3010_.SetLedCurrent(255, 255, 255);
     if (DF_SUCCESS != ret)
@@ -1083,6 +1093,15 @@ int Scan3D::captureFrame06Repetition(int repetition_count)
     int frame_status = DF_SUCCESS;
     cuda_clear_repetition_02_patterns();
 
+    LOG(INFO) << "cuda_clear_reconstruct_cache:";
+    cuda_clear_reconstruct_cache();
+    initCache();
+
+    if (patterns_sets_num_ < 9)
+    {
+        return DF_ERROR_LOST_PATTERN_SETS;
+    }
+
     if (!camera_->streamOn())
     {
         LOG(INFO) << "Stream On Error";
@@ -1176,6 +1195,12 @@ int Scan3D::captureFrame06Hdr()
     
     LOG(INFO) << "cuda_clear_reconstruct_cache:";
     cuda_clear_reconstruct_cache();
+    initCache();
+
+    if (patterns_sets_num_ < 9)
+    {
+        return DF_ERROR_LOST_PATTERN_SETS;
+    }
 
     LOG(INFO) << "Stream On:";
     if (!camera_->streamOn())
@@ -1298,6 +1323,16 @@ int Scan3D::captureFrame06()
     
     int ret = DF_SUCCESS;
 
+
+    LOG(INFO) << "cuda_clear_reconstruct_cache:";
+    cuda_clear_reconstruct_cache();
+    initCache();
+    
+    if(patterns_sets_num_ < 9)
+    { 
+        return DF_ERROR_LOST_PATTERN_SETS;
+    }
+
     ret = lc3010_.pattern_mode06();
     if(DF_SUCCESS != ret)
     {
@@ -1305,8 +1340,6 @@ int Scan3D::captureFrame06()
     }
 
 
-    LOG(INFO) << "cuda_clear_reconstruct_cache:";
-    cuda_clear_reconstruct_cache();
 
     LOG(INFO) << "Stream On:";
     if (!camera_->streamOn())

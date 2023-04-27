@@ -1941,6 +1941,11 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 		{
 			addLogMessage(u8"相机固件低！");
 		}
+		else if (DF_ERROR_LOST_PATTERN_SETS == ret_code)
+		{
+			addLogMessage(u8"条纹版本低，不支持高反模式！");
+			ret_code = 0; 
+		}
 		else
 		{
 			addLogMessage(u8"采集数据异常： " + QString::number(ret_code));
