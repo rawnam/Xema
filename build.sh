@@ -72,6 +72,9 @@ cp ../cmd/build/open_cam3d ./bin/
 cp ../calibration/build/calibration ./bin/
 cp ../example/build/example ./bin/
 cp ../test/build/open_cam3d_test ./bin/
+cp ../tools/install/install.sh ./bin/
+cp ../tools/install/xema_config.png ./bin/
+cp ../tools/install/xema_logo.png ./bin/
 
 
 
