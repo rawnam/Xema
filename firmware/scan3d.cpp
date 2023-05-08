@@ -34,7 +34,7 @@ Scan3D::~Scan3D()
 
 int Scan3D::init()
 {
-    int ret = 0;
+    int ret = DF_SUCCESS;
     //光机初始化
     ret = lc3010_.init();
     if (DF_SUCCESS != ret)
@@ -122,18 +122,18 @@ int Scan3D::init()
         if (!loadCalibData())
         {
             LOG(INFO)<<"Load Calib Error!"; 
-            return false;
+            return DF_FAILED;
         }
     }
     else
     {
-        return false;
+        return DF_FAILED;
     }
 
 
 
 
-    return true;
+    return ret;
  
 } 
 
