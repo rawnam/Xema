@@ -38,9 +38,12 @@ std::random_device rd;
 std::mt19937 rand_num(rd());
 bool connected = false;
 long long current_token = 0;
-time_t last_time;
-std::mutex mtx_last_time;
+
+// heart beat
+unsigned int heartbeat_timer = 0;
+std::mutex mtx_heartbeat_timer;
 std::thread heartbeat_thread;
+
 // CameraDh camera;
 LightCrafter3010 lc3010;
 struct CameraCalibParam param;
@@ -213,23 +216,18 @@ int heartbeat_check()
 {
     while (connected)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
-        time_t current_time;
-        time(&current_time);
-
-        mtx_last_time.lock();
-        double seconds = difftime(current_time, last_time);
-        mtx_last_time.unlock();
-
-        if (seconds > 30)
+        mtx_heartbeat_timer.lock();
+        heartbeat_timer ++;
+        if (heartbeat_timer > 30)
         {
             LOG(INFO) << "HeartBeat stopped!";
             connected = false;
             current_token = 0;
         }
+        mtx_heartbeat_timer.unlock();        
     }
-
     return 0;
 }
 
@@ -318,9 +316,9 @@ int handle_cmd_connect(int client_sock)
         connected = true;
         current_token = token;
 
-        mtx_last_time.lock();
-        time(&last_time);
-        mtx_last_time.unlock();
+        mtx_heartbeat_timer.lock();
+        heartbeat_timer = 0;
+        mtx_heartbeat_timer.unlock();
 
         if (heartbeat_thread.joinable())
         {
@@ -2870,9 +2868,9 @@ int handle_heartbeat(int client_sock)
         return DF_FAILED;	
     }
 
-    mtx_last_time.lock();
-    time(&last_time);
-    mtx_last_time.unlock();
+    mtx_heartbeat_timer.lock();
+    heartbeat_timer = 0;
+    mtx_heartbeat_timer.unlock();
 
     return DF_SUCCESS;
 }
