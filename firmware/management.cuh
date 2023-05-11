@@ -73,7 +73,7 @@ __device__ float* d_rotation_matrix_= NULL;
 __device__ float* d_translation_matrix_= NULL;
 
 
-__device__ unsigned char* d_minsw8_table_= NULL;
+__device__ __constant__ unsigned char* d_minsw8_table_= NULL;
  
    
 __device__ float d_baseline_ = 0; 

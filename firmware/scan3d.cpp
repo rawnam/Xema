@@ -2237,9 +2237,10 @@ void Scan3D::removeOutlierBaseRadiusFilter()
         LOG(INFO)<<"radius_filter_r: "<<r;
         LOG(INFO)<<"num: "<<num; 
 
-        cuda_remove_points_base_radius_filter(0.5,r,num);
+        cuda_remove_points_base_radius_filter(0.05,r,num);
 
-        cuda_copy_depth_from_memory(buff_depth_);
+        cuda_copy_depth_from_memory(buff_depth_); 
+        LOG(INFO)<<"removal finished!";
     }
 }
 
