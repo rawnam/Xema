@@ -326,4 +326,6 @@ private:
 
 	SaveDataType save_data_type_ = SaveDataType::Origin;
 	bool hide_save_gui_flag_ = false;
+
+	std::mutex mtx_save_;
 };

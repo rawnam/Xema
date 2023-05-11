@@ -333,6 +333,8 @@ void CameraCaptureGui::addLogMessage(QString str)
 
 bool CameraCaptureGui::saveOneFrameData(QString path_name)
 {
+	std::lock_guard<std::mutex> guard(mtx_save_);
+
 	if (path_name.isEmpty() || brightness_map_.empty() || depth_map_.empty() || height_map_.empty())
 	{
 		return false;
