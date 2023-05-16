@@ -440,6 +440,11 @@ int handle_cmd_disconnect(int client_sock)
 
         return DF_FAILED;
     }
+
+    if (heartbeat_thread.joinable())
+    {
+        heartbeat_thread.join();
+    }
     return DF_SUCCESS;
 }
 
