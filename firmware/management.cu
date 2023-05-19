@@ -832,6 +832,9 @@ bool cuda_generate_pointcloud_base_table()
 
 bool cuda_copy_result_to_hdr(int serial_flag,int brigntness_serial)
 {
+	CHECK(cudaMemcpyAsync(d_hdr_brightness_list_[serial_flag], d_patterns_list_[brigntness_serial], 1 * d_image_height_*d_image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToDevice));
+
+
 	if(!load_calib_data_flag_)
 	{
 		return false;
@@ -839,7 +842,6 @@ bool cuda_copy_result_to_hdr(int serial_flag,int brigntness_serial)
  
 
 	CHECK(cudaMemcpyAsync(d_hdr_depth_map_list_[serial_flag], d_depth_map_, 1 * d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyDeviceToDevice)); 
-	CHECK(cudaMemcpyAsync(d_hdr_brightness_list_[serial_flag], d_patterns_list_[brigntness_serial], 1 * d_image_height_*d_image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToDevice));
 
 	float val  = 0;
 	CHECK(cudaMemcpyAsync(d_hdr_bright_pixel_sum_list_[serial_flag], &val, sizeof(float), cudaMemcpyHostToDevice)); 
