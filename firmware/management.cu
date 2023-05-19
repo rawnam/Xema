@@ -1215,6 +1215,11 @@ int cuda_copy_minsw8_pattern_to_memory(unsigned char* pattern_ptr,int serial_fla
 
 int cuda_handle_repetition_model06(int repetition_count)
 {
+
+ 
+	kernel_merge_brigntness_map<< <blocksPerGrid, threadsPerBlock >> >(d_repetition_02_merge_patterns_list_[0],repetition_count,h_image_height_, h_image_width_,d_brightness_map_);
+	 
+
     kernel_generate_merge_threshold_map << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,
 	d_repetition_02_merge_patterns_list_[0], d_repetition_02_merge_patterns_list_[1],d_repetition_02_merge_patterns_list_[ThresholdMapSeries]);
  
