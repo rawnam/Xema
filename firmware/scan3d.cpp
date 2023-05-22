@@ -1106,8 +1106,8 @@ int Scan3D::captureFrame06Repetition(int repetition_count)
     if (!camera_->streamOn())
     {
         LOG(INFO) << "Stream On Error";
-        frame_status = DF_ERROR_2D_CAMERA;
-        return DF_ERROR_2D_CAMERA;
+        frame_status = DF_ERROR_CAMERA_STREAM;
+        return DF_ERROR_CAMERA_STREAM;
     }
 
     unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
