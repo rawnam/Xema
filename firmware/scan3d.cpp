@@ -1121,6 +1121,7 @@ int Scan3D::captureFrame06Repetition(int repetition_count)
         if(DF_SUCCESS != ret)
         {
             frame_status = ret;
+            camera_->streamOff();
             return ret;
         }
 
@@ -1250,6 +1251,7 @@ int Scan3D::captureFrame06Hdr()
         ret = lc3010_.pattern_mode06();
         if (DF_SUCCESS != ret)
         {
+            camera_->streamOff();
             return ret;
         }
 
