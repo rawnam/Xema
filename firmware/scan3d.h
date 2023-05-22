@@ -59,11 +59,11 @@ public:
 
     bool capturePhase02Repetition02(int repetition_count,float* phase_x,float* phase_y,unsigned char* brightness);
 
-    bool captureFrame04();
+    // bool captureFrame04();
 
     int captureFrame04BaseConfidence(); 
 
-    bool captureFrame04Hdr();
+    // bool captureFrame04Hdr();
     
     int captureFrame04HdrBaseConfidence(); 
     
@@ -71,7 +71,7 @@ public:
 
     bool captureFrame04Repetition01(int repetition_count); 
 
-    bool captureFrame04Repetition02(int repetition_count);
+    // bool captureFrame04Repetition02(int repetition_count);
     
     int captureFrame04Repetition02BaseConfidence(int repetition_count);
 

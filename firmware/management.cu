@@ -458,6 +458,14 @@ void cuda_clear_reconstruct_cache()
 	CHECK(cudaMemset(d_point_cloud_map_,0,3* d_image_height_*d_image_width_ * sizeof(float))); 
 	CHECK(cudaMemset(d_mask_map_,0,d_image_height_*d_image_width_ * sizeof(unsigned char))); 
     CHECK(cudaMemset(d_fisher_confidence_map,0,d_image_height_*d_image_width_ * sizeof(float))); 
+
+	CHECK(cudaMemset(d_hdr_brightness_list_[0],0, d_image_height_*d_image_width_ * sizeof(char))); 
+	CHECK(cudaMemset(d_hdr_brightness_list_[1],0, d_image_height_*d_image_width_ * sizeof(char))); 
+	CHECK(cudaMemset(d_hdr_brightness_list_[2],0, d_image_height_*d_image_width_ * sizeof(char))); 
+	CHECK(cudaMemset(d_hdr_brightness_list_[3],0, d_image_height_*d_image_width_ * sizeof(char))); 
+	CHECK(cudaMemset(d_hdr_brightness_list_[4],0, d_image_height_*d_image_width_ * sizeof(char))); 
+	CHECK(cudaMemset(d_hdr_brightness_list_[5],0, d_image_height_*d_image_width_ * sizeof(char))); 
+	
 }
 
 

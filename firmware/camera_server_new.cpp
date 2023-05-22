@@ -126,6 +126,43 @@ int reboot_system()
     return 0;
 }
 
+
+void handle_error(int code)
+{
+    if (DF_SUCCESS != code)
+    {
+        LOG(ERROR) << "handle error: " << code;
+
+        frame_status_ = code;
+
+        switch (code)
+        {
+        case DF_ERROR_LOST_TRIGGER:
+        {
+            reboot_lightcraft();
+        }
+        break;
+
+        case DF_ERROR_LIGHTCRAFTER_SET_PATTERN_ORDER:
+        {
+            reboot_lightcraft();
+        }
+        break;
+        case DF_ERROR_CAMERA_STREAM:
+        {
+            if (DF_ERROR_2D_CAMERA == scan3d_.reopenCamera())
+            {
+                reboot_system();
+            }
+        }
+        break;
+        default:
+            break;
+        }
+    }
+}
+
+
 bool findMaskBaseConfidence(cv::Mat confidence_map, int threshold, cv::Mat& mask)
 {
 	if (confidence_map.empty())
@@ -455,7 +492,7 @@ bool inspect_board()
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
 
-    scan3d_.captureFrame04(); 
+    scan3d_.captureFrame04BaseConfidence(); 
     scan3d_.copyBrightnessData(brightness); 
  
     std::vector<cv::Point2f> points;
@@ -1522,8 +1559,10 @@ int handle_cmd_get_frame_06_hdr(int client_sock)
 
     if(DF_SUCCESS != ret)
     { 
-         LOG(ERROR)<<"captureFrame06Hdr code: "<<ret;
-         frame_status_ = ret;
+        //  LOG(ERROR)<<"captureFrame06Hdr code: "<<ret;
+        //  frame_status_ = ret;
+         
+        handle_error(ret);
     }
 
     std::thread  t_merge_brightness(&Scan3D::mergeBrightness, &scan3d_);
@@ -1623,28 +1662,29 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
 
     if(DF_SUCCESS != ret)
     { 
-         LOG(ERROR)<<"captureFrame04BaseConfidence code: "<<ret;
-         frame_status_ = ret;
+        handle_error(ret);
+        //  LOG(ERROR)<<"captureFrame04BaseConfidence code: "<<ret;
+        //  frame_status_ = ret;
 
  
-         switch (ret)
-         {
-         case DF_ERROR_LOST_TRIGGER:
-         {
-            reboot_lightcraft();
-         }
-                break;
-         case DF_ERROR_CAMERA_STREAM:
-         {
-            if(DF_ERROR_2D_CAMERA == scan3d_.reopenCamera())
-            {
-                reboot_system();
-            }
-         }
-                break;
-         default:
-                break;
-         }
+        //  switch (ret)
+        //  {
+        //  case DF_ERROR_LOST_TRIGGER:
+        //  {
+        //     reboot_lightcraft();
+        //  }
+        //         break;
+        //  case DF_ERROR_CAMERA_STREAM:
+        //  {
+        //     if(DF_ERROR_2D_CAMERA == scan3d_.reopenCamera())
+        //     {
+        //         reboot_system();
+        //     }
+        //  }
+        //         break;
+        //  default:
+        //         break;
+        //  }
 
     }
 
@@ -1880,8 +1920,10 @@ int handle_cmd_get_frame_06_repetition(int client_sock)
     ret = scan3d_.captureFrame06Repetition(repetition_count);
     if (DF_SUCCESS != ret)
     {
-      LOG(ERROR) << "captureFrame04BaseConfidence code: " << ret;
-      frame_status_ = ret;
+    //   LOG(ERROR) << "captureFrame04BaseConfidence code: " << ret;
+    //   frame_status_ = ret;
+      
+        handle_error(ret);
     }
  
     scan3d_.removeOutlierBaseDepthFilter();
@@ -2001,27 +2043,30 @@ int handle_cmd_get_frame_04_repetition_02_parallel(int client_sock)
     ret = scan3d_.captureFrame04Repetition02BaseConfidence(repetition_count);
     if (DF_SUCCESS != ret)
     {
-      LOG(ERROR) << "captureFrame04BaseConfidence code: " << ret;
-      frame_status_ = ret;
 
-         switch (ret)
-         {
-         case DF_ERROR_LOST_TRIGGER:
-         {
-            reboot_lightcraft();
-         }
-                break;
-         case DF_ERROR_CAMERA_STREAM:
-         {
-            if(DF_ERROR_2D_CAMERA == scan3d_.reopenCamera())
-            {
-                reboot_system();
-            }
-         }
-                break;
-         default:
-                break;
-         }
+        
+        handle_error(ret);
+    //   LOG(ERROR) << "captureFrame04BaseConfidence code: " << ret;
+    //   frame_status_ = ret;
+
+    //      switch (ret)
+    //      {
+    //      case DF_ERROR_LOST_TRIGGER:
+    //      {
+    //         reboot_lightcraft();
+    //      }
+    //             break;
+    //      case DF_ERROR_CAMERA_STREAM:
+    //      {
+    //         if(DF_ERROR_2D_CAMERA == scan3d_.reopenCamera())
+    //         {
+    //             reboot_system();
+    //         }
+    //      }
+    //             break;
+    //      default:
+    //             break;
+    //      }
 
 
     }
@@ -2227,7 +2272,7 @@ int handle_cmd_get_standard_plane_param_parallel(int client_sock)
     unsigned char* brightness = new unsigned char[brightness_buf_size]; 
 
 
-    scan3d_.captureFrame04();
+    scan3d_.captureFrame04BaseConfidence();
 
     scan3d_.copyBrightnessData(brightness);
     scan3d_.copyPointcloudData(pointcloud_map);
@@ -2304,7 +2349,9 @@ int handle_cmd_get_frame_06(int client_sock)
     if(DF_SUCCESS != ret)
     { 
          LOG(ERROR)<<"captureFrame06 code: "<<ret;
-         frame_status_ = ret;
+        //  frame_status_ = ret;
+        
+        handle_error(ret);
     }
     scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
@@ -2399,27 +2446,29 @@ int handle_cmd_get_frame_04_parallel(int client_sock)
     ret = scan3d_.captureFrame04BaseConfidence();
     if(DF_SUCCESS != ret)
     { 
-         LOG(ERROR)<<"captureFrame04 code: "<<ret;
-         frame_status_ = ret;
+        
+        handle_error(ret);
+        //  LOG(ERROR)<<"captureFrame04 code: "<<ret;
+        //  frame_status_ = ret;
 
-         switch (ret)
-         {
-         case DF_ERROR_LOST_TRIGGER:
-         {
-            reboot_lightcraft();
-         }
-                break;
-         case DF_ERROR_CAMERA_STREAM:
-         {
-            if(DF_ERROR_2D_CAMERA == scan3d_.reopenCamera())
-            {
-                reboot_system();
-            }
-         }
-                break;
-         default:
-                break;
-         }
+        //  switch (ret)
+        //  {
+        //  case DF_ERROR_LOST_TRIGGER:
+        //  {
+        //     reboot_lightcraft();
+        //  }
+        //         break;
+        //  case DF_ERROR_CAMERA_STREAM:
+        //  {
+        //     if(DF_ERROR_2D_CAMERA == scan3d_.reopenCamera())
+        //     {
+        //         reboot_system();
+        //     }
+        //  }
+        //         break;
+        //  default:
+        //         break;
+        //  }
     }
     scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
