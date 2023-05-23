@@ -84,7 +84,8 @@ __device__ float* d_xL_rotate_x_ = NULL;
 __device__ float* d_xL_rotate_y_ = NULL; 
 __device__ float* d_R_1_ = NULL; 
 
-  
+__device__ float* d_undistort_map_x_ = NULL;
+__device__ float* d_undistort_map_y_ = NULL; 
 /**********************************************************************/
 //hdr memory
 
@@ -130,7 +131,8 @@ void cuda_copy_calib_data(float* camera_intrinsic, float* project_intrinsic, flo
 
 void cuda_copy_talbe_to_memory(float* mapping,float* mini_mapping,float* rotate_x,float* rotate_y,float* r_1,float base_line);
 
-
+void coud_copy_undistort_table_to_memory(float* undistort_x_map,float* undistort_y_map);
+ 
 bool cuda_copy_pattern_to_memory(unsigned char* pattern_ptr,int serial_flag);
 
 

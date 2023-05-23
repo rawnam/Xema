@@ -322,13 +322,13 @@ float* const camera_intrinsic,float* const camera_distortion, float * const dept
 
 		if (depth[serial_id] > 0)
 		{
-			// float undistort_x = xL_rotate_x[serial_id];
-			// float undistort_y = xL_rotate_y[serial_id];
-			float undistort_x = idx;
-			float undistort_y = idy;
-			undistortPoint(idx, idy, camera_intrinsic[0], camera_intrinsic[4], camera_intrinsic[2], camera_intrinsic[5],
-			camera_distortion[0], camera_distortion[1], camera_distortion[2], camera_distortion[3], camera_distortion[4],
-			undistort_x, undistort_y);
+			float undistort_x = xL_rotate_x[serial_id];
+			float undistort_y = xL_rotate_y[serial_id];
+			// float undistort_x = idx;
+			// float undistort_y = idy;
+			// undistortPoint(idx, idy, camera_intrinsic[0], camera_intrinsic[4], camera_intrinsic[2], camera_intrinsic[5],
+			// camera_distortion[0], camera_distortion[1], camera_distortion[4], camera_distortion[2], camera_distortion[3],
+			// undistort_x, undistort_y);
 
 			pointcloud[3 * serial_id + 0] = (undistort_x - camera_cx) * depth[serial_id] / camera_fx;
 			pointcloud[3 * serial_id + 1] = (undistort_y - camera_cy) * depth[serial_id] / camera_fy;

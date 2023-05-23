@@ -205,6 +205,9 @@ bool cuda_malloc_basic_memory()
 	cudaMalloc((void**)&d_xL_rotate_y_, d_image_height_*d_image_width_ * sizeof(float)); 
 	cudaMalloc((void**)&d_R_1_, 3*3 * sizeof(float)); 
 
+	cudaMalloc((void**)&d_undistort_map_x_, d_image_height_*d_image_width_ * sizeof(float)); 
+	cudaMalloc((void**)&d_undistort_map_y_, d_image_height_*d_image_width_ * sizeof(float)); 
+
     LOG(INFO)<<"d_image_width_: "<<d_image_width_;
     LOG(INFO)<<"d_image_height_: "<<d_image_height_;
 	cudaDeviceSynchronize();
@@ -292,6 +295,9 @@ bool cuda_free_basic_memory()
     cudaFree(d_xL_rotate_x_);
     cudaFree(d_xL_rotate_y_);
     cudaFree(d_R_1_);
+
+    cudaFree(d_undistort_map_x_);
+    cudaFree(d_undistort_map_y_);
  
 
 	return true;
@@ -401,6 +407,13 @@ void cuda_copy_talbe_to_memory(float* mapping,float* mini_mapping,float* rotate_
 
 	LOG(INFO)<<"d_baseline_: "<<d_baseline_;
 	cudaDeviceSynchronize();
+}
+
+
+void coud_copy_undistort_table_to_memory(float* undistort_x_map,float* undistort_y_map)
+{
+	CHECK(cudaMemcpyAsync(d_undistort_map_x_, undistort_x_map, d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpyAsync(d_undistort_map_y_, undistort_y_map, d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyHostToDevice));
 }
 
 
@@ -1134,9 +1147,9 @@ void cuda_remove_points_base_radius_filter(float dot_spacing,float radius,int th
 	// cv::imwrite("depth_f.tiff", channels[2]);
 
 	// cudaDeviceSynchronize();
-	// LOG(INFO)<<"kernel_reconstruct_pointcloud_base_depth:"; 
-	// kernel_reconstruct_pointcloud_base_depth << <blocksPerGrid, threadsPerBlock >> > (h_image_width_,h_image_height_,d_xL_rotate_x_,d_xL_rotate_y_,
-	// d_camera_intrinsic_,d_camera_distortion_,d_depth_map_,d_point_cloud_map_);
+	LOG(INFO)<<"kernel_reconstruct_pointcloud_base_depth:"; 
+	kernel_reconstruct_pointcloud_base_depth << <blocksPerGrid, threadsPerBlock >> > (h_image_width_,h_image_height_,d_undistort_map_x_,d_undistort_map_y_,
+	d_camera_intrinsic_,d_camera_distortion_,d_depth_map_,d_point_cloud_map_);
 
 	// cudaDeviceSynchronize();
 
