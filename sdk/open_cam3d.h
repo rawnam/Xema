@@ -231,6 +231,13 @@ extern "C"
 	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 	DF_SDK_API int DfSetParamMixedHdr(int num, int exposure_param[6], int led_param[6]);
 
+	//函数名： DfSetParamBrightnessHdrExposure
+	//功能： 设置亮度图多曝光参数（最大曝光次数为10次）
+	//输入参数： num（曝光次数）、exposure_param[6]（6个曝光参数、前num个有效））
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfSetParamBrightnessHdrExposure(int num, int exposure_param[10]);
+
 	//函数名： DfGetParamMixedHdr
 	//功能： 获取混合多曝光参数（最大曝光次数为6次）
 	//输入参数： 无

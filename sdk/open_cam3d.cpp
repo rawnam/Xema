@@ -5968,6 +5968,73 @@ DF_SDK_API int DfGetParamStandardPlaneExternal(float* R, float* T)
 	return DF_SUCCESS;
 }
 
+//函数名： DfSetParamBrightnessHdrExposure
+//功能： 设置亮度图多曝光参数（最大曝光次数为10次）
+//输入参数： num（曝光次数）、exposure_param[6]（6个曝光参数、前num个有效））
+//输出参数： 无
+//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+DF_SDK_API int DfSetParamBrightnessHdrExposure(int num, int exposure_param[10])
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	if (num < 2 || num>10)
+	{
+		LOG(INFO) << "Error num:"<< num;
+		return DF_FAILED;
+	}
+
+	LOG(INFO) << "DfSetParamBrightnessHdrExposure:";
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_SET_PARAM_BRIGHTNESS_HDR_EXPOSURE, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
+	if (command == DF_CMD_OK)
+	{
+		int param[11] = {2,10000,20000,30000,40000,50000,60000,70000,80000,90000,100000 };
+
+		param[0] = num;
+
+		memcpy(param + 1, exposure_param, sizeof(int) * num);
+
+		ret = send_buffer((char*)(param), sizeof(int) * 11, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
 //函数名： DfSetParamMixedHdr
 //功能： 设置混合多曝光参数（最大曝光次数为6次）
 //输入参数： num（曝光次数）、exposure_param[6]（6个曝光参数、前num个有效）、led_param[6]（6个led亮度参数、前num个有效）

@@ -57,6 +57,11 @@ struct FirmwareConfigParam
 	int use_gray_rectify;
 	int gray_rectify_r;
 	float gray_rectify_sigma;
+
+	//亮度融合曝光参数
+	int brightness_hdr_exposure_param_list[10];
+	float brightness_hdr_gain_param_list[10];
+	int brightness_hdr_exposure_num;
 };
 
 

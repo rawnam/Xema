@@ -81,6 +81,13 @@ SystemConfigDataStruct::SystemConfigDataStruct()
 	instance_.firwmare_param_.gray_rectify_r = 5; 
 	instance_.firwmare_param_.gray_rectify_sigma = 40; 
 
+	for (int i = 0; i < 10; i++)
+	{
+		instance_.firwmare_param_.brightness_hdr_exposure_param_list[i] = 10000*(i+1);
+		instance_.firwmare_param_.brightness_hdr_gain_param_list[i] = 0;
+	}
+	instance_.firwmare_param_.brightness_hdr_exposure_num = 2;
+
 }
 
 bool SystemConfigDataStruct::loadFromSettings(const std::string& f)
