@@ -2297,7 +2297,7 @@ void Scan3D::removeOutlierBaseDepthFilter()
 {
     if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_depth_filter)
     {
-        float depth_threshold = system_config_settings_machine_.Instance().firwmare_param_.depth_filter_threshold * (-0.045) + 5.;
+        float depth_threshold = system_config_settings_machine_.Instance().firwmare_param_.depth_filter_threshold * (-0.128) + 13.;
         LOG(INFO)<<"depth_filter_threshold: "<<depth_threshold;
 
         depth_filter(depth_threshold / 1000.);
