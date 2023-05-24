@@ -23,7 +23,9 @@
 
 
 #define DEPTH_DIFF_NUM_THRESHOLD 3
-
+#define O_KERNEL_WIDTH 9
+#define O_TILE_WIDTH 16
+#define BLOCK_WIDTH (O_TILE_WIDTH + O_KERNEL_WIDTH - 1)
 
 __global__ void kernel_filter_reflect_noise(uint32_t img_height, uint32_t img_width,float * const unwrap_map);
 
@@ -34,6 +36,9 @@ __global__ void kernel_depth_filter_step_1(uint32_t img_height, uint32_t img_wid
 __global__ void kernel_depth_filter_step_2(uint32_t img_height, uint32_t img_width, float depth_threshold, float * const depth_map, float * const depth_map_temp, unsigned char* mask_temp);
 
 //滤波
+__global__ void kernel_filter_radius_outlier_removal_shared(uint32_t img_height, uint32_t img_width, float* const point_cloud_map,
+    unsigned char* remove_mask, float dot_spacing_2, float r_2, int threshold);
+
 __global__ void kernel_filter_radius_outlier_removal(uint32_t img_height, uint32_t img_width,float* const point_cloud_map,
                             unsigned char* remove_mask,float dot_spacing_2, float r_2,int threshold);
 

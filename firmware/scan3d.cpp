@@ -5,6 +5,7 @@
 #include "../test/LookupTableFunction.h"  
 #include "protocol.h"
 #include "management.cuh"  
+#include "../test/triangulation.h"
 
  
 Scan3D::Scan3D()
@@ -2161,25 +2162,64 @@ bool Scan3D::readCalibParam()
 bool Scan3D::loadCalibData()
 {
 
-    if(!readCalibParam())
+    if (!readCalibParam())
     {
-        LOG(INFO)<<"Read Calib Param Error!";  
-        return false; 
+        LOG(INFO) << "Read Calib Param Error!";
+        return false;
     }
     else
     {
-        
-        LOG(INFO)<<"cuda_copy_calib_data:";  
-        cuda_copy_calib_data(calib_param_.camera_intrinsic, 
-		         calib_param_.projector_intrinsic, 
-			 calib_param_.camera_distortion,
-	                 calib_param_.projector_distortion, 
-			 calib_param_.rotation_matrix, 
-			 calib_param_.translation_matrix); 
+
+        LOG(INFO) << "cuda_copy_calib_data:";
+        cuda_copy_calib_data(calib_param_.camera_intrinsic,
+                             calib_param_.projector_intrinsic,
+                             calib_param_.camera_distortion,
+                             calib_param_.projector_distortion,
+                             calib_param_.rotation_matrix,
+                             calib_param_.translation_matrix);
+
+        LOG(INFO) << "generate undistort table:";
+
+        int nr = image_height_;
+        int nc = image_width_;
+
+        cv::Mat undistort_map_x(nr, nc, CV_32F, cv::Scalar(0));
+        cv::Mat undistort_map_y(nr, nc, CV_32F, cv::Scalar(0));
+
+        float camera_fx = calib_param_.camera_intrinsic[0];
+        float camera_fy = calib_param_.camera_intrinsic[4];
+
+        float camera_cx = calib_param_.camera_intrinsic[2];
+        float camera_cy = calib_param_.camera_intrinsic[5];
+
+        float k1 = calib_param_.camera_distortion[0];
+        float k2 = calib_param_.camera_distortion[1];
+        float p1 = calib_param_.camera_distortion[2];
+        float p2 = calib_param_.camera_distortion[3];
+        float k3 = calib_param_.camera_distortion[4];
+
+        for (int r = 0; r < nr; r++)
+        {
+
+            for (int c = 0; c < nc; c++)
+            {
+                double undistort_x = c;
+                double undistort_y = r;
+
+                int offset = r * nc + c;
+
+                undistortPoint(c, r, camera_fx, camera_fy,
+                               camera_cx, camera_cy, k1, k2, k3, p1, p2, undistort_x, undistort_y);
+
+                undistort_map_x.at<float>(r,c) = undistort_x;
+                undistort_map_y.at<float>(r,c)  =  undistort_y;
+            }
+        }
+
+        coud_copy_undistort_table_to_memory((float*)undistort_map_x.data,(float*)undistort_map_y.data);
     }
 
-   
-	LookupTableFunction lookup_table_machine_; 
+    LookupTableFunction lookup_table_machine_; 
     MiniLookupTableFunction minilookup_table_machine_;
 
 	lookup_table_machine_.setCalibData(calib_param_);
@@ -2246,9 +2286,10 @@ void Scan3D::removeOutlierBaseRadiusFilter()
         LOG(INFO)<<"radius_filter_r: "<<r;
         LOG(INFO)<<"num: "<<num; 
 
-        cuda_remove_points_base_radius_filter(0.5,r,num);
+        cuda_remove_points_base_radius_filter(0.05,r,num);
 
-        cuda_copy_depth_from_memory(buff_depth_);
+        cuda_copy_depth_from_memory(buff_depth_); 
+        LOG(INFO)<<"removal finished!";
     }
 }
 

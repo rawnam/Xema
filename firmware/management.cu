@@ -27,8 +27,7 @@ dim3 blocksPerGrid((d_image_width_ + threadsPerBlock.x - 1) / threadsPerBlock.x,
 
 // int d_image_width_ = 1920;
 // int d_image_height_ = 1200;
-// bool load_calib_data_flag_ = false;
-
+// bool load_calib_data_flag_ = false; 
 
 SystemConfigDataStruct cuda_system_config_settings_machine_;
 void cuda_set_param_system_config(SystemConfigDataStruct param)
@@ -206,6 +205,9 @@ bool cuda_malloc_basic_memory()
 	cudaMalloc((void**)&d_xL_rotate_y_, d_image_height_*d_image_width_ * sizeof(float)); 
 	cudaMalloc((void**)&d_R_1_, 3*3 * sizeof(float)); 
 
+	cudaMalloc((void**)&d_undistort_map_x_, d_image_height_*d_image_width_ * sizeof(float)); 
+	cudaMalloc((void**)&d_undistort_map_y_, d_image_height_*d_image_width_ * sizeof(float)); 
+
     LOG(INFO)<<"d_image_width_: "<<d_image_width_;
     LOG(INFO)<<"d_image_height_: "<<d_image_height_;
 	cudaDeviceSynchronize();
@@ -293,6 +295,9 @@ bool cuda_free_basic_memory()
     cudaFree(d_xL_rotate_x_);
     cudaFree(d_xL_rotate_y_);
     cudaFree(d_R_1_);
+
+    cudaFree(d_undistort_map_x_);
+    cudaFree(d_undistort_map_y_);
  
 
 	return true;
@@ -402,6 +407,13 @@ void cuda_copy_talbe_to_memory(float* mapping,float* mini_mapping,float* rotate_
 
 	LOG(INFO)<<"d_baseline_: "<<d_baseline_;
 	cudaDeviceSynchronize();
+}
+
+
+void coud_copy_undistort_table_to_memory(float* undistort_x_map,float* undistort_y_map)
+{
+	CHECK(cudaMemcpyAsync(d_undistort_map_x_, undistort_x_map, d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyHostToDevice));
+	CHECK(cudaMemcpyAsync(d_undistort_map_y_, undistort_y_map, d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyHostToDevice));
 }
 
 
@@ -559,13 +571,21 @@ bool cuda_compute_convolved_image_phase_shift(int serial_flag)
 	{
 	case 0:
 	{
-		kernel_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_six_step_patterns_convolved_list_[0], d_six_step_patterns_convolved_list_[1], d_six_step_patterns_convolved_list_[2], d_six_step_patterns_convolved_list_[3],d_six_step_patterns_convolved_list_[4],d_six_step_patterns_convolved_list_[5],d_six_step_pattern_convolution_phase_list_[1], d_confidence_map_list_[3]);
+		kernel_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,
+		d_six_step_patterns_convolved_list_[0], d_six_step_patterns_convolved_list_[1], 
+		d_six_step_patterns_convolved_list_[2], d_six_step_patterns_convolved_list_[3],
+		d_six_step_patterns_convolved_list_[4],d_six_step_patterns_convolved_list_[5],
+		d_six_step_pattern_convolution_phase_list_[1], d_confidence_map_list_[3]);
 	}
 		break;
 
 	case 1:
 	{
-		kernel_merge_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_repetition_02_merge_patterns_convolved_list_[0], d_repetition_02_merge_patterns_convolved_list_[1], d_repetition_02_merge_patterns_convolved_list_[2], d_repetition_02_merge_patterns_convolved_list_[3],d_repetition_02_merge_patterns_convolved_list_[4],d_repetition_02_merge_patterns_convolved_list_[5], 1, d_image_height_, d_image_width_, d_six_step_pattern_convolution_phase_list_[1], d_confidence_map_list_[3]);
+		kernel_merge_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_repetition_02_merge_patterns_convolved_list_[0],
+		 d_repetition_02_merge_patterns_convolved_list_[1], d_repetition_02_merge_patterns_convolved_list_[2],
+		  d_repetition_02_merge_patterns_convolved_list_[3],d_repetition_02_merge_patterns_convolved_list_[4],
+		  d_repetition_02_merge_patterns_convolved_list_[5], 1, d_image_height_, d_image_width_, 
+		  d_six_step_pattern_convolution_phase_list_[1], d_confidence_map_list_[3]);
 	}
 		break;
 	
@@ -616,7 +636,47 @@ bool cuda_rectify_six_step_pattern_phase(int mode, int kernal_diameter)
 			kernel_six_step_phase_rectify<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_wrap_map_list_[3], d_six_step_pattern_convolution_phase_list_[1], d_wrap_map_list_[3]);
 		}
 		break;
-		
+		case 2:
+		{
+			//minsw相位校正
+			cudaDeviceSynchronize();
+			LOG(INFO)<<"start six_step blur mode 0";
+			for (int i = 0; i < LAST_STEPS_NUM; i += 1)
+			{
+				kernal_convolution_2D<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,
+				 d_patterns_list_[2 + i], d_six_step_patterns_convolved_list_[i], d_convolution_kernal_map, kernal_diameter);
+			}
+			cudaDeviceSynchronize();
+			LOG(INFO)<<"end six_step blur";
+
+			cuda_compute_convolved_image_phase_shift(0);
+
+			// 计算相位并且补偿
+			kernel_six_step_phase_rectify<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,d_wrap_map_list_[3],
+			 d_six_step_pattern_convolution_phase_list_[1], d_wrap_map_list_[3]);
+		}
+		break; 
+		case 3:
+		{
+			//minsw相位校正repetition
+			cudaDeviceSynchronize();
+			LOG(INFO)<<"start six_step blur mode 1";
+			for (int i = 0; i < LAST_STEPS_NUM; i += 1)
+			{
+				kernal_convolution_2D_short<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,
+				 d_repetition_02_merge_patterns_list_[2 + i], d_repetition_02_merge_patterns_convolved_list_[i],
+				  d_convolution_kernal_map, kernal_diameter);
+			}
+			cudaDeviceSynchronize();
+			LOG(INFO)<<"end six_step blur";
+
+			cuda_compute_convolved_image_phase_shift(1);
+
+			// 计算相位并且补偿
+			kernel_six_step_phase_rectify<< <blocksPerGrid, threadsPerBlock >> >(d_image_width_,d_image_height_,
+			d_wrap_map_list_[3], d_six_step_pattern_convolution_phase_list_[1], d_wrap_map_list_[3]);
+		}
+		break;
 		default:
 			break;
 	}
@@ -1096,19 +1156,19 @@ void cuda_remove_points_base_radius_filter(float dot_spacing,float radius,int th
 	// cv::split(pointcloud, channels);
 	// cv::imwrite("depth_f.tiff", channels[2]);
 
-	cudaDeviceSynchronize();
+	// cudaDeviceSynchronize();
 	LOG(INFO)<<"kernel_reconstruct_pointcloud_base_depth:"; 
-	kernel_reconstruct_pointcloud_base_depth << <blocksPerGrid, threadsPerBlock >> > (h_image_width_,h_image_height_,d_xL_rotate_x_,d_xL_rotate_y_,
+	kernel_reconstruct_pointcloud_base_depth << <blocksPerGrid, threadsPerBlock >> > (h_image_width_,h_image_height_,d_undistort_map_x_,d_undistort_map_y_,
 	d_camera_intrinsic_,d_camera_distortion_,d_depth_map_,d_point_cloud_map_);
 
-	cudaDeviceSynchronize();
+	// cudaDeviceSynchronize();
 
 	// CHECK(cudaMemcpy(pointcloud.data, d_point_cloud_map_, 3 * h_image_height_ * h_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
 	// channels.clear();
 	// cv::split(pointcloud, channels);
 	// cv::imwrite("depth_e.tiff", channels[2]);
-
-	LOG(INFO) << "remove_base_radius_filter start:";
+// cudaDeviceSynchronize();
+	// LOG(INFO) << "remove_base_radius_filter start:";
 
 	// //相机像素为5.4um、焦距12mm。dot_spacing = 5.4*distance/12000 mm，典型值0.54mm（1200）
 
@@ -1117,15 +1177,21 @@ void cuda_remove_points_base_radius_filter(float dot_spacing,float radius,int th
 
 	// cudaFuncSetCacheConfig (cuda_filter_radius_outlier_removal, cudaFuncCachePreferL1);
 
-	kernel_filter_radius_outlier_removal<<<blocksPerGrid, threadsPerBlock>>>(h_image_height_, h_image_width_, d_point_cloud_map_, d_mask_map_, d2, r2, threshold_num);
-	cudaDeviceSynchronize();
+	// kernel_filter_radius_outlier_removal<<<blocksPerGrid, threadsPerBlock>>>(h_image_height_, h_image_width_, d_point_cloud_map_, d_mask_map_, d2, r2, threshold_num);
+	// cudaDeviceSynchronize();
+	// LOG(INFO)<<"kernel_filter_radius_outlier_removal finished!";
+	dim3 dimBlock(BLOCK_WIDTH, BLOCK_WIDTH);
+    dim3 dimGrid((d_image_width_ - 1) / O_TILE_WIDTH + 1, (d_image_height_ - 1) / O_TILE_WIDTH + 1, 1);
+    kernel_filter_radius_outlier_removal_shared << <dimGrid, dimBlock >> > (d_image_height_, d_image_width_, d_point_cloud_map_, d_mask_map_, d2, r2, threshold_num);
+    // cudaDeviceSynchronize();
+	// LOG(INFO)<<"kernel_filter_radius_outlier_removal_shared finished!";
 
-	LOG(INFO) << "remove start:";
+	// LOG(INFO) << "remove start:";
 	kernel_removal_points_base_mask<<<blocksPerGrid, threadsPerBlock>>>(h_image_height_, h_image_width_, d_point_cloud_map_, d_depth_map_, d_mask_map_);
 
-	cudaDeviceSynchronize();
+	// cudaDeviceSynchronize();
 
-	LOG(INFO)<<"remove_base_radius_filter finished!";
+	// LOG(INFO)<<"removal finished!";
 }
 
 
@@ -1216,8 +1282,9 @@ int cuda_copy_minsw8_pattern_to_memory(unsigned char* pattern_ptr,int serial_fla
 
 		LOG(INFO) << "finished GaussianBlur!";
 	}
-
+LOG(INFO) << "start copy:";
 	CHECK(cudaMemcpyAsync(d_patterns_list_[serial_flag], smooth_mat.data, d_image_height_*d_image_width_* sizeof(unsigned char), cudaMemcpyHostToDevice)); 
+LOG(INFO) << "copy finished!";
 }
 
 
@@ -1232,9 +1299,24 @@ int cuda_handle_repetition_model06(int repetition_count)
 	d_repetition_02_merge_patterns_list_[0], d_repetition_02_merge_patterns_list_[1],d_repetition_02_merge_patterns_list_[ThresholdMapSeries]);
  
 
-	kernel_merge_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_repetition_02_merge_patterns_list_[2], d_repetition_02_merge_patterns_list_[3],
-		d_repetition_02_merge_patterns_list_[4],d_repetition_02_merge_patterns_list_[5],d_repetition_02_merge_patterns_list_[6],d_repetition_02_merge_patterns_list_[7] ,
-		repetition_count,h_image_height_, h_image_width_, d_wrap_map_list_[3], d_confidence_map_list_[3]);
+	//相位校正
+				//相位校正
+	if (1 == cuda_system_config_settings_machine_.Instance().firwmare_param_.use_gray_rectify)
+	{
+		cv::Mat convolution_kernal = cv::getGaussianKernel(cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r,
+														   cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_sigma * 0.02, CV_32F);
+		convolution_kernal = convolution_kernal * convolution_kernal.t();
+		cuda_copy_convolution_kernal_to_memory((float *)convolution_kernal.data,
+											   cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
+		cuda_rectify_six_step_pattern_phase(2, cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
+	}
+	else
+	{
+		// 六步相移
+		kernel_merge_six_step_phase_shift<<<blocksPerGrid, threadsPerBlock>>>(d_repetition_02_merge_patterns_list_[2], d_repetition_02_merge_patterns_list_[3],
+																			  d_repetition_02_merge_patterns_list_[4], d_repetition_02_merge_patterns_list_[5], d_repetition_02_merge_patterns_list_[6], d_repetition_02_merge_patterns_list_[7],
+																			  repetition_count, h_image_height_, h_image_width_, d_wrap_map_list_[3], d_confidence_map_list_[3]);
+	}
 
 	for(int i= 8;i<16;i++)
 	{
@@ -1270,11 +1352,25 @@ int cuda_handle_repetition_model06(int repetition_count)
     		break;
         case 8:
 		{ 
-            //六步相移
-            int i= 2; 
-			kernel_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_patterns_list_[i+0],
-             d_patterns_list_[i + 1], d_patterns_list_[i + 2],d_patterns_list_[i + 3],d_patterns_list_[i + 4],d_patterns_list_[i + 5]
-              ,d_wrap_map_list_[3], d_confidence_map_list_[3]); 
+
+			//相位校正
+			if (1 == cuda_system_config_settings_machine_.Instance().firwmare_param_.use_gray_rectify)
+            {
+                cv::Mat convolution_kernal = cv::getGaussianKernel(cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r, 
+				cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_sigma * 0.02, CV_32F);
+	            convolution_kernal = convolution_kernal * convolution_kernal.t();
+                cuda_copy_convolution_kernal_to_memory((float*)convolution_kernal.data, 
+				cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
+                cuda_rectify_six_step_pattern_phase(2, cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
+            }
+			else
+			{
+				//六步相移
+				int i= 2; 
+				kernel_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_patterns_list_[i+0],
+				d_patterns_list_[i + 1], d_patterns_list_[i + 2],d_patterns_list_[i + 3],d_patterns_list_[i + 4],d_patterns_list_[i + 5]
+				,d_wrap_map_list_[3], d_confidence_map_list_[3]); 
+			}
  
         } 
     		break;
