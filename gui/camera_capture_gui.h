@@ -273,9 +273,9 @@ private:
 	std::vector<QSpinBox*> led_current_list_;
 
 
-	//6个exposure输入框
+	//10个exposure输入框
 	std::vector<QSpinBox*> brightness_hdr_exposure_time_list_;
-	std::vector<QDoubleSpinBox*> brightness_hdr_gain_list_;
+	//std::vector<QDoubleSpinBox*> brightness_hdr_gain_list_;
 
 	int radio_button_flag_;
 

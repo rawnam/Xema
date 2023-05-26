@@ -34,7 +34,7 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	ui.tableWidget_more_exposure->setFrameShape(QFrame::Box);
 	 
 	ui.tableWidget_brightness_hdr->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
-	ui.tableWidget_brightness_hdr->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
+	//ui.tableWidget_brightness_hdr->horizontalHeader()->setSectionResizeMode(2, QHeaderView::Stretch);
 	ui.tableWidget_brightness_hdr->horizontalHeader()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
 	ui.tableWidget_brightness_hdr->horizontalHeader()->setSortIndicatorShown(false); 
 	ui.tableWidget_brightness_hdr->setEditTriggers(QAbstractItemView::NoEditTriggers); //设置不可编辑
@@ -556,6 +556,15 @@ void CameraCaptureGui::undateSystemConfigUiData()
 		ui.radioButton_generate_brightness_darkness_define->setChecked(true);
 	}
 	break;
+	case 4:
+	{
+		ui.radioButton_generate_brightness_hdr->setChecked(true);
+		ui.spinBox_brightness_hdr_num->setEnabled(true);
+		ui.tableWidget_brightness_hdr->setEnabled(true);
+
+		ui.spinBox_camera_exposure_define->setDisabled(true);
+	}
+	break;
 	default:
 		break;
 	}
@@ -791,23 +800,23 @@ void CameraCaptureGui::add_brightness_hdr_exopsure_item(int row, int exposure, f
 
 	connect(exposureSpinBoxItem, SIGNAL(valueChanged(int)), this, SLOT(do_brightness_hdr_param_changed(int)));
 
-	QDoubleSpinBox* gainSpinBoxItem = new QDoubleSpinBox();
-	gainSpinBoxItem->setRange(0, 24);//设置数值显示范围
-	gainSpinBoxItem->setValue(gain);
-	gainSpinBoxItem->setButtonSymbols(QAbstractSpinBox::NoButtons);
-	gainSpinBoxItem->setAlignment(Qt::AlignHCenter);
-	gainSpinBoxItem->setKeyboardTracking(false);
-	gainSpinBoxItem->setSingleStep(1);
+	//QDoubleSpinBox* gainSpinBoxItem = new QDoubleSpinBox();
+	//gainSpinBoxItem->setRange(0, 24);//设置数值显示范围
+	//gainSpinBoxItem->setValue(gain);
+	//gainSpinBoxItem->setButtonSymbols(QAbstractSpinBox::NoButtons);
+	//gainSpinBoxItem->setAlignment(Qt::AlignHCenter);
+	//gainSpinBoxItem->setKeyboardTracking(false);
+	//gainSpinBoxItem->setSingleStep(1);
 
 
-	connect(gainSpinBoxItem, SIGNAL(valueChanged(int)), this, SLOT(do_brightness_hdr_param_changed(int)));
+	//connect(gainSpinBoxItem, SIGNAL(valueChanged(int)), this, SLOT(do_brightness_hdr_param_changed(int)));
 
 	ui.tableWidget_brightness_hdr->setItem(row, 0, new QTableWidgetItem(QString::number(row + 1)));
 	ui.tableWidget_brightness_hdr->setCellWidget(row, 1, exposureSpinBoxItem);
-	ui.tableWidget_brightness_hdr->setCellWidget(row, 2, gainSpinBoxItem);
+	//ui.tableWidget_brightness_hdr->setCellWidget(row, 2, gainSpinBoxItem);
 
 	brightness_hdr_exposure_time_list_.push_back(exposureSpinBoxItem);
-	brightness_hdr_gain_list_.push_back(gainSpinBoxItem);
+	//brightness_hdr_gain_list_.push_back(gainSpinBoxItem);
 }
 
 bool CameraCaptureGui::remove_brightness_hdr_exposure_item(int row)
@@ -1434,8 +1443,7 @@ bool CameraCaptureGui::brightnessHdrParamHasChanged()
 
 	for (int i = 0; i < brightness_hdr_exposure_time_list_.size(); i++)
 	{
-		if (firmware_config_param_.brightness_hdr_exposure_param_list[i] != brightness_hdr_exposure_time_list_[i]->value() 
-			|| firmware_config_param_.brightness_hdr_gain_param_list[i] != brightness_hdr_gain_list_[i]->value())
+		if (firmware_config_param_.brightness_hdr_exposure_param_list[i] != brightness_hdr_exposure_time_list_[i]->value())
 		{
 			return true;
 		}
@@ -1565,6 +1573,10 @@ bool CameraCaptureGui::setCameraConfigParam()
 
 	ret_code = DfSetParamGrayRectify(firmware_config_param_.use_gray_rectify, firmware_config_param_.gray_rectify_r, firmware_config_param_.gray_rectify_sigma);
 
+
+	ret_code = DfSetParamBrightnessHdrExposure(firmware_config_param_.brightness_hdr_exposure_num,
+		firmware_config_param_.brightness_hdr_exposure_param_list);
+ 
 	 
 
 	if (DF_UNKNOWN == ret_code)
@@ -1739,7 +1751,7 @@ void CameraCaptureGui::updateBrightnessHdrParam()
 	for (int i = 0; i < brightness_hdr_exposure_time_list_.size(); i++)
 	{
 		firmware_config_param_.brightness_hdr_exposure_param_list[i] = brightness_hdr_exposure_time_list_[i]->value();
-		firmware_config_param_.brightness_hdr_gain_param_list[i] = brightness_hdr_gain_list_[i]->value();
+		//firmware_config_param_.brightness_hdr_gain_param_list[i] = brightness_hdr_gain_list_[i]->value();
 	}
 
 	firmware_config_param_.brightness_hdr_exposure_num = brightness_hdr_exposure_time_list_.size();
@@ -1812,12 +1824,12 @@ void CameraCaptureGui::do_brightness_hdr_param_changed(int val)
 			if (start_timer_flag_)
 			{
 				stopCapturingOneFrameBaseThread();
-				updateManyExposureParam();
+				updateBrightnessHdrParam();
 				do_pushButton_capture_continuous();
 			}
 			else
 			{
-				updateManyExposureParam();
+				updateBrightnessHdrParam();
 			}
 		}
 
@@ -1878,28 +1890,28 @@ void CameraCaptureGui::do_spin_brightness_hdr_num_changed(int val)
 	}
 
 	std::vector<int> old_exposure_list;
-	std::vector<float> old_gain_list;
+	//std::vector<float> old_gain_list;
 
 	std::vector<QSpinBox*> old_exposure_time_list = brightness_hdr_exposure_time_list_;
-	std::vector<QDoubleSpinBox*> old_gain_current_list = brightness_hdr_gain_list_;
+	//std::vector<QDoubleSpinBox*> old_gain_current_list = brightness_hdr_gain_list_;
 
 
 	for (int i = 0; i < brightness_hdr_exposure_time_list_.size(); i++)
 	{
 		old_exposure_list.push_back(brightness_hdr_exposure_time_list_.at(i)->value());
-		old_gain_list.push_back(brightness_hdr_gain_list_.at(i)->value());
+		//old_gain_list.push_back(brightness_hdr_gain_list_.at(i)->value());
 	}
 
 	for (int i = 0; i < brightness_hdr_exposure_time_list_.size(); i++)
 	{ 
 		disconnect(brightness_hdr_exposure_time_list_[i], SIGNAL(valueChanged(int)), this, SLOT(do_brightness_hdr_param_changed(int)));
-		disconnect(brightness_hdr_gain_list_[i], SIGNAL(valueChanged(int)), this, SLOT(do_brightness_hdr_param_changed(int)));
+		//disconnect(brightness_hdr_gain_list_[i], SIGNAL(valueChanged(int)), this, SLOT(do_brightness_hdr_param_changed(int)));
 		delete brightness_hdr_exposure_time_list_[i];
-		delete brightness_hdr_gain_list_[i];
+		//delete brightness_hdr_gain_list_[i];
 	}
 
 	brightness_hdr_exposure_time_list_.clear();
-	brightness_hdr_gain_list_.clear();
+	//brightness_hdr_gain_list_.clear();
 
 	for (int i = 0; i < val; i++)
 	{
