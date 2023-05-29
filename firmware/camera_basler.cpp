@@ -480,6 +480,8 @@ bool CameraBasler::openCamera()
     min_camera_exposure_ = 6250;
 
     camera_opened_state_ = true;
+    
+    trigger_on_flag_ = true;
  
     return true;
 }
@@ -513,7 +515,9 @@ bool CameraBasler::switchToInternalTriggerMode()
 
     res = PylonDeviceFeatureFromString(hDev_, "TriggerSelector", "FrameStart");
     // CHECK( res );
-    res = PylonDeviceFeatureFromString(hDev_, "TriggerMode", "Off"); 
+    res = PylonDeviceFeatureFromString(hDev_, "TriggerMode", "On"); 
+
+    res = PylonDeviceFeatureFromString(hDev_, "TriggerSource", "Software");
     // CHECK( res );
     res = PylonDeviceFeatureFromString(hDev_, "ExposureMode", "Timed");
     // CHECK( res );
@@ -524,6 +528,8 @@ bool CameraBasler::switchToInternalTriggerMode()
         return false;
     } 
  
+ 
+    trigger_on_flag_ = false;
       
     return true;
 }
@@ -548,9 +554,29 @@ bool CameraBasler::switchToExternalTriggerMode()
         return false;
     }
 
+    
+    trigger_on_flag_ = true;
+
     return true;
     
 }
+
+
+bool CameraBasler::trigger_software()
+{
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+
+    GENAPIC_RESULT res;
+    res = PylonDeviceExecuteCommandFeature( hDev_, "TriggerSoftware" );
+
+        // CHECK( res );
+    if (GENAPI_E_OK != res)
+    {
+        LOG(INFO) << "Set switchToExternalTriggerMode Failed!";
+        return false;
+    }
+}
+
 bool CameraBasler::getExposure(double &val)
 {
     std::lock_guard<std::mutex> my_guard(operate_mutex_);
@@ -571,11 +597,20 @@ bool CameraBasler::setExposure(double val)
 {
     std::lock_guard<std::mutex> my_guard(operate_mutex_);
  
-
-    if(val< min_camera_exposure_)
+     if (trigger_on_flag_)
     {
-        val = min_camera_exposure_;
+        if (val < min_camera_exposure_)
+        {
+            val = min_camera_exposure_;
+        }
     }
+
+    if (val > max_camera_exposure_)
+    {
+        val = max_camera_exposure_;
+    }
+
+ 
 
     GENAPIC_RESULT              res;                      /* Return value of pylon methods. */
     res = PylonDeviceSetFloatFeature( hDev_, "ExposureTime", val);

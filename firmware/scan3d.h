@@ -69,6 +69,8 @@ public:
     
     void mergeBrightness();  
 
+    int captureHdrBrightness(unsigned char* buff);
+
     bool captureFrame04Repetition01(int repetition_count); 
 
     bool captureFrame04Repetition02(int repetition_count);
@@ -111,6 +113,7 @@ public:
     int initCache();
 
     int reopenCamera();
+
 
 private:
  

@@ -88,6 +88,8 @@ SystemConfigDataStruct::SystemConfigDataStruct()
 	}
 	instance_.firwmare_param_.brightness_hdr_exposure_num = 2;
 
+	instance_.firwmare_param_.brightness_gain = 0;
+
 }
 
 bool SystemConfigDataStruct::loadFromSettings(const std::string& f)

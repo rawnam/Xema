@@ -176,7 +176,7 @@ bool CameraGalaxy::openCamera()
         min_camera_exposure_ = 1000000/((int)max_frame);
         LOG(INFO) << "min_camera_exposure_: " << min_camera_exposure_;
 
-
+        trigger_on_flag_ = true;
     }
 
     return true;
@@ -220,6 +220,8 @@ bool CameraGalaxy::switchToInternalTriggerMode()
         return false;
     }
 
+    trigger_on_flag_ = false;
+
     // status = GXSendCommand(hDevice_, GX_COMMAND_TRIGGER_SOFTWARE);
     // if (GX_STATUS_SUCCESS != status)
     // {
@@ -253,6 +255,8 @@ bool CameraGalaxy::switchToExternalTriggerMode()
         return false;
     }
 
+    trigger_on_flag_ = true;
+
     return true;
 }
 
@@ -274,11 +278,18 @@ bool CameraGalaxy::getExposure(double &val)
 }
 bool CameraGalaxy::setExposure(double val)
 {
- 
 
-    if(val< min_camera_exposure_)
+    if (trigger_on_flag_)
     {
-        val = min_camera_exposure_;
+        if (val < min_camera_exposure_)
+        {
+            val = min_camera_exposure_;
+        }
+    }
+
+    if (val > max_camera_exposure_)
+    {
+        val = max_camera_exposure_;
     }
 
     GX_STATUS status = GX_STATUS_SUCCESS;
