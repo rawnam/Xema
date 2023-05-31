@@ -302,11 +302,17 @@ void LightCrafter3010::set_camera_min_exposure(float min)
 void LightCrafter3010::enable_solid_field()
 {
     unsigned char TxBuffer[8];
-    
+ 
     TxBuffer[0] = 0x01;
+    //1Ah
     write(Write_Image_Freeze, TxBuffer, 1);
 
+    TxBuffer[0] = 0x00;
+    //52h
+    write(Write_Rgb_Led_Enable, TxBuffer, 1);
+
     TxBuffer[0] = 0x01;
+    //05h
     write(Write_Operating_Mode_Select, TxBuffer, 1);
  
     TxBuffer[0] = 0x00;
@@ -315,12 +321,17 @@ void LightCrafter3010::enable_solid_field()
     TxBuffer[3] = 0x00;
     TxBuffer[4] = 0x0F;
     TxBuffer[5] = 0x00;
+    //0Bh
     write(Write_Checkerboard, TxBuffer, 6);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
  
     TxBuffer[0] = 0x07;
+    //52h
     write(Write_Rgb_Led_Enable, TxBuffer, 1);
 
     TxBuffer[0] = 0x00;
+    //1Ah
     write(Write_Image_Freeze, TxBuffer, 1);
 }
 

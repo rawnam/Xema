@@ -367,21 +367,12 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
     case 2:
     {
 
-        lc3010_.stop_pattern_sequence();
-        lc3010_.init();
+        lc3010_.stop_pattern_sequence(); 
         lc3010_.pattern_mode_brightness();
-
-        
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
         // 发光，自定义曝光时间
         lc3010_.enable_solid_field();
 
-        LOG(INFO) << "sleep:";
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        LOG(INFO) << "end";
-
-
-
+  
         camera_->switchToInternalTriggerMode();
         camera_->setExposure(exposure);
         camera_->setGain(system_config_settings_machine_.Instance().firwmare_param_.brightness_gain);
@@ -410,9 +401,7 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
     case 3:
     {
 
-        // lc3010_.stop_pattern_sequence();
-        // lc3010_.init();
-
+  
         camera_->switchToInternalTriggerMode();
         if (!camera_->setExposure(exposure))
         {
@@ -450,23 +439,15 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
     {
 
         lc3010_.stop_pattern_sequence();
-        lc3010_.init();
         lc3010_.pattern_mode_brightness();
- 
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
- 
+  
         // 发光，自定义曝光时间
         lc3010_.enable_solid_field();
+ 
+        camera_->streamOn();
+        LOG(INFO) << "Stream On";
 
-        // LOG(INFO) << "sleep:";
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        // LOG(INFO) << "end";
-
-
-            camera_->streamOn();
-            LOG(INFO) << "Stream On";
-
-        camera_->switchToInternalTriggerMode(); 
+        camera_->switchToInternalTriggerMode();
         camera_->setGain(system_config_settings_machine_.Instance().firwmare_param_.brightness_gain);
 
         int capture_num = system_config_settings_machine_.Instance().firwmare_param_.brightness_hdr_exposure_num;
