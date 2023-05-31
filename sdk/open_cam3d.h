@@ -210,6 +210,20 @@ extern "C"
 	//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
 	DF_SDK_API int DfGetParamGenerateBrightness(int& model, float& exposure);
 
+	//函数名： DfSetParamBrightnessGain
+	//功能： 设置亮度图增益
+	//输入参数：gain(亮度图增益)
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfSetParamBrightnessGain(float gain);
+
+	//函数名： DfGetParamBrightnessGain
+	//功能： 获取亮度图增益
+	//输入参数：无
+	//输出参数：gain(亮度图增益)
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfGetParamBrightnessGain(float &gain);
+
 	//函数名： DfSetParamCameraExposure
 	//功能： 设置相机曝光时间
 	//输入参数：exposure(相机曝光时间)

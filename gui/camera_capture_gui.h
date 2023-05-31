@@ -244,6 +244,8 @@ private slots:
 
 	void do_spin_camera_exposure_define_changed(int val);
 
+	void do_spin_brightness_gain_changed(double val);
+
 	void do_spin_generate_brightness_exposure_changed(int val);
 	/******************************************************************************************/
 
@@ -327,6 +329,7 @@ private:
 	//生成亮度图模式
 	int generate_brightness_model_;
 	float generate_brightness_exposure_;
+	float generate_brightness_gain_;
 
 	//cv::Size2f board_size_;
 	struct BoardMessage board_message_;

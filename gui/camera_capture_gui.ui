@@ -321,9 +321,9 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>-304</y>
+              <y>-344</y>
               <width>438</width>
-              <height>1213</height>
+              <height>1253</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1100,6 +1100,27 @@
                    <layout class="QVBoxLayout" name="verticalLayout_7">
                     <item>
                      <layout class="QGridLayout" name="gridLayout_5">
+                      <item row="2" column="1">
+                       <widget class="QSpinBox" name="spinBox_brightness_hdr_num">
+                        <property name="font">
+                         <font>
+                          <pointsize>16</pointsize>
+                         </font>
+                        </property>
+                        <property name="keyboardTracking">
+                         <bool>false</bool>
+                        </property>
+                        <property name="minimum">
+                         <number>2</number>
+                        </property>
+                        <property name="maximum">
+                         <number>10</number>
+                        </property>
+                        <property name="value">
+                         <number>2</number>
+                        </property>
+                       </widget>
+                      </item>
                       <item row="0" column="0">
                        <widget class="QLabel" name="label_exposure_define">
                         <property name="font">
@@ -1108,7 +1129,19 @@
                          </font>
                         </property>
                         <property name="text">
-                         <string>曝光时间：</string>
+                         <string>曝光时间（us）：</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="2" column="0">
+                       <widget class="QLabel" name="label_brightness_hdr">
+                        <property name="font">
+                         <font>
+                          <pointsize>12</pointsize>
+                         </font>
+                        </property>
+                        <property name="text">
+                         <string>HDR数：</string>
                         </property>
                        </widget>
                       </item>
@@ -1142,36 +1175,27 @@
                         </property>
                        </widget>
                       </item>
-                      <item row="1" column="1">
-                       <widget class="QSpinBox" name="spinBox_brightness_hdr_num">
-                        <property name="font">
-                         <font>
-                          <pointsize>16</pointsize>
-                         </font>
-                        </property>
-                        <property name="keyboardTracking">
-                         <bool>false</bool>
-                        </property>
-                        <property name="minimum">
-                         <number>2</number>
-                        </property>
-                        <property name="maximum">
-                         <number>10</number>
-                        </property>
-                        <property name="value">
-                         <number>2</number>
-                        </property>
-                       </widget>
-                      </item>
                       <item row="1" column="0">
-                       <widget class="QLabel" name="label_brightness_hdr">
+                       <widget class="QLabel" name="label_brightness_gain">
                         <property name="font">
                          <font>
                           <pointsize>12</pointsize>
                          </font>
                         </property>
                         <property name="text">
-                         <string>HDR数：</string>
+                         <string>增益(db)：</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="1">
+                       <widget class="QDoubleSpinBox" name="doubleSpinBox_brightness_gain">
+                        <property name="font">
+                         <font>
+                          <pointsize>16</pointsize>
+                         </font>
+                        </property>
+                        <property name="maximum">
+                         <double>24.000000000000000</double>
                         </property>
                        </widget>
                       </item>
@@ -1348,7 +1372,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_exposure"/>
   <buttongroup name="buttonGroup_image"/>
+  <buttongroup name="buttonGroup_exposure"/>
  </buttongroups>
 </ui>
