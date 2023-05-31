@@ -3130,6 +3130,40 @@ int handle_cmd_get_param_camera_exposure(int client_sock)
 }
  
 
+
+//设置亮度图增益参数
+int handle_cmd_set_param_brightness_gain(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+	   
+    float gain = 0;
+
+    int ret = recv_buffer(client_sock, (char*)(&gain), sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+
+    if(gain< 0)
+    {
+        gain = 0;
+    }
+    else if(gain > 24)
+    {
+        gain = 24;
+    }
+ 
+ 
+    system_config_settings_machine_.Instance().firwmare_param_.brightness_gain = gain;
+ 
+  
+    return DF_SUCCESS;
+}
+
 //设置相机增益参数
 int handle_cmd_set_param_camera_gain(int client_sock)
 {
@@ -5317,6 +5351,10 @@ int handle_commands(int client_sock)
     case DF_CMD_SET_PARAM_BRIGHTNESS_HDR_EXPOSURE:
         LOG(INFO)<<"DF_CMD_SET_PARAM_BRIGHTNESS_HDR_EXPOSURE"; 
         ret = handle_cmd_set_param_brightness_hdr_exposure(client_sock);
+        break;
+    case DF_CMD_SET_PARAM_BRIGHTNESS_GAIN:
+        LOG(INFO)<<"DF_CMD_SET_PARAM_BRIGHTNESS_GAIN"; 
+        ret = handle_cmd_set_param_brightness_gain(client_sock);
         break;
 
 	default:

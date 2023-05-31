@@ -384,6 +384,7 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
 
         camera_->switchToInternalTriggerMode();
         camera_->setExposure(exposure);
+        camera_->setGain(system_config_settings_machine_.Instance().firwmare_param_.brightness_gain);
         camera_->streamOn();
         LOG(INFO) << "Stream On";
 
@@ -403,6 +404,7 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
         lc3010_.disable_solid_field();
         camera_->switchToExternalTriggerMode();
         camera_->setExposure(camera_exposure_);
+        camera_->setGain(camera_gain_);
     }
     break;
     case 3:
@@ -420,6 +422,10 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
         {
             LOG(INFO) << "set Exposure: " << exposure;
         }
+
+
+        camera_->setGain(system_config_settings_machine_.Instance().firwmare_param_.brightness_gain);
+
         camera_->streamOn();
         LOG(INFO) << "Stream On";
 
@@ -437,6 +443,7 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
         LOG(INFO) << "Stream Off";
         camera_->switchToExternalTriggerMode();
         camera_->setExposure(camera_exposure_);
+        camera_->setGain(camera_gain_);
     }
     break; 
     case 4:
@@ -459,8 +466,8 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
             camera_->streamOn();
             LOG(INFO) << "Stream On";
 
-        camera_->switchToInternalTriggerMode();
-        // camera_->setExposure(exposure);
+        camera_->switchToInternalTriggerMode(); 
+        camera_->setGain(system_config_settings_machine_.Instance().firwmare_param_.brightness_gain);
 
         int capture_num = system_config_settings_machine_.Instance().firwmare_param_.brightness_hdr_exposure_num;
 
@@ -526,6 +533,7 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
         lc3010_.disable_solid_field();
         camera_->switchToExternalTriggerMode();
         camera_->setExposure(camera_exposure_);
+        camera_->setGain(camera_gain_);
     }
     break;
 
