@@ -327,9 +327,9 @@ private:
 	std::vector<std::vector<cv::Point3f>> feature_points_list_;
 
 	//生成亮度图模式
-	int generate_brightness_model_;
-	float generate_brightness_exposure_;
-	float generate_brightness_gain_;
+	//int generate_brightness_model_;
+	//float generate_brightness_exposure_;
+	//float generate_brightness_gain_;
 
 	//cv::Size2f board_size_;
 	struct BoardMessage board_message_;

@@ -1372,7 +1372,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_image"/>
   <buttongroup name="buttonGroup_exposure"/>
+  <buttongroup name="buttonGroup_image"/>
  </buttongroups>
 </ui>
