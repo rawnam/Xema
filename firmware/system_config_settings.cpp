@@ -48,6 +48,7 @@ SystemConfigDataStruct::SystemConfigDataStruct()
 
 	instance_.firwmare_param_.generate_brightness_exposure = 12000;
 	instance_.firwmare_param_.generate_brightness_model = 1;
+	instance_.firwmare_param_.generate_brightness_exposure_model = 1;
 	instance_.firwmare_param_.mixed_exposure_num = 2;
 	instance_.firwmare_param_.hdr_model = 1;
 

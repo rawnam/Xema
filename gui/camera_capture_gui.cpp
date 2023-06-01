@@ -276,6 +276,7 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.radioButton_generate_brightness_illuminsation_define, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_generate_brightness_illumination(bool)));
 	connect(ui.radioButton_generate_brightness_darkness_define, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_generate_brightness_darkness(bool)));
 	connect(ui.radioButton_generate_brightness_hdr, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_generate_brightness_hdr(bool)));
+	connect(ui.radioButton_generate_brightness_single, SIGNAL(toggled(bool)), this, SLOT(do_QRadioButton_toggled_generate_brightness_single(bool)));
 
 	connect(ui.spinBox_camera_exposure_define, SIGNAL(valueChanged(int)), this, SLOT(do_spin_generate_brightness_exposure_changed(int)));
 	connect(ui.doubleSpinBox_brightness_gain, SIGNAL(valueChanged(double)), this, SLOT(do_spin_brightness_gain_changed(double)));
@@ -548,6 +549,13 @@ void CameraCaptureGui::undateSystemConfigUiData()
 	case 1:
 	{
 		ui.radioButton_generate_brightness_default->setChecked(true);
+
+		ui.spinBox_camera_exposure_define->setDisabled(true);
+		ui.doubleSpinBox_brightness_gain->setDisabled(true);
+		ui.spinBox_brightness_hdr_num->setDisabled(true);
+		ui.tableWidget_brightness_hdr->setDisabled(true); 
+		ui.radioButton_generate_brightness_hdr->setDisabled(true);
+		ui.radioButton_generate_brightness_single->setDisabled(true);
 	}
 	break;
 	case 2:
@@ -556,6 +564,10 @@ void CameraCaptureGui::undateSystemConfigUiData()
 
 		ui.spinBox_camera_exposure_define->setEnabled(true);
 		ui.doubleSpinBox_brightness_gain->setEnabled(true);
+		ui.spinBox_brightness_hdr_num->setEnabled(true);
+		ui.tableWidget_brightness_hdr->setEnabled(true);
+		ui.radioButton_generate_brightness_hdr->setEnabled(true);
+		ui.radioButton_generate_brightness_single->setEnabled(true);
 	}
 	break;
 	case 3:
@@ -564,18 +576,12 @@ void CameraCaptureGui::undateSystemConfigUiData()
 
 		ui.spinBox_camera_exposure_define->setEnabled(true);
 		ui.doubleSpinBox_brightness_gain->setEnabled(true);
-	}
-	break;
-	case 4:
-	{
-		ui.radioButton_generate_brightness_hdr->setChecked(true);
 		ui.spinBox_brightness_hdr_num->setEnabled(true);
 		ui.tableWidget_brightness_hdr->setEnabled(true);
-
-		ui.spinBox_camera_exposure_define->setDisabled(true);
-		ui.doubleSpinBox_brightness_gain->setEnabled(true);
+		ui.radioButton_generate_brightness_hdr->setEnabled(true);
+		ui.radioButton_generate_brightness_single->setEnabled(true);
 	}
-	break;
+	break; 
 	default:
 		break;
 	}
@@ -1762,6 +1768,9 @@ void CameraCaptureGui::updateGenerateBrightnessParam()
 			}
 
 			ret_code = DfSetParamBrightnessGain(firmware_config_param_.brightness_gain);
+
+
+			ret_code = DfSetParamBrightnessExposureModel(firmware_config_param_.generate_brightness_exposure_model);
 			//if (DF_UNKNOWN == ret_code)
 			//{
 			//	QString str = u8"相机固件版本低，不支持亮度图增益设置。";
@@ -3723,12 +3732,23 @@ void CameraCaptureGui::do_QRadioButton_toggled_generate_brightness_default(bool 
 		 
 		ui.spinBox_camera_exposure_define->setDisabled(true);
 		ui.doubleSpinBox_brightness_gain->setDisabled(true);
+		ui.spinBox_brightness_hdr_num->setDisabled(true);
+		ui.tableWidget_brightness_hdr->setDisabled(true);
+
+		ui.radioButton_generate_brightness_hdr->setDisabled(true);
+		ui.radioButton_generate_brightness_single->setDisabled(true);
+
 		updateGenerateBrightnessParam();
 	}
 	else
 	{
 		ui.spinBox_camera_exposure_define->setEnabled(true);
 		ui.doubleSpinBox_brightness_gain->setEnabled(true);
+		ui.spinBox_brightness_hdr_num->setEnabled(true);
+		ui.tableWidget_brightness_hdr->setEnabled(true);
+		ui.radioButton_generate_brightness_hdr->setEnabled(true);
+		ui.radioButton_generate_brightness_single->setEnabled(true);
+		 
 	}
 }
 
@@ -3737,31 +3757,39 @@ void CameraCaptureGui::do_QRadioButton_toggled_generate_brightness_illumination(
 	if (state)
 	{ 
 		firmware_config_param_.generate_brightness_model = GENERATE_BRIGHTNESS_ILLUMINATION_;
+
 		ui.spinBox_camera_exposure_define->setEnabled(true);
 		ui.doubleSpinBox_brightness_gain->setEnabled(true);
+		ui.spinBox_brightness_hdr_num->setEnabled(true);
+		ui.tableWidget_brightness_hdr->setEnabled(true);
+		ui.radioButton_generate_brightness_hdr->setEnabled(true);
+		ui.radioButton_generate_brightness_single->setEnabled(true);
+
 		updateGenerateBrightnessParam();
 	}
 }
 
 
+void CameraCaptureGui::do_QRadioButton_toggled_generate_brightness_single(bool state)
+{
+	if (state)
+	{
+		firmware_config_param_.generate_brightness_exposure_model = GENERATE_BRIGHTNESS_MODEL_SINGLE_;
+		 
+		updateGenerateBrightnessParam();
+	}
+ 
+}
+
 void CameraCaptureGui::do_QRadioButton_toggled_generate_brightness_hdr(bool state)
 {
 	if (state)
 	{ 
-		firmware_config_param_.generate_brightness_model = GENERATE_BRIGHTNESS_HDR_;
-	 
-		ui.spinBox_brightness_hdr_num->setEnabled(true);
-		ui.tableWidget_brightness_hdr->setEnabled(true);
-
-		ui.spinBox_camera_exposure_define->setDisabled(true);
-		ui.doubleSpinBox_brightness_gain->setEnabled(true);
+		firmware_config_param_.generate_brightness_exposure_model = GENERATE_BRIGHTNESS_MODEL_HDR_;
+  
 		updateGenerateBrightnessParam();
 	}
-	else
-	{
-		ui.spinBox_brightness_hdr_num->setDisabled(true);
-		ui.tableWidget_brightness_hdr->setDisabled(true);
-	}
+ 
 }
 
 void CameraCaptureGui::do_QRadioButton_toggled_generate_brightness_darkness(bool state)
@@ -3769,7 +3797,14 @@ void CameraCaptureGui::do_QRadioButton_toggled_generate_brightness_darkness(bool
 	if (state)
 	{ 
 		firmware_config_param_.generate_brightness_model = GENERATE_BRIGHTNESS_DARKNESS_;
+		
 		ui.spinBox_camera_exposure_define->setEnabled(true);
+		ui.doubleSpinBox_brightness_gain->setEnabled(true);
+		ui.spinBox_brightness_hdr_num->setEnabled(true);
+		ui.tableWidget_brightness_hdr->setEnabled(true);
+		ui.radioButton_generate_brightness_hdr->setEnabled(true);
+		ui.radioButton_generate_brightness_single->setEnabled(true);
+
 		updateGenerateBrightnessParam();
 	}
 }

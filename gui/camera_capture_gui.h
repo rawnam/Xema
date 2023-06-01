@@ -21,7 +21,10 @@ const int  SELECT_COLOR_DEPTH_FLAG_ = 3;
 const int  GENERATE_BRIGHTNESS_DEFAULT_  = 1;
 const int  GENERATE_BRIGHTNESS_ILLUMINATION_ =  2;
 const int  GENERATE_BRIGHTNESS_DARKNESS_ =  3;
-const int  GENERATE_BRIGHTNESS_HDR_ = 4;
+//const int  GENERATE_BRIGHTNESS_HDR_ = 4;
+
+const int  GENERATE_BRIGHTNESS_MODEL_SINGLE_ = 1;
+const int  GENERATE_BRIGHTNESS_MODEL_HDR_ = 2;
 
 const int EXPOSURE_MODEL_SINGLE_ = 0;
 const int EXPOSURE_MODEL_HDR_ = 1;
@@ -171,6 +174,8 @@ private slots:
 	void do_QRadioButton_toggled_generate_brightness_illumination(bool state);
 
 	void do_QRadioButton_toggled_generate_brightness_darkness(bool state);
+
+	void do_QRadioButton_toggled_generate_brightness_single(bool state);
 
 	void do_QRadioButton_toggled_generate_brightness_hdr(bool state);
 
