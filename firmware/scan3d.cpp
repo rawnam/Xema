@@ -367,11 +367,12 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
     case 2:
     {
 
-        lc3010_.stop_pattern_sequence(); 
+        lc3010_.stop_pattern_sequence();  
         lc3010_.pattern_mode_brightness();
         // 发光，自定义曝光时间
         lc3010_.enable_solid_field();
 
+        // std::this_thread::sleep_for(std::chrono::milliseconds(15));
   
         camera_->switchToInternalTriggerMode();
         camera_->setExposure(exposure);
@@ -438,11 +439,14 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
     case 4:
     {
 
-        lc3010_.stop_pattern_sequence();
+        lc3010_.stop_pattern_sequence(); 
         lc3010_.pattern_mode_brightness();
   
         // 发光，自定义曝光时间
         lc3010_.enable_solid_field();
+
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(15));
  
         camera_->streamOn();
         LOG(INFO) << "Stream On";
@@ -1083,6 +1087,8 @@ int Scan3D::captureFrame04BaseConfidence()
 
         if(18 == i)
         {
+
+            lc3010_.stop_pattern_sequence();
             cuda_copy_brightness_to_memory(img_ptr);
         }
 

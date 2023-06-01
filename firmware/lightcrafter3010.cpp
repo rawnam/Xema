@@ -333,6 +333,7 @@ void LightCrafter3010::enable_solid_field()
     TxBuffer[0] = 0x00;
     //1Ah
     write(Write_Image_Freeze, TxBuffer, 1);
+
 }
 
 void LightCrafter3010::disable_solid_field()
@@ -762,7 +763,7 @@ void LightCrafter3010::pattern_mode03_repetition(int repetition_count)
 
 int LightCrafter3010::pattern_mode04()
 {
-    unsigned char pattern_index[] = {0,1,2,6};
+    unsigned char pattern_index[] = {0,1,2,8};
     unsigned char pattern_nums[] = {6,6,6,1};
     return write_pattern_table(pattern_index, pattern_nums, 4, camera_exposure_);
 }
@@ -827,6 +828,7 @@ void LightCrafter3010::stop_pattern_sequence()
 {
 	char buffer[2] = {0x01, 0x00};
 	write(0x9e, buffer, 2);
+     
 }
 
 float LightCrafter3010::get_temperature()
