@@ -48,6 +48,7 @@ SystemConfigDataStruct::SystemConfigDataStruct()
 
 	instance_.firwmare_param_.generate_brightness_exposure = 12000;
 	instance_.firwmare_param_.generate_brightness_model = 1;
+	instance_.firwmare_param_.generate_brightness_exposure_model = 1;
 	instance_.firwmare_param_.mixed_exposure_num = 2;
 	instance_.firwmare_param_.hdr_model = 1;
 
@@ -80,6 +81,15 @@ SystemConfigDataStruct::SystemConfigDataStruct()
 	instance_.firwmare_param_.use_gray_rectify = 0; 
 	instance_.firwmare_param_.gray_rectify_r = 5; 
 	instance_.firwmare_param_.gray_rectify_sigma = 40; 
+
+	for (int i = 0; i < 10; i++)
+	{
+		instance_.firwmare_param_.brightness_hdr_exposure_param_list[i] = 10000*(i+1);
+		instance_.firwmare_param_.brightness_hdr_gain_param_list[i] = 0;
+	}
+	instance_.firwmare_param_.brightness_hdr_exposure_num = 2;
+
+	instance_.firwmare_param_.brightness_gain = 0;
 
 }
 

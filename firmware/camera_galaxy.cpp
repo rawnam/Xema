@@ -8,6 +8,21 @@ CameraGalaxy::~CameraGalaxy()
 {
 }
 
+
+bool CameraGalaxy::trigger_software()
+{
+    GX_STATUS status = GX_STATUS_SUCCESS;
+    // 发送软触发命令
+	status = GXSendCommand(hDevice_,GX_COMMAND_TRIGGER_SOFTWARE);
+	if(status != GX_STATUS_SUCCESS)
+	{
+        LOG(ERROR) << "GX_COMMAND_TRIGGER_SOFTWARE ERROR!";
+		return false;
+	} 
+
+    return true;
+}
+
 bool CameraGalaxy::grap(unsigned char *buf)
 {
     std::lock_guard<std::mutex> my_guard(operate_mutex_);
@@ -176,7 +191,7 @@ bool CameraGalaxy::openCamera()
         min_camera_exposure_ = 1000000/((int)max_frame);
         LOG(INFO) << "min_camera_exposure_: " << min_camera_exposure_;
 
-
+        trigger_on_flag_ = true;
     }
 
     return true;
@@ -206,28 +221,33 @@ bool CameraGalaxy::switchToInternalTriggerMode()
  
 
     GX_STATUS status;
-    // status = GXSetEnum(hDevice_, GX_ENUM_LINE_SOURCE, GX_ENUM_LINE_SOURCE_STROBE); 
-    // if (GX_STATUS_SUCCESS != status)
-    // {
-    //     LOG(INFO) << "GX_ENUM_LINE_SOURCE Error: " << status;
-    //     return false;
-    // }
 
-    status = GXSetEnum(hDevice_, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_OFF);  
+ 
+    status = GXSetEnum(hDevice_, GX_ENUM_TRIGGER_MODE, GX_TRIGGER_MODE_ON);  
     if (GX_STATUS_SUCCESS != status)
     {
         LOG(INFO) << "GX_ENUM_TRIGGER_MODE Error: " << status;
         return false;
     }
 
-    // status = GXSendCommand(hDevice_, GX_COMMAND_TRIGGER_SOFTWARE);
-    // if (GX_STATUS_SUCCESS != status)
-    // {
+    status =  GXSetEnum(hDevice_,GX_ENUM_TRIGGER_SOURCE, GX_TRIGGER_SOURCE_SOFTWARE);
+    if (GX_STATUS_SUCCESS != status)
+    {
+        LOG(INFO) << "GX_TRIGGER_SOURCE_SOFTWARE Error: " << status;
+        return false;
+    }
 
-    //     LOG(INFO) << "GX_COMMAND_TRIGGER_SOFTWARE Error: " << status;
-    //     return false;
-    // }
+ 
+    // 曝光完成事件使能
+	status = GXSetEnum(hDevice_, GX_ENUM_EVENT_NOTIFICATION, GX_ENUM_EVENT_NOTIFICATION_ON);
+    if (GX_STATUS_SUCCESS != status)
+    {
+        LOG(INFO) << "GX_ENUM_EVENT_NOTIFICATION_ON Error: " << status;
+        return false;
+    }
 
+    trigger_on_flag_ = false;
+ 
     return true;
 }
 bool CameraGalaxy::switchToExternalTriggerMode()
@@ -253,6 +273,8 @@ bool CameraGalaxy::switchToExternalTriggerMode()
         return false;
     }
 
+    trigger_on_flag_ = true;
+
     return true;
 }
 
@@ -274,11 +296,18 @@ bool CameraGalaxy::getExposure(double &val)
 }
 bool CameraGalaxy::setExposure(double val)
 {
- 
 
-    if(val< min_camera_exposure_)
+    if (trigger_on_flag_)
     {
-        val = min_camera_exposure_;
+        if (val < min_camera_exposure_)
+        {
+            val = min_camera_exposure_;
+        }
+    }
+
+    if (val > max_camera_exposure_)
+    {
+        val = max_camera_exposure_;
     }
 
     GX_STATUS status = GX_STATUS_SUCCESS;

@@ -1604,8 +1604,19 @@ int handle_cmd_get_frame_06_hdr(int client_sock)
         return DF_FAILED;
     }
 
-    t_merge_brightness.join();
-    scan3d_.copyBrightnessData(brightness);
+    // t_merge_brightness.join();
+    // scan3d_.copyBrightnessData(brightness);
+
+    if (1 != generate_brightness_model)
+    {
+        t_merge_brightness.detach();
+        scan3d_.captureTextureImage(generate_brightness_model, generate_brightness_exposure_time, brightness);
+    }
+    else
+    {
+        t_merge_brightness.join();
+        scan3d_.copyBrightnessData(brightness);
+    }
 
     LOG(INFO) << "start send brightness, buffer_size= "<<brightness_buf_size;
     ret = send_buffer(client_sock, (const char *)brightness, brightness_buf_size);
@@ -1929,8 +1940,17 @@ int handle_cmd_get_frame_06_repetition(int client_sock)
     scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
 
-             
-    scan3d_.copyBrightnessData(brightness);
+        
+    if(1!=generate_brightness_model)
+    {
+        scan3d_.captureTextureImage(generate_brightness_model,generate_brightness_exposure_time,brightness);
+    }
+    else
+    { 
+         scan3d_.copyBrightnessData(brightness);
+    }
+
+    // scan3d_.copyBrightnessData(brightness);
     scan3d_.copyDepthData(depth_map); 
  
     LOG(INFO)<<"capture Frame04 Repetition02 Finished!";
@@ -2358,7 +2378,18 @@ int handle_cmd_get_frame_06(int client_sock)
 
      
     LOG(INFO)<<"Reconstruct Frame06 Finished!";
-    scan3d_.copyBrightnessData(brightness);
+    // scan3d_.copyBrightnessData(brightness);
+
+        
+    if(1!=generate_brightness_model)
+    {
+        scan3d_.captureTextureImage(generate_brightness_model,generate_brightness_exposure_time,brightness);
+    }
+    else
+    { 
+        scan3d_.copyBrightnessData(brightness);
+    }
+
     scan3d_.copyDepthData(depth_map);
 
  
@@ -3153,6 +3184,89 @@ int handle_cmd_get_param_camera_exposure(int client_sock)
 }
  
 
+//获取生成亮度参数
+int handle_cmd_get_param_brightness_exposure_model(int client_sock)
+{
+   if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    } 
+	
+    int ret = send_buffer(client_sock, (char*)(&system_config_settings_machine_.Instance().firwmare_param_.generate_brightness_exposure_model), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+ 
+
+    return DF_SUCCESS;
+}
+
+
+//设置亮度图增益参数
+int handle_cmd_set_param_brightness_exposure_model(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+	   
+    int model = 0;
+
+    int ret = recv_buffer(client_sock, (char*)(&model), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+
+    if(1 != model && 2 != model)
+    {
+        LOG(ERROR)<<"model error: "<<model;
+        return DF_FAILED;
+    }
+ 
+ 
+    system_config_settings_machine_.Instance().firwmare_param_.generate_brightness_exposure_model = model;
+ 
+  
+    return DF_SUCCESS;
+}
+
+//设置亮度图增益参数
+int handle_cmd_set_param_brightness_gain(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+	   
+    float gain = 0;
+
+    int ret = recv_buffer(client_sock, (char*)(&gain), sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+
+    if(gain< 0)
+    {
+        gain = 0;
+    }
+    else if(gain > 24)
+    {
+        gain = 24;
+    }
+ 
+ 
+    system_config_settings_machine_.Instance().firwmare_param_.brightness_gain = gain;
+ 
+  
+    return DF_SUCCESS;
+}
+
 //设置相机增益参数
 int handle_cmd_set_param_camera_gain(int client_sock)
 {
@@ -3716,6 +3830,66 @@ int handle_cmd_get_param_bilateral_filter(int client_sock)
 
     return DF_SUCCESS;
 }
+
+
+//设置亮度图hdr曝光参数
+int handle_cmd_set_param_brightness_hdr_exposure(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+	LOG(INFO)<<"check_token finished!";
+    int param[11]; 
+
+    int ret = recv_buffer(client_sock, (char*)(&param), sizeof(int)*11);
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+    	return DF_FAILED;
+    }
+ 
+    
+	LOG(INFO)<<"recv_buffer param finished!";
+
+    int num = param[0];  
+      //set led current
+
+    int max_exposure = 1000000;
+    int min_exposure = 20;
+
+    for (int i = 0; i < num; i++)
+    {
+        int exposure = param[1 + i];
+
+        if (exposure > max_exposure)
+        {
+            exposure = max_exposure;
+        }
+        else if (exposure < min_exposure)
+        {
+            exposure = min_exposure;
+        }
+        param[1 + i] = exposure;
+    }
+
+        if(0< num && num<= 10)
+        {
+ 
+            system_config_settings_machine_.Instance().firwmare_param_.brightness_hdr_exposure_num = num;
+            memcpy(system_config_settings_machine_.Instance().firwmare_param_.brightness_hdr_exposure_param_list, param + 1, sizeof(int) * num); 
+            
+            for(int i= 0;i< system_config_settings_machine_.Instance().firwmare_param_.brightness_hdr_exposure_num;i++)
+            {
+	            LOG(INFO)<<"brightness hdr exposure param: "<<i<<" "<<system_config_settings_machine_.Instance().firwmare_param_.brightness_hdr_exposure_param_list[i]; 
+            }
+
+            return DF_SUCCESS;
+        }
+  
+        return DF_FAILED;
+}
+
 
 //设置混合多曝光参数
 int handle_cmd_set_param_mixed_hdr(int client_sock)
@@ -5276,8 +5450,23 @@ int handle_commands(int client_sock)
         LOG(INFO)<<"DF_CMD_GET_FRAME_STATUS"; 
         ret = handle_cmd_get_frame_status(client_sock);
         break;
-
-
+ 
+    case DF_CMD_SET_PARAM_BRIGHTNESS_HDR_EXPOSURE:
+        LOG(INFO)<<"DF_CMD_SET_PARAM_BRIGHTNESS_HDR_EXPOSURE"; 
+        ret = handle_cmd_set_param_brightness_hdr_exposure(client_sock);
+        break;
+    case DF_CMD_SET_PARAM_BRIGHTNESS_GAIN:
+        LOG(INFO)<<"DF_CMD_SET_PARAM_BRIGHTNESS_GAIN"; 
+        ret = handle_cmd_set_param_brightness_gain(client_sock);
+        break;
+    case DF_CMD_SET_PARAM_BRIGHTNESS_EXPOSURE_MODEL:
+        LOG(INFO)<<"DF_CMD_SET_PARAM_BRIGHTNESS_EXPOSURE_MODEL"; 
+        ret = handle_cmd_set_param_brightness_exposure_model(client_sock);
+        break;
+    case DF_CMD_GET_PARAM_BRIGHTNESS_EXPOSURE_MODEL:
+        LOG(INFO)<<"DF_CMD_GET_PARAM_BRIGHTNESS_EXPOSURE_MODEL"; 
+        ret = handle_cmd_get_param_brightness_exposure_model(client_sock);
+        break;
 	default:
 	    LOG(INFO)<<"DF_CMD_UNKNOWN";
         ret = handle_cmd_unknown(client_sock);

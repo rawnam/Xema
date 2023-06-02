@@ -33,6 +33,7 @@ public:
     bool streamOn(); 
 	bool streamOff();
  
+    bool trigger_software();
     bool grap(unsigned char* buf);
 private:
 	void streamOffThread();

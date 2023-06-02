@@ -210,6 +210,8 @@ extern "C"
 	//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
 	DF_SDK_API int DfGetParamGenerateBrightness(int& model, float& exposure);
 
+
+
 	//函数名： DfSetParamCameraExposure
 	//功能： 设置相机曝光时间
 	//输入参数：exposure(相机曝光时间)
@@ -230,7 +232,7 @@ extern "C"
 	//输出参数： 无
 	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 	DF_SDK_API int DfSetParamMixedHdr(int num, int exposure_param[6], int led_param[6]);
-
+	 
 	//函数名： DfGetParamMixedHdr
 	//功能： 获取混合多曝光参数（最大曝光次数为6次）
 	//输入参数： 无
@@ -350,6 +352,48 @@ extern "C"
 	//输出参数：无
 	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 	DF_SDK_API int DfSetParamRepetitionExposureNum(int num);
+
+	//函数名： DfSetParamBrightnessHdrExposure
+	//功能： 设置亮度图多曝光参数（最大曝光次数为10次）
+	//输入参数： num（曝光次数）、exposure_param[6]（6个曝光参数、前num个有效））
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfSetParamBrightnessHdrExposure(int num, int exposure_param[10]);
+
+	//函数名： DfGetParamBrightnessHdrExposure
+	//功能： 设置亮度图多曝光参数（最大曝光次数为10次）
+	//输入参数：无 
+	//输出参数：num（曝光次数）、exposure_param[10]（10个曝光参数、前num个有效））
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfGetParamBrightnessHdrExposure(int& num, int exposure_param[10]);
+
+	//函数名： DfSetParamBrightnessExposureModel
+	//功能： 设置亮度图曝光模式
+	//输入参数： model（1：单曝光、2：曝光融合）
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfSetParamBrightnessExposureModel(int model);
+
+	//函数名： DfGetParamBrightnessExposureModel
+	//功能： 获取亮度图曝光模式
+	//输入参数： 无
+	//输出参数： model（1：单曝光、2：曝光融合）
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfGetParamBrightnessExposureModel(int& model);
+
+	//函数名： DfSetParamBrightnessGain
+	//功能： 设置亮度图增益
+	//输入参数：gain(亮度图增益)
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfSetParamBrightnessGain(float gain);
+
+	//函数名： DfGetParamBrightnessGain
+	//功能： 获取亮度图增益
+	//输入参数：无
+	//输出参数：gain(亮度图增益)
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfGetParamBrightnessGain(float& gain);
 }
 
 

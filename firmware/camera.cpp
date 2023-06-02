@@ -4,10 +4,12 @@
 Camera::Camera()
 {
     camera_opened_state_ = false;  
+    trigger_on_flag_ = true;
   
     image_width_= 0;
     image_height_= 0;
     min_camera_exposure_ = 0;
+    max_camera_exposure_ = 990000;
 }
 
 Camera::~Camera()

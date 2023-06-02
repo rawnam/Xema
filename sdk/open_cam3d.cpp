@@ -5593,6 +5593,231 @@ DF_SDK_API int DfGetParamCameraGain(float& gain)
 	return DF_SUCCESS;
 }
 
+//函数名： DfGetParamBrightnessGain
+//功能： 获取亮度图增益
+//输入参数：无
+//输出参数：gain(亮度图增益)
+//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+DF_SDK_API int DfGetParamBrightnessGain(float& gain)
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	LOG(INFO) << "DfGetParamBrightnessGain:";
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_GET_PARAM_BRIGHTNESS_GAIN, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
+	if (command == DF_CMD_OK)
+	{ 
+		ret = recv_buffer((char*)(&gain), sizeof(float), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+//函数名： DfSetParamBrightnessExposureModel
+//功能： 设置亮度图曝光模式
+//输入参数： model（1：单曝光、2：曝光融合）
+//输出参数： 无
+//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+DF_SDK_API int DfSetParamBrightnessExposureModel(int model)
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	LOG(INFO) << "DfSetParamBrightnessExposureModel:";
+
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_SET_PARAM_BRIGHTNESS_EXPOSURE_MODEL, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
+	if (command == DF_CMD_OK)
+	{
+
+		ret = send_buffer((char*)(&model), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+//函数名： DfGetParamBrightnessExposureModel
+//功能： 获取亮度图曝光模式
+//输入参数： 无
+//输出参数： model（1：单曝光、2：曝光融合）
+//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+DF_SDK_API int DfGetParamBrightnessExposureModel(int& model)
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	LOG(INFO) << "DfGetParamBrightnessExposureModel:";
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_GET_PARAM_BRIGHTNESS_EXPOSURE_MODEL, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
+	if (command == DF_CMD_OK)
+	{
+
+		ret = recv_buffer((char*)(&model), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+//函数名： DfSetParamBrightnessGain
+//功能： 设置亮度图增益
+//输入参数：gain(亮度图增益)
+//输出参数： 无
+//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+DF_SDK_API int DfSetParamBrightnessGain(float gain)
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	LOG(INFO) << "DfSetParamBrightnessGain:";
+
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_SET_PARAM_BRIGHTNESS_GAIN, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
+	if (command == DF_CMD_OK)
+	{
+
+		ret = send_buffer((char*)(&gain), sizeof(float), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
 //函数名： DfSetParamCameraExposure
 //功能： 设置相机曝光时间
 //输入参数：exposure(相机曝光时间)
@@ -5951,6 +6176,134 @@ DF_SDK_API int DfGetParamStandardPlaneExternal(float* R, float* T)
 
 		memcpy(R, plane_param, 9 * sizeof(float));
 		memcpy(T, plane_param + 9, 3 * sizeof(float));
+
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+//函数名： DfSetParamBrightnessHdrExposure
+//功能： 设置亮度图多曝光参数（最大曝光次数为10次）
+//输入参数： num（曝光次数）、exposure_param[6]（6个曝光参数、前num个有效））
+//输出参数： 无
+//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+DF_SDK_API int DfSetParamBrightnessHdrExposure(int num, int exposure_param[10])
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	if (num < 2 || num>10)
+	{
+		LOG(INFO) << "Error num:"<< num;
+		return DF_FAILED;
+	}
+
+	LOG(INFO) << "DfSetParamBrightnessHdrExposure:";
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_SET_PARAM_BRIGHTNESS_HDR_EXPOSURE, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
+	if (command == DF_CMD_OK)
+	{
+		int param[11] = {2,10000,20000,30000,40000,50000,60000,70000,80000,90000,100000 };
+
+		param[0] = num;
+
+		memcpy(param + 1, exposure_param, sizeof(int) * num);
+
+		ret = send_buffer((char*)(param), sizeof(int) * 11, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+//函数名： DfGetParamBrightnessHdrExposure
+//功能： 设置亮度图多曝光参数（最大曝光次数为10次）
+//输入参数：无 
+//输出参数：num（曝光次数）、exposure_param[10]（10个曝光参数、前num个有效））
+//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+DF_SDK_API int DfGetParamBrightnessHdrExposure(int& num, int exposure_param[10])
+{
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	LOG(INFO) << "DfGetParamBrightnessHdrExposure:";
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+	ret = send_command(DF_CMD_GET_PARAM_BRIGHTNESS_HDR_EXPOSURE, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_FAILED;
+	}
+
+	if (command == DF_CMD_OK)
+	{
+		int param[11];
+
+		ret = recv_buffer((char*)(param), sizeof(int) * 11, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		 
+		memcpy(exposure_param, param + 1, sizeof(int) * 10); 
+		num = param[0];
 
 	}
 	else if (command == DF_CMD_REJECT)

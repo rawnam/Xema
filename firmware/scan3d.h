@@ -6,6 +6,9 @@
 #include "vector"
 #include "system_config_settings.h"
 
+const int  GENERATE_BRIGHTNESS_MODEL_SINGLE_ = 1;
+const int  GENERATE_BRIGHTNESS_MODEL_HDR_ = 2;
+
 class Scan3D
 {
 public:
@@ -69,6 +72,8 @@ public:
     
     void mergeBrightness();  
 
+    int captureHdrBrightness(unsigned char* buff);
+
     bool captureFrame04Repetition01(int repetition_count); 
 
     // bool captureFrame04Repetition02(int repetition_count);
@@ -111,6 +116,7 @@ public:
     int initCache();
 
     int reopenCamera();
+
 
 private:
  

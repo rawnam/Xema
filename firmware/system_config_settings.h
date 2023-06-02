@@ -36,6 +36,8 @@ struct FirmwareConfigParam
 {
 	//生成亮度模式
 	int generate_brightness_model;
+	//生成亮度模式
+	int generate_brightness_exposure_model;
 	//生成亮度曝光
 	float generate_brightness_exposure;
 	//混合曝光参数
@@ -57,6 +59,12 @@ struct FirmwareConfigParam
 	int use_gray_rectify;
 	int gray_rectify_r;
 	float gray_rectify_sigma;
+
+	//亮度融合曝光参数
+	int brightness_hdr_exposure_param_list[10];
+	float brightness_hdr_gain_param_list[10];
+	int brightness_hdr_exposure_num;
+	float brightness_gain;
 };
 
 

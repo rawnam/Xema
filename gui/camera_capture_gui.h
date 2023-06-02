@@ -21,6 +21,10 @@ const int  SELECT_COLOR_DEPTH_FLAG_ = 3;
 const int  GENERATE_BRIGHTNESS_DEFAULT_  = 1;
 const int  GENERATE_BRIGHTNESS_ILLUMINATION_ =  2;
 const int  GENERATE_BRIGHTNESS_DARKNESS_ =  3;
+//const int  GENERATE_BRIGHTNESS_HDR_ = 4;
+
+const int  GENERATE_BRIGHTNESS_MODEL_SINGLE_ = 1;
+const int  GENERATE_BRIGHTNESS_MODEL_HDR_ = 2;
 
 const int EXPOSURE_MODEL_SINGLE_ = 0;
 const int EXPOSURE_MODEL_HDR_ = 1;
@@ -75,7 +79,11 @@ public:
 	//更新多曝光参数
 	void updateManyExposureParam();
 
+	void updateBrightnessHdrParam();
+
 	bool manyExposureParamHasChanged();
+
+	bool brightnessHdrParamHasChanged();
 
 	bool isConnect();
 
@@ -167,11 +175,21 @@ private slots:
 
 	void do_QRadioButton_toggled_generate_brightness_darkness(bool state);
 
+	void do_QRadioButton_toggled_generate_brightness_single(bool state);
+
+	void do_QRadioButton_toggled_generate_brightness_hdr(bool state);
+
 	void add_exposure_item(int row, int exposure, int led);
 
 	bool remove_exposure_item(int row);
 
 	double get_exposure_item_value(int row);
+
+	void add_brightness_hdr_exopsure_item(int row, int exposure, float gain);
+
+	bool remove_brightness_hdr_exposure_item(int row);
+
+	
 
 private slots:
 	//void do_checkBox_toggled_bilateral_filter(bool state);
@@ -193,7 +211,11 @@ private slots:
 
 	void do_spin_exposure_num_changed(int val);
 
+	void do_spin_brightness_hdr_num_changed(int val);
+
 	void do_more_exposure_param_changed(int val);
+
+	void do_brightness_hdr_param_changed(int val);
 
 	void do_spin_repetition_count_changed(int val);
 
@@ -227,6 +249,8 @@ private slots:
 
 	void do_spin_camera_exposure_define_changed(int val);
 
+	void do_spin_brightness_gain_changed(double val);
+
 	void do_spin_generate_brightness_exposure_changed(int val);
 	/******************************************************************************************/
 
@@ -235,7 +259,7 @@ private slots:
 	void do_pushButton_open_folder();
 	
 protected:
-		virtual void resizeEvent(QResizeEvent* event) override;
+	virtual void resizeEvent(QResizeEvent* event) override;
 		 
 private:
 	Ui::CameraCaptureGui ui;
@@ -254,6 +278,11 @@ private:
 	//6个exposure输入框
 	std::vector<QSpinBox*> exposure_time_list_;
 	std::vector<QSpinBox*> led_current_list_;
+
+
+	//10个exposure输入框
+	std::vector<QSpinBox*> brightness_hdr_exposure_time_list_;
+	//std::vector<QDoubleSpinBox*> brightness_hdr_gain_list_;
 
 	int radio_button_flag_;
 
@@ -303,8 +332,9 @@ private:
 	std::vector<std::vector<cv::Point3f>> feature_points_list_;
 
 	//生成亮度图模式
-	int generate_brightness_model_;
-	float generate_brightness_exposure_;
+	//int generate_brightness_model_;
+	//float generate_brightness_exposure_;
+	//float generate_brightness_gain_;
 
 	//cv::Size2f board_size_;
 	struct BoardMessage board_message_;

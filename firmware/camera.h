@@ -24,7 +24,10 @@ public:
 	virtual bool streamOn(){}; 
 	virtual bool streamOff(){};
 
+    virtual bool trigger_software(){};
+
     virtual bool grap(unsigned char* buf){};
+
 
 	bool getImageSize(int &width,int &height);
 	
@@ -39,7 +42,9 @@ protected:
 	long int image_height_;
 
 	float min_camera_exposure_; 
+	float max_camera_exposure_; 
 	
 	bool stream_off_flag_;
+	bool trigger_on_flag_;
 };
 

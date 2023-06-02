@@ -197,6 +197,14 @@ bool SettingsFileFunction::loadProcessingSettingsFile(QString path)
 			camera_config_.Instance().firwmare_param_.generate_brightness_exposure = firmware_Obj.value("generate_brightness_exposure").toInt();
 		}
 
+		if (firmware_Obj.contains("brightness_gain") && firmware_Obj["brightness_gain"].isDouble())
+		{
+			qDebug() << "brightness_gain is:" << firmware_Obj.value("brightness_gain").toDouble();
+			camera_config_.Instance().firwmare_param_.brightness_gain = firmware_Obj.value("brightness_gain").toDouble();
+		}
+
+		
+
 		if (firmware_Obj.contains("use_bilateral_filter") && firmware_Obj["use_bilateral_filter"].isDouble())
 		{
 			qDebug() << "use_bilateral_filter is:" << firmware_Obj.value("use_bilateral_filter").toInt();
@@ -415,6 +423,7 @@ bool SettingsFileFunction::saveProcessingSettingsFile(QString path)
 
 	jsonObject_firmware.insert("generate_brightness_model", camera_config_.Instance().firwmare_param_.generate_brightness_model);
 	jsonObject_firmware.insert("generate_brightness_exposure", camera_config_.Instance().firwmare_param_.generate_brightness_exposure);
+	jsonObject_firmware.insert("brightness_gain", camera_config_.Instance().firwmare_param_.brightness_gain);
 
 	jsonObject_firmware.insert("use_bilateral_filter", camera_config_.Instance().firwmare_param_.use_bilateral_filter);
 	jsonObject_firmware.insert("bilateral_filter_param_d", camera_config_.Instance().firwmare_param_.bilateral_filter_param_d);
