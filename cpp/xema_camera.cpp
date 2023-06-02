@@ -510,6 +510,55 @@ namespace XEMA {
 		return DF_SUCCESS;
 	}
 
+
+	int XemaCamera::getFrameStatus(int& status)
+	{
+
+		int get_status = 0; 
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_ERROR_NETWORK;
+		}
+		ret = send_command(DF_CMD_GET_FRAME_STATUS, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_ERROR_NETWORK;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			ret = recv_buffer((char*)(&get_status), sizeof(int), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_ERROR_NETWORK;
+			}
+
+			LOG(INFO) << "Frame Status: " << status;
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+		status = get_status;
+		return DF_SUCCESS;
+	}
+
 	int XemaCamera::getCalibrationParam(struct CameraCalibParam& calibration_param)
 	{
 		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
@@ -835,7 +884,7 @@ namespace XEMA {
 	{
 
 		LOG(INFO) << "captureData: " << exposure_num;
-		bool ret = -1;
+		int ret = -1;
 
 		if (exposure_num > 1)
 		{
@@ -934,7 +983,7 @@ namespace XEMA {
 
 		}
 
-
+  
 		std::string time = get_timestamp();
 		for (int i = 0; i < time.length(); i++)
 		{
@@ -943,6 +992,21 @@ namespace XEMA {
 
 		transform_pointcloud_flag_ = false;
 
+
+
+		int status = DF_SUCCESS;
+		ret = getFrameStatus(status);
+		if (DF_SUCCESS != ret && DF_UNKNOWN != ret)
+		{
+			LOG(INFO) << "getFrameStatus Failed!";
+			//return ret;
+		}
+
+		LOG(INFO) << "Frame Status: " << status;
+		if (DF_SUCCESS != status)
+		{
+			return status;
+		}
 
 		return DF_SUCCESS;
 	}

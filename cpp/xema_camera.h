@@ -292,6 +292,8 @@ extern "C" {
 			int getParamBilateralFilter(int& use, int& param_d);
 
 			int getCalibrationParam(struct CameraCalibParam& calibration_param);
+ 
+			int getFrameStatus(int& status);
 
 			std::string get_timestamp();
 

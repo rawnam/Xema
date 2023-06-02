@@ -17,7 +17,7 @@ int main()
 
 
 	//连接相机 
-	ret_code = p_camera->connect("192.168.100.30");
+	ret_code = p_camera->connect("192.168.100.50");
 
 	int width = 0, height = 0;
 	if (0 == ret_code)
@@ -113,7 +113,7 @@ int main()
 		}
 
 		//采集单曝光数据
-		if (false)
+		if (true)
 		{
 			//设置投影亮度参数
 			ret_code = p_camera->setParamLedCurrent(1023);
@@ -203,8 +203,12 @@ int main()
 				{
 					std::cout << "Set Multiple Exposure Model Error;" << std::endl;
 				}
+
+				p_camera->setCaptureEngine(XemaEngine::Reflect);
+
+
 				ret_code = p_camera->captureData(num, timestamp_data);
-				std::cout << "Capture HDR Data" << std::endl;
+				std::cout << "Capture HDR Data: "<< ret_code << std::endl;
 				std::cout << "timestamp: " << timestamp_data << std::endl;
 
 			}

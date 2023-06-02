@@ -1593,9 +1593,16 @@ bool CameraCaptureGui::setCameraConfigParam()
 	ret_code = DfSetParamGrayRectify(firmware_config_param_.use_gray_rectify, firmware_config_param_.gray_rectify_r, firmware_config_param_.gray_rectify_sigma);
 
 
+	ret_code = DfSetParamGenerateBrightness(firmware_config_param_.generate_brightness_model,
+		firmware_config_param_.generate_brightness_exposure); 
+
+	ret_code = DfSetParamBrightnessGain(firmware_config_param_.brightness_gain);
+
 	ret_code = DfSetParamBrightnessHdrExposure(firmware_config_param_.brightness_hdr_exposure_num,
 		firmware_config_param_.brightness_hdr_exposure_param_list);
- 
+
+	ret_code = DfSetParamRadiusFilter(firmware_config_param_.use_radius_filter, firmware_config_param_.radius_filter_r,
+		firmware_config_param_.radius_filter_threshold_num);
 	 
 
 	if (DF_UNKNOWN == ret_code)
