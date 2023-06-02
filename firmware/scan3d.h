@@ -6,6 +6,9 @@
 #include "vector"
 #include "system_config_settings.h"
 
+const int  GENERATE_BRIGHTNESS_MODEL_SINGLE_ = 1;
+const int  GENERATE_BRIGHTNESS_MODEL_HDR_ = 2;
+
 class Scan3D
 {
 public:

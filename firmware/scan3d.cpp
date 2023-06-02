@@ -372,26 +372,104 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
         // 发光，自定义曝光时间
         lc3010_.enable_solid_field();
 
-        // std::this_thread::sleep_for(std::chrono::milliseconds(15));
-  
-        camera_->switchToInternalTriggerMode();
-        camera_->setExposure(exposure);
-        camera_->setGain(system_config_settings_machine_.Instance().firwmare_param_.brightness_gain);
-        camera_->streamOn();
-        LOG(INFO) << "Stream On";
 
-        camera_->trigger_software();
-        if (!camera_->grap(buff))
+        switch (system_config_settings_machine_.Instance().firwmare_param_.generate_brightness_exposure_model)
         {
-            LOG(INFO) << "grap brightness failed!";
-        }
-        else
+        case  GENERATE_BRIGHTNESS_MODEL_SINGLE_:
         {
-            LOG(INFO) << "grap brightness!";
-        }
+            camera_->switchToInternalTriggerMode();
+            camera_->setExposure(exposure);
+            camera_->setGain(system_config_settings_machine_.Instance().firwmare_param_.brightness_gain);
+            camera_->streamOn();
+            LOG(INFO) << "Stream On";
 
-        camera_->streamOff();
-        LOG(INFO) << "Stream Off";
+            camera_->trigger_software();
+            if (!camera_->grap(buff))
+            {
+                LOG(INFO) << "grap brightness failed!";
+            }
+            else
+            {
+                LOG(INFO) << "grap brightness!";
+            }
+
+            camera_->streamOff();
+            LOG(INFO) << "Stream Off";
+        }
+        break;
+        case GENERATE_BRIGHTNESS_MODEL_HDR_:
+        {
+
+            camera_->streamOn();
+            LOG(INFO) << "Stream On";
+
+            camera_->switchToInternalTriggerMode();
+            camera_->setGain(system_config_settings_machine_.Instance().firwmare_param_.brightness_gain);
+
+            int capture_num = system_config_settings_machine_.Instance().firwmare_param_.brightness_hdr_exposure_num;
+
+            std::vector<cv::Mat> img_list;
+
+            for (int i = 0; i < capture_num; i++)
+            {
+                cv::Mat img(image_height_, image_width_, CV_8UC1, cv::Scalar(0));
+
+                int exposure_val = system_config_settings_machine_.Instance().firwmare_param_.brightness_hdr_exposure_param_list[i];
+                LOG(INFO) << "set brightness exposure: " << exposure_val;
+                camera_->setExposure(exposure_val);
+
+                camera_->trigger_software();
+                // 清理buffer
+                if (!camera_->grap(img.data))
+                {
+                    LOG(INFO) << "grap brightness failed!";
+                    return false;
+                }
+                else
+                {
+                    LOG(INFO) << "grap brightness!";
+                }
+
+                img_list.push_back(img.clone());
+
+                //  LOG(INFO) << "pixels: " << cv::sum(img);
+
+                // std::string path = "b_"+std::to_string(exposure_val) + ".bmp";
+                // cv::imwrite(path,img);
+            }
+
+            camera_->streamOff();
+            LOG(INFO) << "Stream Off";
+            /********************************************************************************************/
+            LOG(INFO) << "process: " << img_list.size();
+            cv::Mat exposureFusion;
+            cv::Ptr<cv::MergeMertens> mergeMertens = cv::createMergeMertens();
+            mergeMertens->process(img_list, exposureFusion);
+
+            for (int r = 0; r < image_height_; r++)
+            {
+                float *ptr_fusion = exposureFusion.ptr<float>(r);
+
+                for (int c = 0; c < image_width_; c++)
+                {
+                    if (ptr_fusion[c] > 1)
+                    {
+                        buff[r * image_width_ + c] = 255;
+                    }
+                    else
+                    {
+                        buff[r * image_width_ + c] = 255 * ptr_fusion[c];
+                    }
+                }
+            }
+            LOG(INFO) << "merge finished!";
+            /********************************************************************************************/
+        }
+        break;
+
+        default:
+            break;
+        }
 
         lc3010_.disable_solid_field();
         camera_->switchToExternalTriggerMode();
@@ -402,40 +480,119 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
     case 3:
     {
 
-  
-        camera_->switchToInternalTriggerMode();
-        if (!camera_->setExposure(exposure))
+        switch (system_config_settings_machine_.Instance().firwmare_param_.generate_brightness_exposure_model)
         {
-            LOG(INFO) << "setExposure Failed!";
-        }
-        else
+        case GENERATE_BRIGHTNESS_MODEL_SINGLE_:
         {
-            LOG(INFO) << "set Exposure: " << exposure;
+            camera_->switchToInternalTriggerMode();
+            if (!camera_->setExposure(exposure))
+            {
+                LOG(INFO) << "setExposure Failed!";
+            }
+            else
+            {
+                LOG(INFO) << "set Exposure: " << exposure;
+            }
+
+            camera_->setGain(system_config_settings_machine_.Instance().firwmare_param_.brightness_gain);
+
+            camera_->streamOn();
+            LOG(INFO) << "Stream On";
+
+            camera_->trigger_software();
+            if (!camera_->grap(buff))
+            {
+                LOG(INFO) << "grap generate brightness failed!";
+            }
+            else
+            {
+                LOG(INFO) << "grap generate brightness!";
+            }
+
+            camera_->streamOff();
+            LOG(INFO) << "Stream Off";
         }
+        break;
 
-
-        camera_->setGain(system_config_settings_machine_.Instance().firwmare_param_.brightness_gain);
-
-        camera_->streamOn();
-        LOG(INFO) << "Stream On";
-
-        camera_->trigger_software();
-        if (!camera_->grap(buff))
+        case GENERATE_BRIGHTNESS_MODEL_HDR_:
         {
-            LOG(INFO) << "grap generate brightness failed!";
+
+            camera_->streamOn();
+            LOG(INFO) << "Stream On";
+
+            camera_->switchToInternalTriggerMode();
+            camera_->setGain(system_config_settings_machine_.Instance().firwmare_param_.brightness_gain);
+
+            int capture_num = system_config_settings_machine_.Instance().firwmare_param_.brightness_hdr_exposure_num;
+
+            std::vector<cv::Mat> img_list;
+
+            for (int i = 0; i < capture_num; i++)
+            {
+                cv::Mat img(image_height_, image_width_, CV_8UC1, cv::Scalar(0));
+
+                int exposure_val = system_config_settings_machine_.Instance().firwmare_param_.brightness_hdr_exposure_param_list[i];
+                LOG(INFO) << "set brightness exposure: " << exposure_val;
+                camera_->setExposure(exposure_val);
+
+                camera_->trigger_software();
+                // 清理buffer
+                if (!camera_->grap(img.data))
+                {
+                    LOG(INFO) << "grap brightness failed!";
+                    return false;
+                }
+                else
+                {
+                    LOG(INFO) << "grap brightness!";
+                }
+
+                img_list.push_back(img.clone());
+
+                //  LOG(INFO) << "pixels: " << cv::sum(img);
+
+                // std::string path = "b_"+std::to_string(exposure_val) + ".bmp";
+                // cv::imwrite(path,img);
+            }
+
+            camera_->streamOff();
+            LOG(INFO) << "Stream Off";
+            /********************************************************************************************/
+            LOG(INFO) << "process: " << img_list.size();
+            cv::Mat exposureFusion;
+            cv::Ptr<cv::MergeMertens> mergeMertens = cv::createMergeMertens();
+            mergeMertens->process(img_list, exposureFusion);
+
+            for (int r = 0; r < image_height_; r++)
+            {
+                float *ptr_fusion = exposureFusion.ptr<float>(r);
+
+                for (int c = 0; c < image_width_; c++)
+                {
+                    if (ptr_fusion[c] > 1)
+                    {
+                        buff[r * image_width_ + c] = 255;
+                    }
+                    else
+                    {
+                        buff[r * image_width_ + c] = 255 * ptr_fusion[c];
+                    }
+                }
+            }
+            LOG(INFO) << "merge finished!";
+            /********************************************************************************************/
         }
-        else
-        {
-            LOG(INFO) << "grap generate brightness!";
+        break;
+
+        default:
+            break;
         }
 
-        camera_->streamOff();
-        LOG(INFO) << "Stream Off";
         camera_->switchToExternalTriggerMode();
         camera_->setExposure(camera_exposure_);
         camera_->setGain(camera_gain_);
     }
-    break; 
+    break;
     case 4:
     {
 
