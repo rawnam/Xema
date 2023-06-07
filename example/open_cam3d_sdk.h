@@ -57,7 +57,7 @@ extern "C"
 	DF_SDK_API int DfSetCaptureEngine(XemaEngine engine);
 
 	//函数名： DfGetCaptureEngine
-	//功能： 设置采集引擎
+	//功能： 获取采集引擎模式
 	//输入参数：
 	//输出参数：engine
 	//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
@@ -210,6 +210,8 @@ extern "C"
 	//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
 	DF_SDK_API int DfGetParamGenerateBrightness(int& model, float& exposure);
 
+
+
 	//函数名： DfSetParamCameraExposure
 	//功能： 设置相机曝光时间
 	//输入参数：exposure(相机曝光时间)
@@ -295,19 +297,33 @@ extern "C"
 	//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
 	DF_SDK_API int DfGetParamRadiusFilter(int& use, float& radius, int& num);
 
-	//函数名： DfSetParamRadiusFilter
+	//函数名： DfSetParamDepthFilter
 	//功能： 设置深度图滤波参数
 	//输入参数：use(开关：1开、0关)、depth_filterthreshold(阈值0-100)
 	//输出参数： 无
 	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 	DF_SDK_API int DfSetParamDepthFilter(int use, float depth_filter_threshold);
 
-	//函数名： DfSetParamRadiusFilter
+	//函数名： DfGetParamDepthFilter
 	//功能： 设置深度图滤波参数
-	//输入参数：use(开关：1开、0关)、depth_filterthreshold(深度图在1000mm距离过滤的噪声阈值)
+	//输入参数：use(开关：1开、0关)、depth_filterthreshold(阈值0-100)
 	//输出参数： 无
 	//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
 	DF_SDK_API int DfGetParamDepthFilter(int& use, float& depth_filter_threshold);
+
+	//函数名： DfSetParamGrayRectify
+	//功能： 设置点云灰度补偿参数
+	//输入参数：use(开关：1开、0关)、radius(半径：3、5、7、9）、sigma（补偿强度，范围0-100）
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfSetParamGrayRectify(int use, int radius, float sigma);
+
+	//函数名： DfGetParamGrayRectify
+	//功能： 获取点云灰度补偿参数
+	//输入参数：无
+	//输出参数：use(开关：1开、0关)、radius(半径：3、5、7、9）、sigma（补偿强度，范围0-100）
+	//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
+	DF_SDK_API int DfGetParamGrayRectify(int& use, int& radius, float& sigma);
 
 	//函数名： DfSetParamOutlierFilter
 	//功能： 设置外点过滤阈值
@@ -336,4 +352,46 @@ extern "C"
 	//输出参数：无
 	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 	DF_SDK_API int DfSetParamRepetitionExposureNum(int num);
+
+	//函数名： DfSetParamBrightnessHdrExposure
+	//功能： 设置亮度图多曝光参数（最大曝光次数为10次）
+	//输入参数： num（曝光次数）、exposure_param[6]（6个曝光参数、前num个有效））
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfSetParamBrightnessHdrExposure(int num, int exposure_param[10]);
+
+	//函数名： DfGetParamBrightnessHdrExposure
+	//功能： 设置亮度图多曝光参数（最大曝光次数为10次）
+	//输入参数：无 
+	//输出参数：num（曝光次数）、exposure_param[10]（10个曝光参数、前num个有效））
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfGetParamBrightnessHdrExposure(int& num, int exposure_param[10]);
+
+	//函数名： DfSetParamBrightnessExposureModel
+	//功能： 设置亮度图曝光模式
+	//输入参数： model（1：单曝光、2：曝光融合）
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfSetParamBrightnessExposureModel(int model);
+
+	//函数名： DfGetParamBrightnessExposureModel
+	//功能： 获取亮度图曝光模式
+	//输入参数： 无
+	//输出参数： model（1：单曝光、2：曝光融合）
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfGetParamBrightnessExposureModel(int& model);
+
+	//函数名： DfSetParamBrightnessGain
+	//功能： 设置亮度图增益
+	//输入参数：gain(亮度图增益)
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfSetParamBrightnessGain(float gain);
+
+	//函数名： DfGetParamBrightnessGain
+	//功能： 获取亮度图增益
+	//输入参数：无
+	//输出参数：gain(亮度图增益)
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfGetParamBrightnessGain(float& gain);
 }

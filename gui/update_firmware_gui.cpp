@@ -130,7 +130,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 
 	// ----------------------------------------------------------
 	// 4. Reboot the camera device
-	print_log(u8"4. Reboot the device...");
+	print_log(u8"4.Please power off and restart the device the device...");
 	feedback = 0;
 	RebootDevice(feedback);
 

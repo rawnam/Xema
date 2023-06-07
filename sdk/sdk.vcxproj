@@ -179,7 +179,9 @@ copy $(TargetDir)\open_cam3d_sdkd.dll $(ProjectDir)..\example</Command>
     <PostBuildEvent>
       <Command>copy $(TargetDir)\open_cam3d_sdk.lib $(ProjectDir)..\example
 copy $(TargetDir)\open_cam3d_sdk.dll $(ProjectDir)..\example
-copy $(ProjectDir)..\3rdparty\ConfiguringIP\enumerate.lib $(ProjectDir)..\example</Command>
+copy $(ProjectDir)..\3rdparty\ConfiguringIP\enumerate.lib $(ProjectDir)..\example
+copy $(ProjectDir)camera_status.h $(ProjectDir)..\example
+copy $(ProjectDir)camera_status.h $(ProjectDir)..\cpp_example</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
