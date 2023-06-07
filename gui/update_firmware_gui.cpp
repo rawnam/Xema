@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QFileDialog>
 #include <QDateTime>
+#include <QThread>
 #include <iostream>
 #include <sys/stat.h>
 #include "../firmware/protocol.h"
@@ -50,6 +51,9 @@ void UpdateFirmwareGui::do_pushButton_select()
 
 void UpdateFirmwareGui::do_pushButton_update()
 {
+	ui.pushButton_update->setDisabled(true);
+	ui.pushButton_select->setDisabled(true);
+	ui.buttonBox_close->setDisabled(true);
 	UpdateOnDropped(on_dropped);
 
 	int ret = UpdateConnect(camera_ip.toStdString().c_str());
@@ -57,6 +61,9 @@ void UpdateFirmwareGui::do_pushButton_update()
 	{
 		print_log(u8"Ip: "+ camera_ip);
 		print_log(u8"UpdateConnect failed");
+		ui.pushButton_update->setEnabled(true);
+		ui.pushButton_select->setEnabled(true);
+		ui.buttonBox_close->setEnabled(true);
 		return;
 	}
 
@@ -68,6 +75,10 @@ void UpdateFirmwareGui::do_pushButton_update()
 	KillCameraServer(feedback);
 	if (feedback != 1010) {
 		print_log(u8"Kill camera_server failed");
+		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
+		ui.pushButton_update->setEnabled(true);
+		ui.pushButton_select->setEnabled(true);
+		ui.buttonBox_close->setEnabled(true);
 		return;
 	}
 
@@ -86,6 +97,10 @@ void UpdateFirmwareGui::do_pushButton_update()
 	if (fopen_s(&fw, file_name, "rb") != 0)
 	{
 		print_log(u8"Load file: fail...");
+		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
+		ui.pushButton_update->setEnabled(true);
+		ui.pushButton_select->setEnabled(true);
+		ui.buttonBox_close->setEnabled(true);
 		return;
 	}
 
@@ -110,6 +125,10 @@ void UpdateFirmwareGui::do_pushButton_update()
 
 	if (ret != DF_SUCCESS) {
 		print_log(u8"Update camera_server: fail...");
+		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
+		ui.pushButton_update->setEnabled(true);
+		ui.pushButton_select->setEnabled(true);
+		ui.buttonBox_close->setEnabled(true);
 		return;
 	} else {
 		print_log(u8"Update camera_server: success...");
@@ -122,19 +141,38 @@ void UpdateFirmwareGui::do_pushButton_update()
 	ChmodCameraServer(feedback);
 	if (feedback != 2020) {
 		print_log(u8"Chmod camera_server failed");
+		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
+		ui.pushButton_update->setEnabled(true);
+		ui.pushButton_select->setEnabled(true);
+		ui.buttonBox_close->setEnabled(true);
 		return;
 	}
 
 	sprintf(log, "Chmod camera_server: %d", feedback);
 	print_log(log);
 
+
+	for (int sec = 0; sec < 60; sec++)
+	{
+		QThread::sleep(1);
+		sprintf(log, "waiting: %d s", sec + 1);
+		print_log(log);
+		QCoreApplication::processEvents();
+	}
+
 	// ----------------------------------------------------------
 	// 4. Reboot the camera device
-	print_log(u8"4.Please power off and restart the device the device...");
+	print_log(u8"4.Please power off and restart the device...");
 	feedback = 0;
 	RebootDevice(feedback);
 
+
+	QMessageBox::warning(this, tr("注意"), tr("升级完成，请断电重启相机！"));
+
 	UpdateDisconnect();
+	ui.pushButton_update->setEnabled(true);
+	ui.pushButton_select->setEnabled(true);
+	ui.buttonBox_close->setEnabled(true);
 }
 
 void UpdateFirmwareGui::print_log(QString str)

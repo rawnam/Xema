@@ -82,6 +82,12 @@
    <property name="text">
     <string>升  级</string>
    </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="autoExclusive">
+    <bool>true</bool>
+   </property>
   </widget>
   <widget class="QTextBrowser" name="textBrowser_log">
    <property name="geometry">

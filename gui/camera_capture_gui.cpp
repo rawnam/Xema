@@ -2243,6 +2243,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 			std::cout << "Get Depth Error!" << std::endl;
 		}
 
+		addLogMessage(u8"采集完成！");
 
 		/*****************************************************************************/
 		//获取去畸变图像
@@ -2291,7 +2292,6 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 		capture_show_flag_ = true;
 
 
-		addLogMessage(u8"采集完成！");
 		emit send_images_update();
 
 
