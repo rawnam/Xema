@@ -694,12 +694,14 @@ void CameraCaptureGui::setUiData()
 	break;
 	case 2:
 	{
-		ui.radioButton_generate_brightness_illuminsation_define->setChecked(true); 
+		ui.radioButton_generate_brightness_illuminsation_define->setChecked(true);
+		ui.groupBox_generate_brightness->setChecked(true);
 	}
 	break;
 	case 3:
 	{
-		ui.radioButton_generate_brightness_darkness_define->setChecked(true); 
+		ui.radioButton_generate_brightness_darkness_define->setChecked(true);
+		ui.groupBox_generate_brightness->setChecked(true);
 	}
 	break;
 	case 4:
@@ -791,6 +793,10 @@ void CameraCaptureGui::setUiData()
 	default:
 		break;
 	}
+
+	ui.groupBox_radius_filter->setChecked(firmware_config_param_.use_radius_filter);
+	ui.spinBox_radius_filter_num->setValue(firmware_config_param_.radius_filter_threshold_num);
+	ui.doubleSpinBox_radius_filter_r->setValue(firmware_config_param_.radius_filter_threshold_num);
 }
 
 
