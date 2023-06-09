@@ -55,17 +55,17 @@ bool GuiConfigDataStruct::saveToSettings(const QString& f)
 
 SettingsFileFunction::SettingsFileFunction()
 {
-	gui_config_.Instance().ip = "192.168.0.100";
+	gui_config_.Instance().ip = "192.168.100.10";
 	gui_config_.Instance().low_z_value = 300;
 	gui_config_.Instance().high_z_value = 3000;
 	gui_config_.Instance().calibration_board = 20;
 	gui_config_.Instance().repetition_count = 0;
 	gui_config_.Instance().last_path = "../TestData";
-	gui_config_.Instance().exposure_model = 0;
+	gui_config_.Instance().exposure_model = 1;
 	gui_config_.Instance().show_image_flag = 1;
 	gui_config_.Instance().auto_save = false; 
 	gui_config_.Instance().show_over_exposure = true;
-	gui_config_.Instance().engine = 0;
+	gui_config_.Instance().engine = 1;
 	 
 
 	firmware_config_param_.generate_brightness_exposure = 12000;

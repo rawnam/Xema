@@ -113,7 +113,6 @@
      <string>设置</string>
     </property>
     <addaction name="action_select_calibration_board"/>
-    <addaction name="action_outlier_removal"/>
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menu_setting"/>

@@ -281,12 +281,16 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.spinBox_camera_exposure_define, SIGNAL(valueChanged(int)), this, SLOT(do_spin_generate_brightness_exposure_changed(int)));
 	connect(ui.doubleSpinBox_brightness_gain, SIGNAL(valueChanged(double)), this, SLOT(do_spin_brightness_gain_changed(double)));
 
-	connect(ui.checkBox_depth_filter, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_depth_filter(bool)));
-	connect(ui.checkBox_rectify_phase_base_gray, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_rectify_phase_base_gray(bool)));
+	connect(ui.groupBox_depth_filter, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_depth_filter(bool)));
+	connect(ui.groupBox_radius_filter, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_radius_filter(bool)));
+	connect(ui.groupBox_rectify_phase_base_gray, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_rectify_phase_base_gray(bool)));
 
 
 	connect(ui.doubleSpinBox_rectify_phase_base_gray_s, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_gray_rectify_s(double)));
 	connect(ui.spinBox_rectify_phase_base_gray_r, SIGNAL(valueChanged(int)), this, SLOT(do_spin_gray_rectify_r(int)));
+
+	connect(ui.doubleSpinBox_radius_filter_r, SIGNAL(valueChanged(double)), this, SLOT(do_double_spin_radius_filter_r_changed(double)));
+	connect(ui.spinBox_radius_filter_num, SIGNAL(valueChanged(int)), this, SLOT(do_spin_radius_filter_num_changed(int)));
 
 	min_depth_value_ = 300;
 	max_depth_value_ = 3000;
@@ -613,7 +617,8 @@ void CameraCaptureGui::setUiData()
 	ui.doubleSpinBox_max_z->setValue(processing_gui_settings_data_.Instance().high_z_value);
 	ui.lineEdit_ip->setText(processing_gui_settings_data_.Instance().ip);
 	ui.spinBox_repetition_count->setValue(processing_gui_settings_data_.Instance().repetition_count);
-	 
+	
+	//ui.spinBox_camera_exposure->setValue(firmware_config_param_.camera_)
 
 	setCalibrationBoard(processing_gui_settings_data_.Instance().calibration_board);
 	qDebug() << "processing_gui_settings_data_.Instance().calibration_board: " << processing_gui_settings_data_.Instance().calibration_board;
@@ -645,11 +650,11 @@ void CameraCaptureGui::setUiData()
 	if (1 == firmware_config_param_.use_depth_filter)
 	{
 
-		ui.checkBox_depth_filter->setChecked(true);
+		ui.groupBox_depth_filter->setChecked(true);
 	}
 	else
 	{ 
-		ui.checkBox_depth_filter->setChecked(false);
+		ui.groupBox_depth_filter->setChecked(false);
 		ui.doubleSpinBox_depth_filter->setDisabled(true);
 	}
 
@@ -658,18 +663,18 @@ void CameraCaptureGui::setUiData()
 	if (1 == firmware_config_param_.use_gray_rectify)
 	{
 
-		ui.checkBox_rectify_phase_base_gray->setChecked(true);
+		ui.groupBox_rectify_phase_base_gray->setChecked(true);
 	}
 	else
 	{
-		ui.checkBox_rectify_phase_base_gray->setChecked(false);
+		ui.groupBox_rectify_phase_base_gray->setChecked(false);
 		ui.doubleSpinBox_rectify_phase_base_gray_s->setDisabled(true);
 		ui.spinBox_rectify_phase_base_gray_r->setDisabled(true);
 	}
 
 	ui.spinBox_rectify_phase_base_gray_r->hide();
 	ui.label_rectify_gray_r->hide();
-	ui.label_rectify_gray_s->hide();
+	//ui.label_rectify_gray_s->hide();
 
 
 	ui.spinBox_camera_exposure_define->setValue(firmware_config_param_.generate_brightness_exposure);
@@ -684,6 +689,7 @@ void CameraCaptureGui::setUiData()
 	case 1:
 	{
 		ui.radioButton_generate_brightness_default->setChecked(true);
+		ui.groupBox_generate_brightness->setChecked(false);
 	}
 	break;
 	case 2:
@@ -1231,6 +1237,84 @@ void CameraCaptureGui::updateRectifyGray(int use, int r, float s)
 			else
 			{
 				addLogMessage(u8"出错！");
+			}
+
+		}
+
+	}
+
+	camera_setting_flag_ = false;
+}
+
+
+void CameraCaptureGui::updateRadiusFilter()
+{
+
+	if (camera_setting_flag_)
+	{
+		return;
+	}
+
+
+	//设置参数时加锁
+	camera_setting_flag_ = true;
+	if (connected_flag_)
+	{
+
+		int ret_code = -1;
+		//如果连续采集在用、先暂停
+		if (start_timer_flag_)
+		{
+
+			stopCapturingOneFrameBaseThread();
+
+			ret_code = DfSetParamRadiusFilter(firmware_config_param_.use_radius_filter, firmware_config_param_.radius_filter_r,
+				firmware_config_param_.radius_filter_threshold_num); 
+			if (0 == ret_code)
+			{
+				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
+				if (1 == firmware_config_param_.use_radius_filter)
+				{
+					addLogMessage(u8"打开半径滤波！");
+					QString str = u8"半径: " + QString::number(firmware_config_param_.radius_filter_r)+
+						u8"点数: " + QString::number(firmware_config_param_.radius_filter_threshold_num);
+					addLogMessage(str);
+				}
+				else
+				{
+					addLogMessage(u8"关闭半径滤波！");
+				}
+
+
+			}
+
+
+			do_pushButton_capture_continuous();
+
+		}
+		else
+		{
+			ret_code = DfSetParamRadiusFilter(firmware_config_param_.use_radius_filter, firmware_config_param_.radius_filter_r,
+				firmware_config_param_.radius_filter_threshold_num);
+
+			if (0 == ret_code)
+			{
+				if (1 == firmware_config_param_.use_radius_filter)
+				{
+					addLogMessage(u8"打开半径滤波！");
+					QString str = u8"半径: " + QString::number(firmware_config_param_.radius_filter_r) +
+						u8"点数: " + QString::number(firmware_config_param_.radius_filter_threshold_num);
+					addLogMessage(str);
+				}
+				else
+				{
+					addLogMessage(u8"关闭半径滤波！");
+				}
+
+			}
+			else
+			{
+				addLogMessage(u8"设置半径滤波失败！");
 			}
 
 		}
@@ -3610,17 +3694,36 @@ void CameraCaptureGui::do_checkBox_toggled_rectify_phase_base_gray(bool state)
 
 }
 
+
+void CameraCaptureGui::do_checkBox_toggled_radius_filter(bool state)
+{
+	if (state)
+	{ 
+		firmware_config_param_.use_radius_filter = 1;
+	}
+	else
+	{ 
+		firmware_config_param_.use_radius_filter = 0;
+	}
+
+
+	updateRadiusFilter();
+	 
+}
+
 void CameraCaptureGui::do_checkBox_toggled_depth_filter(bool state)
 {
 	if (state)
 	{
 		ui.doubleSpinBox_depth_filter->setEnabled(true);
 		firmware_config_param_.use_depth_filter = 1;
+  
 	}
 	else
 	{
 		ui.doubleSpinBox_depth_filter->setDisabled(true);
 		firmware_config_param_.use_depth_filter = 0;
+ 
 	}
 
 
@@ -3829,6 +3932,19 @@ void CameraCaptureGui::do_spin_generate_brightness_exposure_changed(int val)
 	firmware_config_param_.generate_brightness_exposure = val;
 
 	updateGenerateBrightnessParam();
+}
+
+
+void CameraCaptureGui::do_double_spin_radius_filter_r_changed(double val)
+{
+	firmware_config_param_.radius_filter_r = val;
+	updateRadiusFilter();
+}
+
+void CameraCaptureGui::do_spin_radius_filter_num_changed(int val)
+{ 
+	firmware_config_param_.radius_filter_threshold_num = val;
+	updateRadiusFilter();
 }
 
 bool CameraCaptureGui::showImage()

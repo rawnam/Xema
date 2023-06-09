@@ -33,7 +33,7 @@ camera_gui::camera_gui(QWidget* parent)
 	connect(ui.action_exit, SIGNAL(triggered()), this, SLOT(do_action_exit()));
 	connect(ui.action_get_calibration_param, SIGNAL(triggered()), this, SLOT(do_action_show_calibration_param()));
 	connect(ui.action_select_calibration_board, SIGNAL(triggered()), this, SLOT(do_action_select_calibration_board()));
-	connect(ui.action_outlier_removal, SIGNAL(triggered()), this, SLOT(do_action_outlier_removal_settings()));
+	//connect(ui.action_outlier_removal, SIGNAL(triggered()), this, SLOT(do_action_outlier_removal_settings()));
 	connect(this, SIGNAL(send_network_drop()), this, SLOT(do_slot_handle_network()));
 
 	connect(ui.action_update_firmware, SIGNAL(triggered()), this, SLOT(do_action_update_firmware()));
