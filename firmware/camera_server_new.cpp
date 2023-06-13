@@ -1565,7 +1565,7 @@ int handle_cmd_get_frame_06_hdr(int client_sock)
         handle_error(ret);
     }
 
-    std::thread  t_merge_brightness(&Scan3D::mergeBrightness, &scan3d_);
+    // std::thread  t_merge_brightness(&Scan3D::mergeBrightness, &scan3d_);
  
     scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
@@ -1597,7 +1597,7 @@ int handle_cmd_get_frame_06_hdr(int client_sock)
         // delete [] buffer;
         delete[] depth_map;
         
-        t_merge_brightness.join();
+        // t_merge_brightness.join();
         delete[] brightness;
 
         frame_status_ = DF_ERROR_NETWORK;
@@ -1609,12 +1609,12 @@ int handle_cmd_get_frame_06_hdr(int client_sock)
 
     if (1 != generate_brightness_model)
     {
-        t_merge_brightness.detach();
+        // t_merge_brightness.detach();
         scan3d_.captureTextureImage(generate_brightness_model, generate_brightness_exposure_time, brightness);
     }
     else
     {
-        t_merge_brightness.join();
+        // t_merge_brightness.join();
         scan3d_.copyBrightnessData(brightness);
     }
 
@@ -1699,7 +1699,7 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
 
     }
 
-    std::thread  t_merge_brightness(&Scan3D::mergeBrightness, &scan3d_);
+    // std::thread  t_merge_brightness(&Scan3D::mergeBrightness, &scan3d_);
  
     scan3d_.removeOutlierBaseDepthFilter();
     scan3d_.removeOutlierBaseRadiusFilter();
@@ -1731,7 +1731,7 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
         // delete [] buffer;
         delete[] depth_map;
         
-        t_merge_brightness.join();
+        // t_merge_brightness.join();
         delete[] brightness;
 
         frame_status_ = DF_ERROR_NETWORK;
@@ -1741,12 +1741,12 @@ int handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(int client_sock)
 
     if(1!=generate_brightness_model)
     {
-        t_merge_brightness.detach();
+        // t_merge_brightness.detach();
         scan3d_.captureTextureImage(generate_brightness_model,generate_brightness_exposure_time,brightness);
     }
     else
     {
-        t_merge_brightness.join();
+        // t_merge_brightness.join();
         scan3d_.copyBrightnessData(brightness);
     }
   
