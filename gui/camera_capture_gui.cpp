@@ -797,7 +797,7 @@ void CameraCaptureGui::setUiData()
 
 	ui.groupBox_radius_filter->setChecked(firmware_config_param_.use_radius_filter);
 	ui.spinBox_radius_filter_num->setValue(firmware_config_param_.radius_filter_threshold_num);
-	ui.doubleSpinBox_radius_filter_r->setValue(firmware_config_param_.radius_filter_threshold_num);
+	ui.doubleSpinBox_radius_filter_r->setValue(firmware_config_param_.radius_filter_r);
 }
 
 

@@ -71,7 +71,7 @@ SystemConfigDataStruct::SystemConfigDataStruct()
 
 	instance_.firwmare_param_.confidence = 5;
 
-	instance_.firwmare_param_.use_radius_filter = 0; 
+	instance_.firwmare_param_.use_radius_filter = 1; 
 	instance_.firwmare_param_.radius_filter_r = 2.5; 
 	instance_.firwmare_param_.radius_filter_threshold_num = 8; 
 	instance_.firwmare_param_.use_depth_filter = 0; 
