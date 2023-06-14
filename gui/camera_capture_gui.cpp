@@ -284,6 +284,7 @@ bool CameraCaptureGui::initializeFunction()
 	connect(ui.groupBox_depth_filter, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_depth_filter(bool)));
 	connect(ui.groupBox_radius_filter, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_radius_filter(bool)));
 	connect(ui.groupBox_rectify_phase_base_gray, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_rectify_phase_base_gray(bool)));
+	connect(ui.groupBox_generate_brightness, SIGNAL(toggled(bool)), this, SLOT(do_checkBox_toggled_generate_brightness(bool)));
 
 
 	connect(ui.doubleSpinBox_rectify_phase_base_gray_s, SIGNAL(valueChanged(double)), this, SLOT(do_doubleSpin_gray_rectify_s(double)));
@@ -3700,6 +3701,20 @@ void CameraCaptureGui::do_checkBox_toggled_rectify_phase_base_gray(bool state)
 
 }
 
+
+void CameraCaptureGui::do_checkBox_toggled_generate_brightness(bool state)
+{
+
+	ui.groupBox_brightness->update();
+	if (state)
+	{ 
+	}
+	else
+	{ 
+		ui.radioButton_generate_brightness_default->setChecked(true);
+	
+	}
+}
 
 void CameraCaptureGui::do_checkBox_toggled_radius_filter(bool state)
 {

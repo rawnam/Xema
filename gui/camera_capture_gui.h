@@ -209,7 +209,10 @@ private slots:
 
 	void do_checkBox_toggled_radius_filter(bool state);
 
+	void do_checkBox_toggled_generate_brightness(bool state);
+
 	void do_checkBox_toggled_over_exposure(bool state);
+
 
 	void do_spin_smoothing_changed(int val);
 
