@@ -97,7 +97,7 @@ void camera_gui::do_action_load_camera_config()
 void camera_gui::do_action_save_camera_config()
 {
 
-	QString path = QFileDialog::getSaveFileName(this, u8"保存配置文件", last_config_path_, "*.json");
+	QString path = QFileDialog::getSaveFileName(this, u8"保存配置文件", "../example_config.json", "*.json");
 
 	if (path.isEmpty())
 	{
