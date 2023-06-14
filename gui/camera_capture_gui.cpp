@@ -798,6 +798,25 @@ void CameraCaptureGui::setUiData()
 	ui.groupBox_radius_filter->setChecked(firmware_config_param_.use_radius_filter);
 	ui.spinBox_radius_filter_num->setValue(firmware_config_param_.radius_filter_threshold_num);
 	ui.doubleSpinBox_radius_filter_r->setValue(firmware_config_param_.radius_filter_r);
+
+
+	switch (firmware_config_param_.generate_brightness_exposure_model)
+	{
+	case GENERATE_BRIGHTNESS_MODEL_SINGLE_:
+	{
+		ui.radioButton_generate_brightness_single->setChecked(true);
+	}
+	break;
+	case GENERATE_BRIGHTNESS_MODEL_HDR_:
+	{
+		ui.radioButton_generate_brightness_hdr->setChecked(true);
+	}
+	break;
+	default:
+		break;
+	}
+
+
 }
 
 

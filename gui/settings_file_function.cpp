@@ -195,6 +195,34 @@ bool SettingsFileFunction::loadProcessingSettingsFile(QString path)
 		{
 			qDebug() << "generate_brightness_exposure is:" << firmware_Obj.value("generate_brightness_exposure").toInt();
 			camera_config_.Instance().firwmare_param_.generate_brightness_exposure = firmware_Obj.value("generate_brightness_exposure").toInt();
+		} 
+
+		if (firmware_Obj.contains("generate_brightness_exposure_model") && firmware_Obj["generate_brightness_exposure_model"].isDouble())
+		{
+			qDebug() << "generate_brightness_exposure_model is:" << firmware_Obj.value("generate_brightness_exposure_model").toInt();
+			camera_config_.Instance().firwmare_param_.generate_brightness_exposure_model = firmware_Obj.value("generate_brightness_exposure_model").toInt();
+		}
+
+		if (firmware_Obj.contains("brightness_hdr_exposure_num") && firmware_Obj["brightness_hdr_exposure_num"].isDouble())
+		{
+			qDebug() << "brightness_hdr_exposure_num is:" << firmware_Obj.value("brightness_hdr_exposure_num").toInt();
+			camera_config_.Instance().firwmare_param_.brightness_hdr_exposure_num = firmware_Obj.value("brightness_hdr_exposure_num").toInt();
+		}
+
+		if (firmware_Obj.contains("brightness_hdr_exposure_param_list") && firmware_Obj["brightness_hdr_exposure_param_list"].isArray())
+		{
+			QJsonArray j_array = firmware_Obj.value("brightness_hdr_exposure_param_list").toArray();
+
+			if (10 == j_array.size())
+			{
+				qDebug() << "brightness_hdr_exposure_param_list is:" << firmware_Obj.value("brightness_hdr_exposure_param_list").toArray();
+
+				for (int i = 0; i < 10; i++)
+				{
+					camera_config_.Instance().firwmare_param_.brightness_hdr_exposure_param_list[i] = j_array[i].toInt();
+				}
+
+			}
 		}
 
 		if (firmware_Obj.contains("brightness_gain") && firmware_Obj["brightness_gain"].isDouble())
@@ -424,6 +452,15 @@ bool SettingsFileFunction::saveProcessingSettingsFile(QString path)
 	jsonObject_firmware.insert("generate_brightness_model", camera_config_.Instance().firwmare_param_.generate_brightness_model);
 	jsonObject_firmware.insert("generate_brightness_exposure", camera_config_.Instance().firwmare_param_.generate_brightness_exposure);
 	jsonObject_firmware.insert("brightness_gain", camera_config_.Instance().firwmare_param_.brightness_gain);
+
+	jsonObject_firmware.insert("generate_brightness_exposure_model", camera_config_.Instance().firwmare_param_.generate_brightness_exposure_model);
+	jsonObject_firmware.insert("brightness_hdr_exposure_num", camera_config_.Instance().firwmare_param_.brightness_hdr_exposure_num);
+	QJsonArray brightness_exposure_param_array;
+	for (int i = 0; i < 10; i++)
+	{
+		brightness_exposure_param_array.append(camera_config_.Instance().firwmare_param_.brightness_hdr_exposure_param_list[i]);
+	}
+	jsonObject_firmware.insert("brightness_hdr_exposure_param_list", brightness_exposure_param_array);
 
 	jsonObject_firmware.insert("use_bilateral_filter", camera_config_.Instance().firwmare_param_.use_bilateral_filter);
 	jsonObject_firmware.insert("bilateral_filter_param_d", camera_config_.Instance().firwmare_param_.bilateral_filter_param_d);
