@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string.h>
 #include "xcamera.h"
+#include "enumerate.h"
 
 using namespace XEMA;
 
@@ -11,13 +12,31 @@ int main()
 {
 	/*****************************************************************************************************/
 	int ret_code = 0;
+
+	//更新相机设备列表
+	int camera_num = 0;
+	ret_code = DfUpdateDeviceList(camera_num);
+	if (0 != ret_code || 0 == camera_num)
+	{
+		return -1;
+	}
+
+	DeviceBaseInfo* pBaseinfo = (DeviceBaseInfo*)malloc(sizeof(DeviceBaseInfo) * camera_num);
+	int n_size = camera_num * sizeof(DeviceBaseInfo);
+	//获取设备信息
+	ret_code = DfGetAllDeviceBaseInfo(pBaseinfo, &n_size);
+	for (int i = 0; i < camera_num; i++)
+	{
+		std::cout << "mac: " << pBaseinfo[i].mac << "  ip: " << pBaseinfo[i].ip << std::endl;
+	}
+	 
  
 	//创建相机
 	XCamera* p_camera = (XCamera*)createXCamera();
 
 
 	//连接相机 
-	ret_code = p_camera->connect("192.168.100.50");
+	ret_code = p_camera->connect(pBaseinfo[0].ip);
 
 	int width = 0, height = 0;
 	if (0 == ret_code)
