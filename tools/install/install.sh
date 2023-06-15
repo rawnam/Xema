@@ -10,6 +10,7 @@ echo 'StartupNotify=true' >>xema.desktop
 echo 'Type=Application' >>xema.desktop
 echo 'Categories=Application;Development;' >>xema.desktop
 sudo chmod +x xema.desktop
+rm ~/.local/share/applications/xema.desktop
 cp xema.desktop ~/.local/share/applications
 
 echo '[Desktop Entry]' >xema_config.desktop
@@ -23,4 +24,5 @@ echo 'StartupNotify=true' >>xema_config.desktop
 echo 'Type=Application' >>xema_config.desktop
 echo 'Categories=Application;Development;' >>xema_config.desktop
 sudo chmod +x xema_config.desktop
+rm ~/.local/share/applications/xema_config.desktop
 cp xema_config.desktop ~/.local/share/applications
