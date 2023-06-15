@@ -2555,6 +2555,480 @@ namespace XEMA {
 
 		return DF_SUCCESS;
 	}
+
+ 
+	int XemaCamera::setParamGrayRectify(int use, int radius, float sigma)
+	{
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		if (radius % 2 != 1 || radius > 9 || radius < 3 || sigma < 1 || sigma > 100)
+		{
+			LOG(INFO) << "error param range";
+			return DF_FAILED;
+		}
+
+		LOG(INFO) << "DfSetParamGrayRectify:";
+		if (use != 1 && use != 0)
+		{
+			std::cout << "use param should be 1 or 0:  " << use << std::endl;
+			return DF_FAILED;
+		}
+
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_SET_PARAM_GRAY_RECTIFY, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+
+			ret = send_buffer((char*)(&use), sizeof(int), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+			ret = send_buffer((char*)(&radius), sizeof(int), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+			ret = send_buffer((char*)(&sigma), sizeof(float), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+
+ 
+	int XemaCamera::getParamGrayRectify(int& use, int& radius, float& sigma)
+	{
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		LOG(INFO) << "getParamGrayRectify:";
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_GET_PARAM_GRAY_RECTIFY, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+
+			ret = recv_buffer((char*)(&use), sizeof(int), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+			ret = recv_buffer((char*)(&radius), sizeof(int), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+			ret = recv_buffer((char*)(&sigma), sizeof(float), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+
+	//函数名： setParamBrightnessHdrExposure
+	//功能： 设置亮度图多曝光参数（最大曝光次数为10次）
+	//输入参数： num（曝光次数）、exposure_param[6]（6个曝光参数、前num个有效））
+	//输出参数： 无
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	int XemaCamera::setParamBrightnessHdrExposure(int num, int exposure_param[10])
+	{
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		if (num < 2 || num>10)
+		{
+			LOG(INFO) << "Error num:" << num;
+			return DF_FAILED;
+		}
+
+		LOG(INFO) << "setParamBrightnessHdrExposure:";
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_SET_PARAM_BRIGHTNESS_HDR_EXPOSURE, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			int param[11] = { 2,10000,20000,30000,40000,50000,60000,70000,80000,90000,100000 };
+
+			param[0] = num;
+
+			memcpy(param + 1, exposure_param, sizeof(int) * num);
+
+			ret = send_buffer((char*)(param), sizeof(int) * 11, g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+ 
+	int XemaCamera::getParamBrightnessHdrExposure(int& num, int exposure_param[10]) 
+	{
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		LOG(INFO) << "getParamBrightnessHdrExposure:";
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_GET_PARAM_BRIGHTNESS_HDR_EXPOSURE, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			int param[11];
+
+			ret = recv_buffer((char*)(param), sizeof(int) * 11, g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+			memcpy(exposure_param, param + 1, sizeof(int) * 10);
+			num = param[0];
+
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+	 
+	int XemaCamera::setParamBrightnessExposureModel(int model)
+	{
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		LOG(INFO) << "setParamBrightnessExposureModel:";
+
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_SET_PARAM_BRIGHTNESS_EXPOSURE_MODEL, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+
+			ret = send_buffer((char*)(&model), sizeof(int), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+	 
+	int XemaCamera::getParamBrightnessExposureModel(int& model)
+	{
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		LOG(INFO) << "getParamBrightnessExposureModel:";
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_GET_PARAM_BRIGHTNESS_EXPOSURE_MODEL, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+
+			ret = recv_buffer((char*)(&model), sizeof(int), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+	 
+	int XemaCamera::setParamBrightnessGain(float gain) 
+	{
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+		
+		LOG(INFO) << "setParamBrightnessGain:";
+
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_SET_PARAM_BRIGHTNESS_GAIN, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+
+			ret = send_buffer((char*)(&gain), sizeof(float), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+ 
+	int XemaCamera::getParamBrightnessGain(float& gain)
+	{
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		LOG(INFO) << "getParamBrightnessGain:";
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_GET_PARAM_BRIGHTNESS_GAIN, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			ret = recv_buffer((char*)(&gain), sizeof(float), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+
+
 	/************************************************************************************************/
 
 

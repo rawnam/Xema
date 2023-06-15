@@ -36,7 +36,7 @@ int main()
 
 
 	//连接相机 
-	ret_code = p_camera->connect(pBaseinfo[0].ip);
+	ret_code = p_camera->connect(pBaseinfo[0].ip); 
 
 	int width = 0, height = 0;
 	if (0 == ret_code)
@@ -129,6 +129,23 @@ int main()
 		if (0 != ret_code)
 		{
 			std::cout << "Set Pointcloud Smoothing Error!" << std::endl;
+		}
+		ret_code = p_camera->setParamGenerateBrightness(2,36000);
+		if (0 != ret_code)
+		{
+			std::cout << "Set Param Generate Brightness Error!" << std::endl;
+		}
+
+		ret_code = p_camera->setParamBrightnessGain(10);
+		if (0 != ret_code)
+		{
+			std::cout << "Set Param Brightness Gain Error!" << std::endl;
+		}
+
+		ret_code = p_camera->setParamBrightnessExposureModel(1);
+		if (0 != ret_code)
+		{
+			std::cout << "Set Param Brightness Exposure Model Error!" << std::endl;
 		}
 
 		//采集单曝光数据

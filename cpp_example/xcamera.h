@@ -284,6 +284,62 @@ extern "C" {
 			//输出参数：无
 			//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 			virtual  int setParamRepetitionExposureNum(int num) = 0;
+
+			//函数名： setParamGrayRectify
+			//功能： 设置点云灰度补偿参数
+			//输入参数：use(开关：1开、0关)、radius(半径：3、5、7、9）、sigma（补偿强度，范围0-100）
+			//输出参数： 无
+			//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+			virtual int setParamGrayRectify(int use, int radius, float sigma) = 0;
+
+			//函数名： getParamGrayRectify
+			//功能： 获取点云灰度补偿参数
+			//输入参数：无
+			//输出参数：use(开关：1开、0关)、radius(半径：3、5、7、9）、sigma（补偿强度，范围0-100）
+			//返回值： 类型（int）:返回0表示获取参数成功;否则失败。
+			virtual int getParamGrayRectify(int& use, int& radius, float& sigma) = 0;
+
+			//函数名： setParamBrightnessHdrExposure
+			//功能： 设置亮度图多曝光参数（最大曝光次数为10次）
+			//输入参数： num（曝光次数）、exposure_param[6]（6个曝光参数、前num个有效））
+			//输出参数： 无
+			//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+			virtual int setParamBrightnessHdrExposure(int num, int exposure_param[10]) = 0;
+
+			//函数名：getParamBrightnessHdrExposure
+			//功能： 设置亮度图多曝光参数（最大曝光次数为10次）
+			//输入参数：无 
+			//输出参数：num（曝光次数）、exposure_param[10]（10个曝光参数、前num个有效））
+			//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+			virtual int getParamBrightnessHdrExposure(int& num, int exposure_param[10]) = 0;
+
+			//函数名： setParamBrightnessExposureModel
+			//功能： 设置亮度图曝光模式
+			//输入参数： model（1：单曝光、2：曝光融合）
+			//输出参数： 无
+			//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+			virtual int setParamBrightnessExposureModel(int model) = 0;
+
+			//函数名： getParamBrightnessExposureModel
+			//功能： 获取亮度图曝光模式
+			//输入参数： 无
+			//输出参数： model（1：单曝光、2：曝光融合）
+			//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+			virtual int getParamBrightnessExposureModel(int& model) = 0;
+
+			//函数名： setParamBrightnessGain
+			//功能： 设置亮度图增益
+			//输入参数：gain(亮度图增益)
+			//输出参数： 无
+			//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+			virtual int setParamBrightnessGain(float gain) = 0;
+
+			//函数名： getParamBrightnessGain
+			//功能： 获取亮度图增益
+			//输入参数：无
+			//输出参数：gain(亮度图增益)
+			//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+			virtual int getParamBrightnessGain(float& gain) = 0;
         };
 
         XEMA_API void* createXCamera();
