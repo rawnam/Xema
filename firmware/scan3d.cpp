@@ -1518,7 +1518,7 @@ int Scan3D::captureFrame06Hdr()
 
                 delete[] img_ptr;
                 camera_->streamOff();
-                if (i == 0)
+                if (g_i == 0)
                 {
                         return DF_ERROR_LOST_TRIGGER;
                 }
