@@ -1928,7 +1928,8 @@ int handle_cmd_get_frame_06_repetition(int client_sock)
       repetition_count = 10;
     }
 
-    ret = scan3d_.captureFrame06Repetition(repetition_count);
+    // ret = scan3d_.captureFrame06Repetition(repetition_count);
+    ret = scan3d_.captureFrame06Black();
     if (DF_SUCCESS != ret)
     {
     //   LOG(ERROR) << "captureFrame04BaseConfidence code: " << ret;

@@ -169,12 +169,17 @@ void depth_filter(float depth_threshold_val);
 
   
 /****************************************************************************************/
+int cuda_copy_minsw8_pattern_to_memory_16(unsigned short* pattern_ptr,int serial_flag);
 
 int cuda_copy_minsw8_pattern_to_memory(unsigned char* pattern_ptr,int serial_flag);
+
+int cuda_handle_minsw8_16(int flag);
 
 int cuda_handle_minsw8(int flag);
 
 int cuda_handle_repetition_model06(int repetition_count);
+
+int cuda_handle_model06_16();
 
 /***********************************************************************************/
 //reconstruct

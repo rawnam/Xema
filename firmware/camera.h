@@ -28,6 +28,10 @@ public:
 
     virtual bool grap(unsigned char* buf){};
 
+    virtual bool grap(unsigned short* buf){};
+
+	virtual bool setPixelFormat(int val){};
+
 
 	bool getImageSize(int &width,int &height);
 	

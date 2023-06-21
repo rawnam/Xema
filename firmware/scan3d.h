@@ -86,7 +86,9 @@ public:
 
     int captureFrame06Hdr();
 
-    int captureFrame06Repetition(int repetition_count);
+    int captureFrame06Repetition(int repetition_count); 
+    
+    int captureFrame06Black();
     
     bool captureFrame03();
     

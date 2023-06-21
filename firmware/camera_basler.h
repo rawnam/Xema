@@ -34,7 +34,13 @@ public:
 	bool streamOff();
  
     bool trigger_software();
+	
     bool grap(unsigned char* buf);
+
+    bool grap(unsigned short* buf);
+
+	
+	bool setPixelFormat(int val);
 private:
 	void streamOffThread();
 private:
@@ -45,7 +51,9 @@ private:
     PYLON_DEVICE_HANDLE         hDev_;                     /* Handle for the pylon device. */
     PYLON_STREAMGRABBER_HANDLE  hGrabber_;                 /* Handle for the pylon stream grabber. */
     PYLON_WAITOBJECT_HANDLE     hWait_;                    /* Handle used for waiting for a grab to be finished. */
-
-	 
+ 
 	std::mutex operate_mutex_;
+
+	int pixel_bit_= 8;
+	int payloadSize_;
 };
