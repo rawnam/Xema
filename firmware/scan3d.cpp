@@ -1385,6 +1385,10 @@ int Scan3D::captureFrame06Repetition(int repetition_count)
             if (status)
             {
 
+            if (0 == g_i)
+            {
+                cuda_copy_brightness_to_memory(img_ptr);
+            }
                 cuda_copy_minsw8_pattern_to_memory(img_ptr, g_i);
                 // cuda_copy_pattern_to_memory(img_ptr, i);
                 cuda_merge_repetition_02_patterns(g_i);
@@ -1397,7 +1401,7 @@ int Scan3D::captureFrame06Repetition(int repetition_count)
 
                 if (g_i == 0)
                 {
-                        return DF_ERROR_LOST_TRIGGER;
+                    return DF_ERROR_LOST_TRIGGER;
                 }
 
                 frame_status = DF_ERROR_CAMERA_GRAP;
@@ -1526,10 +1530,10 @@ int Scan3D::captureFrame06Hdr()
             }
             LOG(INFO) << "finished!";
 
-            // if (0 == g_i)
-            // {
-            //     cuda_copy_brightness_to_memory(img_ptr);
-            // }
+            if (0 == g_i)
+            {
+                cuda_copy_brightness_to_memory(img_ptr);
+            }
 
             cuda_copy_minsw8_pattern_to_memory(img_ptr, g_i);
 
