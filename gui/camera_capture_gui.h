@@ -41,6 +41,7 @@ class CameraCaptureGui : public QWidget
 public:
 	CameraCaptureGui(QWidget* parent = Q_NULLPTR);
 	~CameraCaptureGui();
+	void updateLanguage();
 
 	void getFirmwareVersion(QString& version);
 

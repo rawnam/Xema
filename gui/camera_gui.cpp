@@ -38,6 +38,9 @@ camera_gui::camera_gui(QWidget* parent)
 
 	connect(ui.action_update_firmware, SIGNAL(triggered()), this, SLOT(do_action_update_firmware()));
 	connect(ui.actionAbout, SIGNAL(triggered()), this, SLOT(do_action_about()));
+
+	connect(ui.action_language_chinese, SIGNAL(triggered()), this, SLOT(do_action_language_chinese()));
+	connect(ui.action_language_english, SIGNAL(triggered()), this, SLOT(do_action_language_english()));
 }
 
 camera_gui::~camera_gui()
@@ -276,4 +279,70 @@ bool camera_gui::setUiData()
 	return true;
 
 }
+
+
+void camera_gui::do_action_language_chinese()
+{
+	static QTranslator* trans;
+
+	//qm文件的删除：
+	if (trans != NULL)
+	{
+		qApp->removeTranslator(trans);
+		delete trans;
+		trans = NULL;
+	}
+	trans = new QTranslator;
+
+	if (trans->load(".\\xema_translation_zh.qm"))
+	{
+		qApp->installTranslator(trans);
+	}
+	else
+	{
+		ui.tab_capture->addLogMessage("load translation file failed!");
+	}
+
+	ui.retranslateUi(this);
+	ui.tab_capture->updateLanguage();
+
+}
+
+void camera_gui::do_action_language_english()
+{
+	static QTranslator* trans;
+
+	//qm文件的删除：
+	if (trans != NULL)
+	{
+		qApp->removeTranslator(trans);
+		delete trans;
+		trans = NULL;
+	}
+	trans = new QTranslator;
+
+	if (trans->load(".\\xema_translation_en.qm"))
+	{
+		qApp->installTranslator(trans);
+	}
+	else
+	{
+		ui.tab_capture->addLogMessage("load translation file failed!");
+	}
+
+	ui.retranslateUi(this);
+	ui.tab_capture->updateLanguage();
+
+
+	////qm文件的删除：
+	//if (trans != NULL)
+	//{
+	//	//qApp->removeTranslator(trans);
+	//	delete trans;
+	//	trans = NULL;
+	//}
+
+	//ui.retranslateUi(this);
+}
+
 

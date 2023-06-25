@@ -4098,5 +4098,11 @@ bool CameraCaptureGui::bilinearInterpolationFeaturePoints(std::vector<cv::Point2
 
 	return true;
 }
+ 
 
+void CameraCaptureGui::updateLanguage()
+{
+	ui.retranslateUi(this);
+}
+ 
 /*********************************************************************************************************************/

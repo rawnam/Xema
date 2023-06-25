@@ -45,6 +45,10 @@ public slots:
 	void do_action_update_firmware();
 
 	void do_action_about();
+
+	void do_action_language_chinese();
+
+	void do_action_language_english();
 protected:
 	void closeEvent(QCloseEvent* e);
 
