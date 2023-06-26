@@ -79,7 +79,8 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	m_pMaskLayer->setVisible(false);//初始状态下隐藏，待需要显示时使用
 	this->stackUnder(m_pMaskLayer);//其中pWrapper为当前窗口的QWidget
  
-	
+ 
+
 }
 
 CameraCaptureGui::~CameraCaptureGui()
@@ -817,6 +818,7 @@ void CameraCaptureGui::setUiData()
 	}
 
 
+
 }
 
 
@@ -1190,6 +1192,11 @@ void CameraCaptureGui::do_doubleSpin_gain(double val)
 	camera_setting_flag_ = false;
 }
 
+  
+void CameraCaptureGui::setGuiConfigParam(GuiConfigDataStruct param)
+{
+	processing_gui_settings_data_ = param;
+}
 
 void CameraCaptureGui::updateRectifyGray(int use, int r, float s)
 {

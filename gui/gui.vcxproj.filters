@@ -179,7 +179,7 @@
     <QtTranslation Include="xema_translation_en.ts">
       <Filter>Translation Files</Filter>
     </QtTranslation>
-    <QtTranslation Include="xema_translation_zh.ts">
+    <QtTranslation Include="xema_translation_ch.ts">
       <Filter>Translation Files</Filter>
     </QtTranslation>
   </ItemGroup>

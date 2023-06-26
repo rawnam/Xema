@@ -5,129 +5,130 @@
     <name>AboutGui</name>
     <message>
         <source>关于</source>
-        <translation type="unfinished">关于</translation>
+        <translation>关于</translation>
     </message>
     <message>
         <source>客户端版本：</source>
-        <translation type="unfinished">客户端版本：</translation>
+        <translation>客户端版本:</translation>
     </message>
     <message>
         <source>固件版本：</source>
-        <translation type="unfinished">固件版本：</translation>
+        <translation>固件版本:</translation>
     </message>
     <message>
         <source>产品详情：</source>
-        <translation type="unfinished">产品详情：</translation>
+        <translation>产品详情:</translation>
     </message>
 </context>
 <context>
     <name>CalibrationParamGui</name>
     <message>
         <source>查询标定参数</source>
-        <translation type="unfinished">查询标定参数</translation>
+        <translation>查询标定参数</translation>
     </message>
     <message>
         <source>内参：</source>
-        <translation type="unfinished">内参：</translation>
+        <translation>内参:</translation>
     </message>
     <message>
         <source>畸变：</source>
-        <translation type="unfinished">畸变：</translation>
+        <translation>畸变:</translation>
     </message>
     <message>
         <source>外参：</source>
-        <translation type="unfinished">外参：</translation>
+        <translation>外参:</translation>
     </message>
     <message>
         <source>基准平面：</source>
-        <translation type="unfinished">基准平面：</translation>
+        <translation>基准平面:</translation>
     </message>
 </context>
 <context>
     <name>CameraCaptureGui</name>
     <message>
         <source>CameraCaptureGui</source>
-        <translation type="unfinished">CameraCaptureGui</translation>
+        <translation></translation>
     </message>
     <message>
         <source>自动保存</source>
-        <translation type="unfinished">自动保存</translation>
+        <translation>自动保存</translation>
     </message>
     <message>
         <source>过曝显示</source>
-        <translation type="unfinished">过曝显示</translation>
+        <translation>过曝显示</translation>
     </message>
     <message>
         <source>单曝光</source>
-        <translation type="unfinished">单曝光</translation>
+        <translatorcomment>单次采集模式</translatorcomment>
+        <translation>单曝光</translation>
     </message>
     <message>
         <source>高动态</source>
-        <translation type="unfinished">高动态</translation>
+        <translation>高动态</translation>
     </message>
     <message>
         <source>重复曝光</source>
-        <translation type="unfinished">重复曝光</translation>
+        <translation>重复曝光</translation>
     </message>
     <message>
         <source>亮度图</source>
-        <translation type="unfinished">亮度图</translation>
+        <translation>亮度图</translation>
     </message>
     <message>
         <source>深度图</source>
-        <translation type="unfinished">深度图</translation>
+        <translation>深度图</translation>
     </message>
     <message>
         <source>高度图</source>
-        <translation type="unfinished">高度图</translation>
+        <translation>高度图</translation>
     </message>
     <message>
         <source>IP</source>
-        <translation type="unfinished">IP</translation>
+        <translation>IP</translation>
     </message>
     <message>
         <source>置信度</source>
-        <translation type="unfinished">置信度</translation>
+        <translation>置信度(%)</translation>
     </message>
     <message>
         <source>噪点过滤</source>
-        <translation type="unfinished">噪点过滤</translation>
+        <translation>噪点过滤(%)</translation>
     </message>
     <message>
         <source>平滑</source>
-        <translation type="unfinished">平滑</translation>
+        <translation>平滑(level)</translation>
     </message>
     <message>
         <source>增益</source>
-        <translation type="unfinished">增益</translation>
+        <translation>增益(db)</translation>
     </message>
     <message>
         <source>重复曝光数</source>
-        <translation type="unfinished">重复曝光数</translation>
+        <translation>重复曝光数</translation>
     </message>
     <message>
         <source>最小高度</source>
-        <translation type="unfinished">最小高度</translation>
+        <translation>最小高度(mm)</translation>
     </message>
     <message>
         <source>高动态曝光数</source>
-        <translation type="unfinished">高动态曝光数</translation>
+        <translation>高动态曝光数</translation>
     </message>
     <message>
         <source>最大高度</source>
-        <translation type="unfinished">最大高度</translation>
+        <translation>最大高度(mm)</translation>
     </message>
     <message>
         <source>投影亮度</source>
-        <translation type="unfinished">投影亮度</translation>
+        <translation>投影亮度(level)</translation>
     </message>
     <message>
         <source>曝光时间</source>
-        <translation type="unfinished">曝光时间</translation>
+        <translation>曝光时间(us)</translation>
     </message>
     <message>
         <source>组号</source>
-        <translation type="unfinished">组号</translation>
+        <translation>组号</translation>
     </message>
     <message>
         <source>深度滤波：</source>
@@ -135,7 +136,7 @@
     </message>
     <message>
         <source>生成亮度图</source>
-        <translation type="unfinished">生成亮度图</translation>
+        <translation>生成亮度图</translation>
     </message>
     <message>
         <source>自定义不发光</source>
@@ -147,7 +148,7 @@
     </message>
     <message>
         <source>默认</source>
-        <translation type="unfinished">默认</translation>
+        <translation>默认</translation>
     </message>
     <message>
         <source>Camera</source>
@@ -155,75 +156,75 @@
     </message>
     <message>
         <source>半径滤波</source>
-        <translation type="unfinished"></translation>
+        <translation>半径滤波</translation>
     </message>
     <message>
         <source>引擎：</source>
-        <translation type="unfinished"></translation>
+        <translation>引擎:</translation>
     </message>
     <message>
         <source>常规模式</source>
-        <translation type="unfinished"></translation>
+        <translation>常规模式</translation>
     </message>
     <message>
         <source>高反模式</source>
-        <translation type="unfinished"></translation>
+        <translation>高反模式</translation>
     </message>
     <message>
         <source>半径（mm）:</source>
-        <translation type="unfinished"></translation>
+        <translation>半径(mm):</translation>
     </message>
     <message>
         <source> 阈值点数：</source>
-        <translation type="unfinished"></translation>
+        <translation>阈值点数:</translation>
     </message>
     <message>
         <source>深度滤波</source>
-        <translation type="unfinished"></translation>
+        <translation>深度滤波</translation>
     </message>
     <message>
         <source>阈值：   </source>
-        <translation type="unfinished"></translation>
+        <translation>阈值(%):</translation>
     </message>
     <message>
         <source>相位校正</source>
-        <translation type="unfinished"></translation>
+        <translation>相位校正</translation>
     </message>
     <message>
         <source>标准差：</source>
-        <translation type="unfinished"></translation>
+        <translation>标准差(%):</translation>
     </message>
     <message>
         <source>半径：</source>
-        <translation type="unfinished"></translation>
+        <translation>半径(mm):</translation>
     </message>
     <message>
         <source>发光</source>
-        <translation type="unfinished"></translation>
+        <translation>发光</translation>
     </message>
     <message>
         <source>不发光</source>
-        <translation type="unfinished"></translation>
+        <translation>不发光</translation>
     </message>
     <message>
         <source>曝光时间（us）：</source>
-        <translation type="unfinished"></translation>
+        <translation>曝光时间(us):</translation>
     </message>
     <message>
         <source>HDR数：</source>
-        <translation type="unfinished"></translation>
+        <translation>Hdr数:</translation>
     </message>
     <message>
         <source>增益(db)：</source>
-        <translation type="unfinished"></translation>
+        <translation>增益(db):</translation>
     </message>
     <message>
         <source>保存原图</source>
-        <translation type="unfinished"></translation>
+        <translation>保存原图</translation>
     </message>
     <message>
         <source>保存去畸变图</source>
-        <translation type="unfinished"></translation>
+        <translation>保存去畸变图</translation>
     </message>
 </context>
 <context>
@@ -234,11 +235,11 @@
     </message>
     <message>
         <source>半径滤波</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">半径滤波</translation>
     </message>
     <message>
         <source>半径：</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">半径(mm):</translation>
     </message>
     <message>
         <source>有效点：</source>
@@ -250,11 +251,11 @@
     </message>
     <message>
         <source>确定</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">确定</translation>
     </message>
     <message>
         <source>取消</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">取消</translation>
     </message>
     <message>
         <source>mm</source>
@@ -269,175 +270,175 @@
     <name>SaveGuiClass</name>
     <message>
         <source>配置保存数据格式</source>
-        <translation type="unfinished"></translation>
+        <translation>配置保存数据格式</translation>
     </message>
     <message>
         <source>原图</source>
-        <translation type="unfinished"></translation>
+        <translation>原图</translation>
     </message>
     <message>
         <source>去畸变</source>
-        <translation type="unfinished"></translation>
+        <translation>去畸变</translation>
     </message>
     <message>
         <source>不再显示</source>
-        <translation type="unfinished"></translation>
+        <translation>不再显示</translation>
     </message>
     <message>
         <source>确定 </source>
-        <translation type="unfinished"></translation>
+        <translation>确定</translation>
     </message>
     <message>
         <source>取消</source>
-        <translation type="unfinished"></translation>
+        <translation>取消</translation>
     </message>
 </context>
 <context>
     <name>SelectCalibrationBoardGui</name>
     <message>
         <source>选择标定板</source>
-        <translation type="unfinished">选择标定板</translation>
+        <translation>选择标定板</translation>
     </message>
     <message>
         <source>型号</source>
-        <translation type="unfinished"></translation>
+        <translation>型号</translation>
     </message>
     <message>
         <source>80 mm</source>
-        <translation type="unfinished"></translation>
+        <translation>80 mm</translation>
     </message>
     <message>
         <source>20 mm</source>
-        <translation type="unfinished"></translation>
+        <translation>20 mm</translation>
     </message>
     <message>
         <source>12 mm</source>
-        <translation type="unfinished"></translation>
+        <translation>12 mm</translation>
     </message>
     <message>
         <source>4 mm</source>
-        <translation type="unfinished"></translation>
+        <translation>4 mm</translation>
     </message>
     <message>
         <source>40 mm</source>
-        <translation type="unfinished"></translation>
+        <translation>40 mm</translation>
     </message>
     <message>
         <source>详细</source>
-        <translation type="unfinished"></translation>
+        <translation>详细</translation>
     </message>
     <message>
         <source>TextLabel</source>
-        <translation type="unfinished"></translation>
+        <translation>文本标签</translation>
     </message>
     <message>
         <source>确定</source>
-        <translation type="unfinished"></translation>
+        <translation>确定</translation>
     </message>
     <message>
         <source>取消</source>
-        <translation type="unfinished"></translation>
+        <translation>取消</translation>
     </message>
 </context>
 <context>
     <name>UpdateFirmwareGui</name>
     <message>
         <source>固件升级</source>
-        <translation type="unfinished">固件升级</translation>
+        <translation>固件升级</translation>
     </message>
     <message>
         <source>选择文件</source>
-        <translation type="unfinished"></translation>
+        <translation>选择文件</translation>
     </message>
     <message>
         <source>升  级</source>
-        <translation type="unfinished"></translation>
+        <translation>升  级！</translation>
     </message>
     <message>
         <source>注意</source>
-        <translation type="unfinished"></translation>
+        <translation>注意！</translation>
     </message>
     <message>
         <source>升级失败！</source>
-        <translation type="unfinished"></translation>
+        <translation>升级失败！</translation>
     </message>
     <message>
         <source>升级完成，请断电重启相机！</source>
-        <translation type="unfinished"></translation>
+        <translation>升级完成，请断电重启相机！</translation>
     </message>
 </context>
 <context>
     <name>WaitingGuiClass</name>
     <message>
         <source>WaitingGui</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">等待界面</translation>
     </message>
 </context>
 <context>
     <name>camera_gui</name>
     <message>
         <source>XEMA</source>
-        <translation type="unfinished">XEMA</translation>
+        <translation>XEMA</translation>
     </message>
     <message>
         <source>采集</source>
-        <translation type="unfinished">采集</translation>
+        <translation>采集</translation>
     </message>
     <message>
         <source>帮助</source>
-        <translation type="unfinished">帮助</translation>
+        <translation>帮助</translation>
     </message>
     <message>
         <source>文件</source>
-        <translation type="unfinished">文件</translation>
+        <translation>文件</translation>
     </message>
     <message>
         <source>设置</source>
-        <translation type="unfinished">设置</translation>
+        <translation>设置</translation>
     </message>
     <message>
         <source>语言</source>
-        <translation type="unfinished">语言</translation>
+        <translation>语言</translation>
     </message>
     <message>
         <source>关于</source>
-        <translation type="unfinished">关于</translation>
+        <translation>关于</translation>
     </message>
     <message>
         <source>加载相机配置</source>
-        <translation type="unfinished">加载相机配置</translation>
+        <translation>加载相机配置</translation>
     </message>
     <message>
         <source>保存相机配置</source>
-        <translation type="unfinished">保存相机配置</translation>
+        <translation>保存相机配置</translation>
     </message>
     <message>
         <source>退出</source>
-        <translation type="unfinished">退出</translation>
+        <translation>退出</translation>
     </message>
     <message>
         <source>标定参数</source>
-        <translation type="unfinished">标定参数</translation>
+        <translation>标定参数</translation>
     </message>
     <message>
         <source>选择标定板</source>
-        <translation type="unfinished">选择标定板</translation>
+        <translation>选择标定板</translation>
     </message>
     <message>
         <source>滤除外点</source>
-        <translation type="unfinished">滤除外点</translation>
+        <translation>滤除外点</translation>
     </message>
     <message>
         <source>固件升级</source>
-        <translation type="unfinished">固件升级</translation>
+        <translation>固件升级</translation>
     </message>
     <message>
         <source>简体中文</source>
-        <translation type="unfinished">简体中文</translation>
+        <translation>简体中文</translation>
     </message>
     <message>
         <source>English</source>
-        <translation type="unfinished">English</translation>
+        <translation>English</translation>
     </message>
 </context>
 </TS>

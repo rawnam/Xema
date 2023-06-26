@@ -24,6 +24,7 @@ struct  GuiConfigDataStruct
 
 	int show_image_flag;
 	int engine;
+	QString language;
 
 	bool loadFromSettings(const QString& f);
 	bool saveToSettings(const QString& f);

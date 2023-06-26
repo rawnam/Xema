@@ -49,6 +49,8 @@ public slots:
 	void do_action_language_chinese();
 
 	void do_action_language_english();
+
+	void do_update_language(QString val);
 protected:
 	void closeEvent(QCloseEvent* e);
 
@@ -59,7 +61,8 @@ private:
 
 	bool setUiData();
 
-	GuiConfigDataStruct processing_gui_settings_data_;
+	GuiConfigDataStruct processing_gui_settings_data_; 
+	SettingsFileFunction config_system_param_machine_;
 
 	QLabel* label_temperature_;
 

@@ -95,6 +95,8 @@ public:
 	void sleep(int sectime);
 
 	bool getShowCalibrationMessage(struct SystemConfigParam& config_param, struct CameraCalibParam& calibration_param);
+ 
+	void setGuiConfigParam(GuiConfigDataStruct param);
 
 	void getGuiConfigParam(struct GuiConfigDataStruct& gui_param);
 
@@ -142,6 +144,8 @@ signals:
 	void send_images_update();
 
 	void send_log_update(QString str);
+
+	void send_update_language(QString val);
 
 public slots:
 

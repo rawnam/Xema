@@ -41,6 +41,10 @@ camera_gui::camera_gui(QWidget* parent)
 
 	connect(ui.action_language_chinese, SIGNAL(triggered()), this, SLOT(do_action_language_chinese()));
 	connect(ui.action_language_english, SIGNAL(triggered()), this, SLOT(do_action_language_english()));
+	//connect(ui.tab_capture, SIGNAL(send_update_language(QString)), this, SLOT(do_update_language(QString)));
+
+	ui.tab_capture->getGuiConfigParam(processing_gui_settings_data_); 
+	do_update_language(processing_gui_settings_data_.Instance().language);
 }
 
 camera_gui::~camera_gui()
@@ -294,9 +298,11 @@ void camera_gui::do_action_language_chinese()
 	}
 	trans = new QTranslator;
 
-	if (trans->load(".\\xema_translation_zh.qm"))
+	if (trans->load(".\\xema_translation_ch.qm"))
 	{
 		qApp->installTranslator(trans);
+		processing_gui_settings_data_.Instance().language = "ch";
+		ui.tab_capture->setGuiConfigParam(processing_gui_settings_data_);
 	}
 	else
 	{
@@ -324,6 +330,8 @@ void camera_gui::do_action_language_english()
 	if (trans->load(".\\xema_translation_en.qm"))
 	{
 		qApp->installTranslator(trans);
+		processing_gui_settings_data_.Instance().language = "en";
+		ui.tab_capture->setGuiConfigParam(processing_gui_settings_data_);
 	}
 	else
 	{
@@ -343,6 +351,21 @@ void camera_gui::do_action_language_english()
 	//}
 
 	//ui.retranslateUi(this);
+}
+
+
+void camera_gui::do_update_language(QString val)
+{
+	qDebug() << "test update language!";
+	if (val == "en")
+	{
+		do_action_language_english();
+	}
+	else
+	{
+		do_action_language_chinese();
+	}
+
 }
 
 
