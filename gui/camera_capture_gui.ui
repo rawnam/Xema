@@ -304,13 +304,16 @@
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,5">
+       <property name="sizeConstraint">
+        <enum>QLayout::SetDefaultConstraint</enum>
+       </property>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_5" stretch="3,1">
          <item>
           <widget class="QScrollArea" name="scrollArea">
            <property name="maximumSize">
             <size>
-             <width>460</width>
+             <width>16777215</width>
              <height>16777215</height>
             </size>
            </property>
@@ -431,7 +434,7 @@
                </item>
                <item>
                 <widget class="QGroupBox" name="groupBox">
-                 <layout class="QGridLayout" name="gridLayout_3" columnstretch="1,2">
+                 <layout class="QGridLayout" name="gridLayout_3" columnstretch="2,3">
                   <property name="horizontalSpacing">
                    <number>6</number>
                   </property>
@@ -1470,7 +1473,7 @@
            </property>
            <property name="maximumSize">
             <size>
-             <width>460</width>
+             <width>16777215</width>
              <height>16777215</height>
             </size>
            </property>
@@ -1530,7 +1533,7 @@
  </resources>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_exposure"/>
   <buttongroup name="buttonGroup_image"/>
+  <buttongroup name="buttonGroup_exposure"/>
  </buttongroups>
 </ui>

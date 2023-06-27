@@ -171,6 +171,7 @@ void camera_gui::do_action_show_calibration_param()
 
 	if (ret)
 	{
+		show_calib_param_gui_.updateLanguage();
 		show_calib_param_gui_.setShowCalibrationMessage(config_param, calibration_param);
 		show_calib_param_gui_.exec();
 	}
@@ -226,8 +227,8 @@ void camera_gui::do_update_temperature(float val)
 void camera_gui::closeEvent(QCloseEvent* e)
 {
 	if (QMessageBox::question(this,
-		u8"提示",
-		u8"确定退出软件？",
+		tr("提示"),
+		tr("确定退出软件？"),
 		QMessageBox::Yes, QMessageBox::No)
 		== QMessageBox::Yes) {
 		e->accept();//不会将事件传递给组件的父组件

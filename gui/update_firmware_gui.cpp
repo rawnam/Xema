@@ -38,14 +38,14 @@ void UpdateFirmwareGui::setCameraIp(QString ip)
 
 void UpdateFirmwareGui::do_pushButton_select()
 {
-	fileName = QFileDialog::getOpenFileName(this, u8"固件升级", u8".", u8"camera_server");
+	fileName = QFileDialog::getOpenFileName(this, tr("固件升级"), u8".", u8"camera_server");
 
 	if (fileName.isEmpty()) {
-		print_log(u8"未选择文件");
+		print_log(tr("未选择文件"));
 	}
 	else {
 		ui.lineEdit_path->setText(fileName);
-		print_log(u8"已选择文件");
+		print_log(tr("已选择文件"));
 	}
 }
 
@@ -59,8 +59,8 @@ void UpdateFirmwareGui::do_pushButton_update()
 	int ret = UpdateConnect(camera_ip.toStdString().c_str());
 	if (ret == DF_FAILED)
 	{
-		print_log(u8"Ip: "+ camera_ip);
-		print_log(u8"UpdateConnect failed");
+		print_log(tr("Ip: ")+ camera_ip);
+		print_log(tr("UpdateConnect failed"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
 		ui.buttonBox_close->setEnabled(true);
@@ -69,12 +69,12 @@ void UpdateFirmwareGui::do_pushButton_update()
 
 	// ----------------------------------------------------------
 	// 1. Kill the camera_server
-	print_log(u8"1. Terminate the camera device service...");
+	print_log(tr("1. Terminate the camera device service..."));
 
 	int feedback = 0;
 	KillCameraServer(feedback);
 	if (feedback != 1010) {
-		print_log(u8"Kill camera_server failed");
+		print_log(tr("Kill camera_server failed"));
 		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
@@ -82,13 +82,16 @@ void UpdateFirmwareGui::do_pushButton_update()
 		return;
 	}
 
-	char log[100] = "";
-	sprintf(log, "KillCameraServer: %d", feedback);
+	//char log[100] = "";
+	//sprintf(log, "KillCameraServer: %d", feedback);
+
+	QString log = tr("KillCameraServer:") + QString::number(feedback);
+
 	print_log(log);
 
 	// ----------------------------------------------------------
 	// 2. Transform the local update camera_server file to camera
-	print_log(u8"2. Write the update file into device...");
+	print_log(tr("2. Write the update file into device..."));
 
 	std::string str = fileName.toStdString();
 	const char* file_name = str.c_str();
@@ -96,7 +99,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 	FILE* fw;
 	if (fopen_s(&fw, file_name, "rb") != 0)
 	{
-		print_log(u8"Load file: fail...");
+		print_log(tr("Load file: fail..."));
 		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
@@ -106,7 +109,10 @@ void UpdateFirmwareGui::do_pushButton_update()
 
 	fseek(fw, 0, SEEK_END);						// point to file tail
 	int file_size = ftell(fw);
-	sprintf(log, "File size: %d", file_size);
+	//sprintf(log, tr("File size: %d"), file_size);
+
+	log = tr("File size:") + QString::number(file_size);
+
 	print_log(log);
 
 	char* pOrg = new char[file_size];
@@ -124,23 +130,23 @@ void UpdateFirmwareGui::do_pushButton_update()
 	delete[] pOrg;
 
 	if (ret != DF_SUCCESS) {
-		print_log(u8"Update camera_server: fail...");
+		print_log(tr("Update camera_server: fail..."));
 		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
 		ui.buttonBox_close->setEnabled(true);
 		return;
 	} else {
-		print_log(u8"Update camera_server: success...");
+		print_log(tr("Update camera_server: success..."));
 	}
 
 	// ----------------------------------------------------------
 	// 3. Add firmware permission with -- chmod +x camera_server
-	print_log(u8"3. Add the executable permission...");
+	print_log(tr("3. Add the executable permission..."));
 	feedback = 0;
 	ChmodCameraServer(feedback);
 	if (feedback != 2020) {
-		print_log(u8"Chmod camera_server failed");
+		print_log(tr("Chmod camera_server failed"));
 		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
@@ -148,21 +154,25 @@ void UpdateFirmwareGui::do_pushButton_update()
 		return;
 	}
 
-	sprintf(log, "Chmod camera_server: %d", feedback);
+	//sprintf(log, "Chmod camera_server: %d", feedback);
+
+	log = tr("Chmod camera_server:") + QString::number(feedback);
 	print_log(log);
 
 
 	for (int sec = 0; sec < 60; sec++)
 	{
 		QThread::sleep(1);
-		sprintf(log, "waiting: %d s", sec + 1);
+		//sprintf(log, "waiting: %d s", sec + 1);
+
+		log = tr("waiting: ") + QString::number(sec + 1) + " s";
 		print_log(log);
 		QCoreApplication::processEvents();
 	}
 
 	// ----------------------------------------------------------
 	// 4. Reboot the camera device
-	print_log(u8"4.Please power off and restart the device...");
+	print_log(tr("4.Please power off and restart the device..."));
 	feedback = 0;
 	RebootDevice(feedback);
 

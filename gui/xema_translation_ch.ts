@@ -226,6 +226,274 @@
         <source>保存去畸变图</source>
         <translation>保存去畸变图</translation>
     </message>
+    <message>
+        <source>设置相机曝光时间: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置投影亮度: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置平滑参数: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置相机增益: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>打开相位校正！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>半径: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>标准差: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>关闭相位校正！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>出错！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>打开半径滤波！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>点数: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>关闭半径滤波！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置半径滤波失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>打开深度图滤波！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>阈值: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>关闭深度图滤波！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置噪点过滤: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置深度图滤波失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置相机置信度: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置亮度失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置高动态参数失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置基准平面参数失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置曝光参数失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置生成亮度图参数失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置平滑参数失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置置信度失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置相机增益失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置过滤噪点参数失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置深度去噪参数失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>获取光机型号失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>请检查相机版本！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>打开</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>关闭</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>半径： </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>点数： </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>设置生成亮度图参数 </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>亮度图HDR参数 </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>同步多曝光参数 </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>相机固件低！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>条纹版本低，不支持高反模式！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>采集数据异常： </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>采集完成！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>采集失败！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>采集数据：</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>请设置IP！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>IP无效，请确认相机IP！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>连接相机：</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>连接相机成功！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>请注意网络带宽:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>相机忙！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>2D相机故障！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>连接相机失败，请确认相机IP！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>断开相机！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>无法识别标定板！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>映射精度: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>映射基准平面失败，请检查标定板型号！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>保存高度映射基准平面参数</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>相机已断连！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>偏差: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source> 像素</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>平面拟合RMS: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>距离: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>标定精度: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>请检查标定板型号！</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>偏差：</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>保存路径：</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>请先连接相机</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>OutlierRemovalSettingGuiClass</name>
@@ -339,6 +607,38 @@
         <source>取消</source>
         <translation>取消</translation>
     </message>
+    <message>
+        <source>  非对称圆标定板</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>  圆点数: 7*11</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>  圆心距: 4 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>  圆心距: 12 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>  圆心距: 20 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>  圆心距: 40 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>  圆点数: 9*13</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>  圆心距: 80 mm</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>UpdateFirmwareGui</name>
@@ -365,6 +665,74 @@
     <message>
         <source>升级完成，请断电重启相机！</source>
         <translation>升级完成，请断电重启相机！</translation>
+    </message>
+    <message>
+        <source>未选择文件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>已选择文件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Ip: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>UpdateConnect failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>1. Terminate the camera device service...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Kill camera_server failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>KillCameraServer:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>2. Write the update file into device...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Load file: fail...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>File size:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Update camera_server: fail...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Update camera_server: success...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>3. Add the executable permission...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Chmod camera_server failed</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Chmod camera_server:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>waiting: </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>4.Please power off and restart the device...</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
