@@ -24,6 +24,7 @@ UpdateFirmwareGui::UpdateFirmwareGui(QWidget* parent)
 
 	connect(ui.pushButton_select, SIGNAL(clicked()), this, SLOT(do_pushButton_select()));
 	connect(ui.pushButton_update, SIGNAL(clicked()), this, SLOT(do_pushButton_update()));
+	connect(ui.pushButton_close, SIGNAL(clicked()), this, SLOT(do_pushButton_close()));
 }
 
 UpdateFirmwareGui::~UpdateFirmwareGui()
@@ -58,7 +59,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 {
 	ui.pushButton_update->setDisabled(true);
 	ui.pushButton_select->setDisabled(true);
-	ui.buttonBox_close->setDisabled(true);
+	ui.pushButton_close->setDisabled(true);
 	UpdateOnDropped(on_dropped);
 
 	int ret = UpdateConnect(camera_ip.toStdString().c_str());
@@ -68,7 +69,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 		print_log(tr("UpdateConnect failed"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
-		ui.buttonBox_close->setEnabled(true);
+		ui.pushButton_close->setEnabled(true);
 		return;
 	}
 
@@ -83,7 +84,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
-		ui.buttonBox_close->setEnabled(true);
+		ui.pushButton_close->setEnabled(true);
 		return;
 	}
 
@@ -108,7 +109,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
-		ui.buttonBox_close->setEnabled(true);
+		ui.pushButton_close->setEnabled(true);
 		return;
 	}
 
@@ -139,7 +140,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
-		ui.buttonBox_close->setEnabled(true);
+		ui.pushButton_close->setEnabled(true);
 		return;
 	} else {
 		print_log(tr("Update camera_server: success..."));
@@ -155,7 +156,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
-		ui.buttonBox_close->setEnabled(true);
+		ui.pushButton_close->setEnabled(true);
 		return;
 	}
 
@@ -187,7 +188,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 	UpdateDisconnect();
 	ui.pushButton_update->setEnabled(true);
 	ui.pushButton_select->setEnabled(true);
-	ui.buttonBox_close->setEnabled(true);
+	ui.pushButton_close->setEnabled(true);
 }
 
 void UpdateFirmwareGui::print_log(QString str)
@@ -197,4 +198,10 @@ void UpdateFirmwareGui::print_log(QString str)
 
 	ui.textBrowser_log->append(log);
 	ui.textBrowser_log->repaint();
+}
+
+
+void UpdateFirmwareGui::do_pushButton_close()
+{
+	this->close();
 }

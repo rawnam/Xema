@@ -368,7 +368,7 @@ private:
 	int exposure_time_min_ = 1700;
 	int exposure_time_max_ = 100000;
 
-	char firmware_version_[_VERSION_LENGTH_] = { "请先连接相机" };
+	QString firmware_version_;
 	char info_[INFO_SIZE] = {'\0'};
 
 	SaveDataType save_data_type_ = SaveDataType::Origin;

@@ -18,6 +18,7 @@ public:
 private slots:
 	void do_pushButton_select();
 	void do_pushButton_update();
+	void do_pushButton_close();
 	void print_log(QString str);
 
 private:

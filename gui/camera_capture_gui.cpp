@@ -23,6 +23,8 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 {
 	ui.setupUi(this);
 
+	firmware_version_ = tr("请先连接相机");
+
 	connected_flag_ = false;
 
 	ui.tableWidget_more_exposure->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
@@ -2713,12 +2715,16 @@ void  CameraCaptureGui::do_pushButton_connect()
 					break;
 				}
 
-				ret_code = DfGetFirmwareVersion(firmware_version_, _VERSION_LENGTH_);
+				char version[_VERSION_LENGTH_] = {};
+
+				ret_code = DfGetFirmwareVersion(version, _VERSION_LENGTH_);
 				if (DF_SUCCESS != ret_code)
 				{
 					qDebug() << "Get Firmware Version Error!;";
 					break;
 				}
+
+				firmware_version_ = QString(version);
 
 				ret_code = DfGetProductInfo(info_, INFO_SIZE);
 				if (DF_SUCCESS != ret_code)
