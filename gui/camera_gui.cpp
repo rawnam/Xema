@@ -54,9 +54,9 @@ camera_gui::~camera_gui()
 
 void  camera_gui::do_slot_handle_network()
 {
-	ui.tab_capture->addLogMessage(u8"心跳停止");
+	ui.tab_capture->addLogMessage(tr("心跳停止"));
 	ui.tab_capture->do_pushButton_disconnect();
-	ui.tab_capture->addLogMessage(u8"重新连接...");
+	ui.tab_capture->addLogMessage(tr("重新连接..."));
 	ui.tab_capture->do_pushButton_connect();
 }
 
@@ -76,7 +76,7 @@ void camera_gui::setOnDrop(int (*p_function)(void*))
 
 void camera_gui::do_action_load_camera_config()
 {
-	QString path = QFileDialog::getOpenFileName(this, u8"加载配置文件", last_config_path_, "*.json");
+	QString path = QFileDialog::getOpenFileName(this, tr("加载配置文件"), last_config_path_, "*.json");
 
 	if (path.isEmpty())
 	{
@@ -90,12 +90,12 @@ void camera_gui::do_action_load_camera_config()
 
 	if (ret)
 	{
-		QString log = u8"成功加载配置文件： " + path;
+		QString log = tr("成功加载配置文件： ") + path;
 		ui.tab_capture->addLogMessage(log);
 	}
 	else
 	{
-		QString log = u8"加载配置文件失败： " + path;
+		QString log = tr("加载配置文件失败： ") + path;
 		ui.tab_capture->addLogMessage(log);
 	}
 
@@ -104,7 +104,7 @@ void camera_gui::do_action_load_camera_config()
 void camera_gui::do_action_save_camera_config()
 {
 
-	QString path = QFileDialog::getSaveFileName(this, u8"保存配置文件", "../example_config.json", "*.json");
+	QString path = QFileDialog::getSaveFileName(this, tr("保存配置文件"), "../example_config.json", "*.json");
 
 	if (path.isEmpty())
 	{
@@ -119,12 +119,12 @@ void camera_gui::do_action_save_camera_config()
 
 	if (ret)
 	{
-		QString log = u8"保存配置文件： " + path;
+		QString log = tr("保存配置文件： ") + path;
 		ui.tab_capture->addLogMessage(log);
 	}
 	else
 	{
-		QString log = u8"保存配置文件失败： " + path;
+		QString log = tr("保存配置文件失败： ") + path;
 		ui.tab_capture->addLogMessage(log);
 	}
 }
@@ -177,7 +177,7 @@ void camera_gui::do_action_show_calibration_param()
 	}
 	else
 	{
-		ui.tab_capture->addLogMessage(u8"请连接相机");
+		ui.tab_capture->addLogMessage(tr("请连接相机"));
 	}
 }
 
@@ -187,6 +187,7 @@ void camera_gui::do_action_update_firmware()
 	QString ip;
 	ui.tab_capture->getCameraIp(ip);
 	update_firmware_gui.setCameraIp(ip);
+	update_firmware_gui.updateLanguage();
 
 	if (QDialog::Accepted == update_firmware_gui.exec())
 	{
@@ -307,7 +308,7 @@ void camera_gui::do_action_language_chinese()
 	}
 	else
 	{
-		ui.tab_capture->addLogMessage("load translation file failed!");
+		ui.tab_capture->addLogMessage(tr("load translation file failed!"));
 	}
 
 	ui.retranslateUi(this);
@@ -336,7 +337,7 @@ void camera_gui::do_action_language_english()
 	}
 	else
 	{
-		ui.tab_capture->addLogMessage("load translation file failed!");
+		ui.tab_capture->addLogMessage(tr("load translation file failed!"));
 	}
 
 	ui.retranslateUi(this);

@@ -808,5 +808,53 @@
         <source>English</source>
         <translation>English</translation>
     </message>
+    <message>
+        <source>提示</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>确定退出软件？</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>心跳停止</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>重新连接...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>加载配置文件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>成功加载配置文件： </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>加载配置文件失败： </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>保存配置文件</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>保存配置文件： </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>保存配置文件失败： </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>请连接相机</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>load translation file failed!</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 </TS>

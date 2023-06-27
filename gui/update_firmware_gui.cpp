@@ -31,6 +31,11 @@ UpdateFirmwareGui::~UpdateFirmwareGui()
 }
 
 
+void UpdateFirmwareGui::updateLanguage()
+{
+	ui.retranslateUi(this);
+}
+
 void UpdateFirmwareGui::setCameraIp(QString ip)
 {
 	camera_ip = ip;

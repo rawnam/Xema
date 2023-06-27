@@ -13,6 +13,8 @@ public:
 
 	void setCameraIp(QString ip);
 
+	void updateLanguage();
+
 private slots:
 	void do_pushButton_select();
 	void do_pushButton_update();

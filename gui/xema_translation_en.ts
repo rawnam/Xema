@@ -809,47 +809,51 @@
     </message>
     <message>
         <source>心跳停止</source>
-        <translation type="obsolete">heartbeat stopped</translation>
+        <translation type="unfinished">heartbeat stopped</translation>
     </message>
     <message>
         <source>重新连接...</source>
-        <translation type="obsolete">reconnect...</translation>
+        <translation type="unfinished">reconnect...</translation>
     </message>
     <message>
         <source>加载配置文件</source>
-        <translation type="obsolete">load ocnfiguration</translation>
+        <translation type="unfinished">load ocnfiguration</translation>
     </message>
     <message>
         <source>成功加载配置文件： </source>
-        <translation type="obsolete">configuration loaded successfully:</translation>
+        <translation type="unfinished">configuration loaded successfully:</translation>
     </message>
     <message>
         <source>加载配置文件失败： </source>
-        <translation type="obsolete">failed to load configuration:</translation>
+        <translation type="unfinished">failed to load configuration:</translation>
     </message>
     <message>
         <source>保存配置文件</source>
-        <translation type="obsolete">save configuration</translation>
+        <translation type="unfinished">save configuration</translation>
     </message>
     <message>
         <source>保存配置文件： </source>
-        <translation type="obsolete">save configuration:</translation>
+        <translation type="unfinished">save configuration:</translation>
     </message>
     <message>
         <source>保存配置文件失败： </source>
-        <translation type="obsolete">failed to save configutation</translation>
+        <translation type="unfinished">failed to save configutation</translation>
     </message>
     <message>
         <source>请连接相机</source>
-        <translation type="obsolete">please connect the camera</translation>
+        <translation type="unfinished">please connect the camera</translation>
     </message>
     <message>
         <source>提示</source>
-        <translation type="obsolete">notice</translation>
+        <translation type="unfinished">notice</translation>
     </message>
     <message>
         <source>确定退出软件？</source>
-        <translation type="obsolete">Whether to exit the software?</translation>
+        <translation type="unfinished">Whether to exit the software?</translation>
+    </message>
+    <message>
+        <source>load translation file failed!</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>
