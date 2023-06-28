@@ -492,7 +492,7 @@
     </message>
     <message>
         <source>请先连接相机</source>
-        <translation type="unfinished">请先连接相机</translation>
+        <translation>请先连接相机</translation>
     </message>
 </context>
 <context>
@@ -652,7 +652,7 @@
     </message>
     <message>
         <source>升  级</source>
-        <translation type="unfinished">升  级</translation>
+        <translation>升  级</translation>
     </message>
     <message>
         <source>注意</source>
@@ -736,7 +736,7 @@
     </message>
     <message>
         <source>关闭</source>
-        <translation type="unfinished">关闭</translation>
+        <translation>关闭</translation>
     </message>
 </context>
 <context>
@@ -814,7 +814,7 @@
     </message>
     <message>
         <source>提示</source>
-        <translation type="unfinished">提示</translation>
+        <translation>提示！</translation>
     </message>
     <message>
         <source>确定退出软件？</source>
@@ -822,7 +822,7 @@
     </message>
     <message>
         <source>心跳停止</source>
-        <translation type="unfinished">心跳停止</translation>
+        <translation>心跳停止</translation>
     </message>
     <message>
         <source>重新连接...</source>
@@ -854,7 +854,7 @@
     </message>
     <message>
         <source>请连接相机</source>
-        <translation type="unfinished">请连接相机</translation>
+        <translation>请连接相机</translation>
     </message>
     <message>
         <source>load translation file failed!</source>

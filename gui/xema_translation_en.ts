@@ -375,7 +375,7 @@
     </message>
     <message>
         <source>请先连接相机</source>
-        <translation type="unfinished">Please connect the camera first</translation>
+        <translation>Please connect the camera first</translation>
     </message>
     <message>
         <source>引擎：</source>
@@ -643,7 +643,7 @@
     <name>UpdateFirmwareGui</name>
     <message>
         <source>固件升级</source>
-        <translation>UpdateFirmware</translation>
+        <translation>Upgradation</translation>
     </message>
     <message>
         <source>选择文件</source>
@@ -651,7 +651,7 @@
     </message>
     <message>
         <source>升  级</source>
-        <translation type="unfinished">Update</translation>
+        <translation>Update!</translation>
     </message>
     <message>
         <source>注意</source>
@@ -735,7 +735,7 @@
     </message>
     <message>
         <source>关闭</source>
-        <translation type="unfinished">close</translation>
+        <translation>Close</translation>
     </message>
 </context>
 <context>
@@ -797,7 +797,7 @@
     </message>
     <message>
         <source>固件升级</source>
-        <translation>FirmwareUpdate</translation>
+        <translation>Upgradation</translation>
     </message>
     <message>
         <source>语言</source>
@@ -813,7 +813,7 @@
     </message>
     <message>
         <source>心跳停止</source>
-        <translation type="unfinished">Heartbeat stopped</translation>
+        <translation>Heartbeat stopped</translation>
     </message>
     <message>
         <source>重新连接...</source>
@@ -845,15 +845,15 @@
     </message>
     <message>
         <source>请连接相机</source>
-        <translation type="unfinished">Please connect the camera</translation>
+        <translation>Please connect the camera</translation>
     </message>
     <message>
         <source>提示</source>
-        <translation type="unfinished">Warn</translation>
+        <translation>Warn!</translation>
     </message>
     <message>
         <source>确定退出软件？</source>
-        <translation type="unfinished">Are you sure to exit XEMA?</translation>
+        <translation>Are you sure to exit XEMA?</translation>
     </message>
     <message>
         <source>load translation file failed!</source>
