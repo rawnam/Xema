@@ -300,7 +300,7 @@ void camera_gui::do_action_language_chinese()
 	}
 	trans = new QTranslator;
 
-	if (trans->load(".\\xema_translation_ch.qm"))
+	if (trans->load("xema_translation_ch.qm"))
 	{
 		qApp->installTranslator(trans);
 		processing_gui_settings_data_.Instance().language = "ch";
@@ -329,7 +329,7 @@ void camera_gui::do_action_language_english()
 	}
 	trans = new QTranslator;
 
-	if (trans->load(".\\xema_translation_en.qm"))
+	if (trans->load("xema_translation_en.qm"))
 	{
 		qApp->installTranslator(trans);
 		processing_gui_settings_data_.Instance().language = "en";
