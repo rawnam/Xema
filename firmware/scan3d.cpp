@@ -93,6 +93,11 @@ int Scan3D::init()
 
     camera_->getImageSize(image_width_,image_height_);
 
+    XemaPixelType type;
+    camera_->getPixelType(type);
+
+    LOG(INFO)<<"PixelType: "<<(int)type;
+
     float min_exposure = 0;
     camera_->getMinExposure(min_exposure);
     LOG(INFO)<<"scan3d min_exposure: "<<min_exposure; 
@@ -2531,6 +2536,12 @@ void Scan3D::getCameraResolution(int &width, int &height)
 {
     width = image_width_;
     height = image_height_;
+}
+
+
+void Scan3D::getCameraPixelType(XemaPixelType &type) 
+{ 
+    camera_->getPixelType(type);
 }
 
 void Scan3D::removeOutlierBaseRadiusFilter()

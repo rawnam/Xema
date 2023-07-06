@@ -4,7 +4,6 @@
 
 CameraBasler::CameraBasler()
 {
-
 }
 
 CameraBasler::~CameraBasler()
@@ -415,10 +414,19 @@ bool CameraBasler::openCamera()
     }
 
     /* Set the pixel format to Mono8 if available, where gray values will be output as 8 bit values for each pixel. */
+    isAvail = PylonDeviceFeatureIsAvailable(hDev_, "EnumEntry_PixelFormat_BayerRG8");
+    if (isAvail)
+    {
+        LOG(INFO) << "bayer_rg8" << std::endl;
+        pixel_type_ = XemaPixelType::BayerRG8;
+        
+    } 
+
+    /* Set the pixel format to Mono8 if available, where gray values will be output as 8 bit values for each pixel. */
     isAvail = PylonDeviceFeatureIsAvailable( hDev_, "EnumEntry_PixelFormat_Mono8" );
     if (isAvail)
     {
-	std::cout<<"EnumEntry_PixelFormat_Mono8"<<std::endl;
+	    LOG(INFO)<<"EnumEntry_PixelFormat_Mono8"<<std::endl;
         res = PylonDeviceFeatureFromString( hDev_, "PixelFormat", "Mono8" );
         // CHECK( res );
     }
@@ -427,7 +435,7 @@ bool CameraBasler::openCamera()
     isAvail = PylonDeviceFeatureIsAvailable( hDev_, "EnumEntry_TriggerSelector_AcquisitionStart" );
     if (isAvail)
     {
-	    std::cout<<"EnumEntry_TriggerSelector_AcquisitionStart"<<std::endl;
+	    LOG(INFO)<<"EnumEntry_TriggerSelector_AcquisitionStart"<<std::endl;
         res = PylonDeviceFeatureFromString( hDev_, "TriggerSelector", "AcquisitionStart" );
         // CHECK( res );
         res = PylonDeviceFeatureFromString( hDev_, "TriggerMode", "Off" );
@@ -438,7 +446,7 @@ bool CameraBasler::openCamera()
     isAvail = PylonDeviceFeatureIsAvailable( hDev_, "EnumEntry_TriggerSelector_FrameBurstStart" );
     if (isAvail)
     {
-        std::cout<<"EnumEntry_TriggerSelector_FrameBurstStart"<<std::endl;
+        LOG(INFO)<<"EnumEntry_TriggerSelector_FrameBurstStart"<<std::endl;
         res = PylonDeviceFeatureFromString( hDev_, "TriggerSelector", "FrameBurstStart" );
         // CHECK( res );
         res = PylonDeviceFeatureFromString( hDev_, "TriggerMode", "Off" );
@@ -449,7 +457,7 @@ bool CameraBasler::openCamera()
     isAvail = PylonDeviceFeatureIsAvailable( hDev_, "EnumEntry_TriggerSelector_FrameStart" );
     if (isAvail)
     {
-	std::cout<<"EnumEntry_TriggerSelector_FrameStart"<<std::endl;
+	    LOG(INFO)<<"EnumEntry_TriggerSelector_FrameStart"<<std::endl;
         res = PylonDeviceFeatureFromString( hDev_, "TriggerSelector", "FrameStart" );
         // CHECK( res );
         res = PylonDeviceFeatureFromString( hDev_, "TriggerMode", "On" );
@@ -471,6 +479,8 @@ bool CameraBasler::openCamera()
 
         LOG(INFO)<<"image_width_: "<<image_width_;
         LOG(INFO)<<"image_height_: "<<image_height_;
+
+     
 
     /* We will use the Continuous frame acquisition mode, i.e., the camera delivers
     images continuously. */

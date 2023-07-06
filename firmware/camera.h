@@ -1,5 +1,11 @@
 #pragma once
-#include<iostream> 
+#include<iostream>
+
+enum class XemaPixelType
+{
+	Mono = 0,
+	BayerRG8 = 1, 
+};
 
 class Camera
 {
@@ -26,12 +32,14 @@ public:
 
     virtual bool trigger_software(){};
 
-    virtual bool grap(unsigned char* buf){};
+    virtual bool grap(unsigned char* buf){}; 
 
 
 	bool getImageSize(int &width,int &height);
 	
 	bool getMinExposure(float &val);
+
+	bool getPixelType(XemaPixelType &type);
 
 protected:
  
@@ -46,5 +54,7 @@ protected:
 	
 	bool stream_off_flag_;
 	bool trigger_on_flag_;
+
+	XemaPixelType pixel_type_;
 };
 

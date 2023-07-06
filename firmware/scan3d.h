@@ -117,6 +117,8 @@ public:
 
     int reopenCamera();
 
+    void getCameraPixelType(XemaPixelType &type);
+
 
 private:
  

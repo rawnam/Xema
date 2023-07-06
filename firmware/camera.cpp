@@ -9,12 +9,21 @@ Camera::Camera()
     image_width_= 0;
     image_height_= 0;
     min_camera_exposure_ = 0;
-    max_camera_exposure_ = 990000;
+    max_camera_exposure_ = 990000; 
+    
+    pixel_type_ = XemaPixelType::Mono;
 }
 
 Camera::~Camera()
 {
 
+}
+
+
+bool Camera::getPixelType(XemaPixelType &type)
+{
+    type = pixel_type_;
+    return true;
 }
 
 bool Camera::getMinExposure(float &val)

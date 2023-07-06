@@ -3183,6 +3183,30 @@ int handle_cmd_get_param_camera_exposure(int client_sock)
   
 }
  
+ 
+//获取相机像素类型
+int handle_cmd_get_camera_pixel_type(int client_sock)
+{
+   if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    } 
+
+    XemaPixelType type;
+    scan3d_.getCameraPixelType(type);
+
+    int val = (int)type;
+	
+    int ret = send_buffer(client_sock, (char*)(&val), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+ 
+
+    return DF_SUCCESS;
+}
 
 //获取生成亮度参数
 int handle_cmd_get_param_brightness_exposure_model(int client_sock)
@@ -5466,6 +5490,10 @@ int handle_commands(int client_sock)
     case DF_CMD_GET_PARAM_BRIGHTNESS_EXPOSURE_MODEL:
         LOG(INFO)<<"DF_CMD_GET_PARAM_BRIGHTNESS_EXPOSURE_MODEL"; 
         ret = handle_cmd_get_param_brightness_exposure_model(client_sock);
+        break;
+    case DF_CMD_GET_CAMERA_PIXEL_TYPE:
+        LOG(INFO)<<"DF_CMD_GET_CAMERA_PIXEL_TYPE"; 
+        ret = handle_cmd_get_camera_pixel_type(client_sock);
         break;
 	default:
 	    LOG(INFO)<<"DF_CMD_UNKNOWN";
