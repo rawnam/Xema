@@ -12,6 +12,7 @@
 #include "../test/triangulation.h"
 #include "../firmware/protocol.h" 
 #include "../firmware/system_config_settings.h"
+#include "../firmware/camera.h"
 #include <configuring_network.h>
 
 #ifdef _WIN32 
@@ -769,6 +770,45 @@ DF_SDK_API int DfConnect(const char* camera_id)
 
 	  
 	return 0;
+}
+
+//函数名： DfGetCameraChannels
+//功能： 获取相机图像通道数
+//输入参数： 无
+//输出参数： channels(通道数)
+//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
+DF_SDK_API int  DfGetCameraChannels(int* channels)
+{
+	int type = 0;
+	int ret = DfGetCameraPixelType(type);
+
+	if (ret != DF_SUCCESS)
+	{ 
+		return ret;
+	}
+
+	XemaPixelType pixel = (XemaPixelType)type;
+
+	switch (pixel)
+	{
+	case XemaPixelType::Mono:
+	{
+		*channels = 1;
+	}
+	break;
+	case XemaPixelType::BayerRG8:
+	{
+		*channels = 3;
+	}
+	break;
+
+	default:
+		*channels = 1;
+	}
+	 
+ 
+
+	return DF_SUCCESS;
 }
 
 //函数名： DfGetCameraResolution
@@ -3767,6 +3807,67 @@ DF_SDK_API int DfGetProductInfo(char* info, int length)
 	}
 
 	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+
+//函数名： DfGetCameraPixelType
+//功能： 获取相机像素类型
+//输入参数：无
+//输出参数： type（类型）
+//返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
+DF_SDK_API int DfGetCameraPixelType(int& type)
+{
+
+	//std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	//while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	//{
+	//	LOG(INFO) << "--";
+	//}
+
+	int get_type = 0;
+
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_ERROR_NETWORK;
+	}
+	ret = send_command(DF_CMD_GET_CAMERA_PIXEL_TYPE, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_ERROR_NETWORK;
+	}
+
+	if (command == DF_CMD_OK)
+	{
+		ret = recv_buffer((char*)(&get_type), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_ERROR_NETWORK;
+		}
+
+		LOG(INFO) << "Frame Status: " << get_type;
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	type = get_type;
 	return DF_SUCCESS;
 }
 

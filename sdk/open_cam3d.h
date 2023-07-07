@@ -49,6 +49,13 @@ extern "C"
 	//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
 	DF_SDK_API int  DfGetCameraResolution(int* width, int* height);
 
+	//函数名： DfGetCameraChannels
+	//功能： 获取相机图像通道数
+	//输入参数： 无
+	//输出参数： channels(通道数)
+	//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
+	DF_SDK_API int  DfGetCameraChannels(int* channels);
+
 	//函数名： DfSetCaptureEngine
 	//功能： 设置采集引擎
 	//输入参数：engine
@@ -834,3 +841,10 @@ DF_SDK_API int DfGetProductInfo(char* info, int length);
 //输出参数： status（状态码）
 //返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
 DF_SDK_API int DfGetFrameStatus(int& status);
+
+//函数名： DfGetCameraPixelType
+//功能： 获取相机像素类型
+//输入参数：无
+//输出参数： type（类型）
+//返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
+DF_SDK_API int DfGetCameraPixelType(int& type);

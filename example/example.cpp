@@ -29,14 +29,17 @@ int main()
 	char* ip = pBaseinfo[0].ip; 
 	 
 	//连接相机 
-	ret_code = DfConnect(ip);
+	ret_code = DfConnect("192.168.100.36");
 
-	int width = 0, height = 0; 
+	int width = 0, height = 0,channels = 1; 
 	if (0 == ret_code)
 	{
 		//必须连接相机成功后，才可获取相机分辨率
 		ret_code = DfGetCameraResolution(&width, &height);
 		std::cout << "Width: " << width << "    Height: " << height << std::endl;
+
+		ret_code = DfGetCameraChannels(&channels);
+		std::cout << "channels: " << channels <<std::endl;
 	}
 	else
 	{
