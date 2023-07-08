@@ -19,6 +19,17 @@ using namespace std;
 using namespace std::chrono;
 
 
+
+// 定义Bayer图像中的颜色通道  
+enum BayerColor {
+    R = 0, // 红色通道  
+    Gr,    // 绿色通道（行偶数，列奇数）  
+    Gb,    // 绿色通道（行奇数，列偶数）  
+    B     // 蓝色通道  
+};
+
+
+
 //struct _finddata_t
 //{
 //	unsigned attrib;
@@ -58,3 +69,18 @@ bool compareNat(const std::string& a, const std::string& b);
 bool convertBayer2Gray(cv::Mat bayer, cv::Mat& gray);
 
 bool convertBayer2Blue(cv::Mat bayer, cv::Mat& blue);
+
+bool convertBayer2Rgb(cv::Mat bayer, cv::Mat& rgb);
+
+
+// Bayer格式转RGB格式  
+void bayer2rgb(cv::Mat& bayer, cv::Mat& rgb);
+
+/**
+ * @brief BayerBG2RGB，BayerBG格式图像转为RGB图像
+ * @param src，输入图像，CV_8UC1格式Bayer图像
+ * @param dst，输出图像，CV_8UC3格式彩色图像
+ */
+void BayerBG2RGB(const cv::Mat& src, cv::Mat& dst);
+
+void bayerBg2Rgb(int width,int height, unsigned char* src, unsigned char* dst);

@@ -297,6 +297,118 @@ int  undistortDepthTransformPointcloud(float* undistort_depth_map, float* undist
 
 	return DF_SUCCESS;
 }
+ 
+DF_SDK_API int DfBayerToRgb(unsigned char* src, unsigned char* dst)
+{
+  
+	int height = camera_height_;
+	int width = camera_width_;
+
+	//按3×3的邻域处理，边缘需填充至少1个像素的宽度
+	int nBorder = 1;
+	unsigned char* bayer = (unsigned char*)malloc(sizeof(unsigned char) * (width + 2 * nBorder) * (height + 2 * nBorder));
+	memset(bayer, 0, sizeof(unsigned char) * (width + 2 * nBorder) * (height + 2 * nBorder));
+
+	for (int r = 0; r < height; r++)
+	{
+		for (int c = 0; c < width; c++)
+		{
+			bayer[(r + nBorder) * (width + 2 * nBorder) + (c + nBorder)] = src[r * width + c];
+		}
+	}
+
+	for (int b = 0; b < nBorder; b++)
+	{
+		for (int r = 0; r < height; r++)
+		{
+			bayer[(r + nBorder) * (width + 2 * nBorder) + b] = src[r * width];
+			bayer[(r + nBorder) * (width + 2 * nBorder) + b + 2 * nBorder + width - 1] = src[r * width + width - 1];
+		}
+	}
+
+	for (int b = 0; b < nBorder; b++)
+	{
+		for (int c = 0; c < width + 2 * nBorder; c++)
+		{
+			bayer[b * (width + 2 * nBorder) + c] = bayer[nBorder * (width + 2 * nBorder) + c];
+			bayer[(nBorder + height + b) * (width + 2 * nBorder) + c] = bayer[(nBorder + height - 1) * (width + 2 * nBorder) + c];
+		}
+	}
+	 
+	unsigned char* p_rgb = (unsigned char*)malloc(sizeof(unsigned char) * 3 * (width + 2 * nBorder) * (height + 2 * nBorder));
+	memset(p_rgb, 0, sizeof(unsigned char) * 3 * (width + 2 * nBorder) * (height + 2 * nBorder));
+
+
+	unsigned char* pBayer = bayer;
+	unsigned char* pRGB = p_rgb;
+	int nW = width + 2 * nBorder;
+	int nH = height + 2 * nBorder;
+
+
+	for (int i = nBorder; i < nH - nBorder; i++)
+	{
+		for (int j = nBorder; j < nW - nBorder; j++)
+		{
+			//3×3邻域像素定义
+			/*
+			 * |M00 M01 M02|
+			 * |M10 M11 M12|
+			 * |M20 M21 M22|
+			*/
+			int nM00 = (i - 1) * nW + (j - 1); int nM01 = (i - 1) * nW + (j + 0);  int nM02 = (i - 1) * nW + (j + 1);
+			int nM10 = (i - 0) * nW + (j - 1); int nM11 = (i - 0) * nW + (j + 0);  int nM12 = (i - 0) * nW + (j + 1);
+			int nM20 = (i + 1) * nW + (j - 1); int nM21 = (i + 1) * nW + (j + 0);  int nM22 = (i + 1) * nW + (j + 1);
+
+			if (i % 2 == 0)
+			{
+				if (j % 2 == 0)     //偶数行偶数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 0] = pBayer[nM11];//b
+					pRGB[i * nW * 3 + j * 3 + 2] = ((pBayer[nM00] + pBayer[nM02] + pBayer[nM20] + pBayer[nM22]) >> 2);//r
+					pRGB[i * nW * 3 + j * 3 + 1] = ((pBayer[nM01] + pBayer[nM10] + pBayer[nM12] + pBayer[nM21]) >> 2);//g
+				}
+				else             //偶数行奇数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 1] = pBayer[nM11];//g
+					pRGB[i * nW * 3 + j * 3 + 2] = (pBayer[nM01] + pBayer[nM21]) >> 1;//r
+					pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM10] + pBayer[nM12]) >> 1;//b
+				}
+			}
+			else
+			{
+				if (j % 2 == 0)     //奇数行偶数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 1] = pBayer[nM11];//g
+					pRGB[i * nW * 3 + j * 3 + 2] = (pBayer[nM10] + pBayer[nM12]) >> 1;//r
+					pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM01] + pBayer[nM21]) >> 1;//b
+				}
+				else             //奇数行奇数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 2] = pBayer[nM11];//r
+					pRGB[i * nW * 3 + j * 3 + 1] = (pBayer[nM01] + pBayer[nM21] + pBayer[nM10] + pBayer[nM12]) >> 2;//g
+					pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM00] + pBayer[nM02] + pBayer[nM20] + pBayer[nM22]) >> 2;//b
+				}
+			}
+		}
+	}
+
+
+	for (int r = 0; r < height; r++)
+	{
+		for (int c = 0; c < width; c++)
+		{
+			dst[3 * (r * width + c) + 0] = pRGB[3 * ((r + nBorder) * (width + 2 * nBorder) + c + nBorder) + 0];
+			dst[3 * (r * width + c) + 1] = pRGB[3 * ((r + nBorder) * (width + 2 * nBorder) + c + nBorder) + 1];
+			dst[3 * (r * width + c) + 2] = pRGB[3 * ((r + nBorder) * (width + 2 * nBorder) + c + nBorder) + 2];
+		}
+	}
+
+
+	free(bayer);
+	free(p_rgb);
+
+	return 0;
+}
 
 int depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 {

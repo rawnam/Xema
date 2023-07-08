@@ -848,3 +848,10 @@ DF_SDK_API int DfGetFrameStatus(int& status);
 //输出参数： type（类型）
 //返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
 DF_SDK_API int DfGetCameraPixelType(int& type);
+
+//函数名： DfBayerToRgb
+//功能： bayer格式转RGB格式 
+//输入参数：无
+//输出参数： dst（类型）
+//返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
+DF_SDK_API int DfBayerToRgb(unsigned char* src, unsigned char* dst);

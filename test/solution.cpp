@@ -25,6 +25,7 @@
 //#include "../cmd/getopt.h" 
 #include "FilterModule.h" 
 #include <opencv2/photo/photo.hpp>
+#include "../firmware/easylogging++.h"
 /**************************************************************************/
 
 DfSolution::DfSolution()
@@ -459,11 +460,22 @@ bool DfSolution::readColorImages(std::string dir, std::vector<cv::Mat>& patterns
 
 
 		cv::Mat color_mat;
+		LOG(INFO) << "start bayer 2 rgb cv";
 		cv::cvtColor(img, color_mat, cv::COLOR_BayerBG2BGR);
+		LOG(INFO) << "finished bayer 2 rgb cv";
 
 		std::vector < cv::Mat> channels;
 		cv::split(color_mat, channels);
 		cv::Mat b = channels[0].clone();
+
+		cv::Mat test_rgb(img.rows, img.cols, CV_8UC3,cv::Scalar(0));
+
+		LOG(INFO) << "start bayer 2 rgb";
+
+		bayerBg2Rgb(img.cols, img.rows,img.data, test_rgb.data);
+		LOG(INFO) << "finished bayer 2 rgb";
+
+		cv::Mat diff = test_rgb - color_mat;
 
 		//cv::GaussianBlur(img, img, cv::Size(5, 5), 0, 1);
 
