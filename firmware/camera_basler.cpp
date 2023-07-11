@@ -413,14 +413,6 @@ bool CameraBasler::openCamera()
         }
     }
 
-    /* Set the pixel format to Mono8 if available, where gray values will be output as 8 bit values for each pixel. */
-    isAvail = PylonDeviceFeatureIsAvailable(hDev_, "EnumEntry_PixelFormat_BayerRG8");
-    if (isAvail)
-    {
-        LOG(INFO) << "bayer_rg8" << std::endl;
-        pixel_type_ = XemaPixelType::BayerRG8;
-        
-    } 
 
     /* Set the pixel format to Mono8 if available, where gray values will be output as 8 bit values for each pixel. */
     isAvail = PylonDeviceFeatureIsAvailable( hDev_, "EnumEntry_PixelFormat_Mono8" );
@@ -429,6 +421,29 @@ bool CameraBasler::openCamera()
 	    LOG(INFO)<<"EnumEntry_PixelFormat_Mono8"<<std::endl;
         res = PylonDeviceFeatureFromString( hDev_, "PixelFormat", "Mono8" );
         // CHECK( res );
+    }
+ 
+    /* Set the pixel format to BayerRG8 if available, where gray values will be output as 8 bit values for each pixel. */
+    isAvail = PylonDeviceFeatureIsAvailable(hDev_, "EnumEntry_PixelFormat_BayerRG8");
+    if (isAvail)
+    {
+        LOG(INFO) << "bayer_rg8" << std::endl;
+        pixel_type_ = XemaPixelType::BayerRG8;
+
+        LOG(INFO) << "BayerRG8" << std::endl;
+        res = PylonDeviceFeatureFromString(hDev_, "PixelFormat", "BayerRG8");
+
+        //     /* Enable Balance White Auto by setting the operating mode to Continuous */
+        res = PylonDeviceFeatureFromString(hDev_, "BalanceWhiteAuto", "Off");
+    }
+
+    isAvail = PylonDeviceFeatureIsAvailable(hDev_, "EnumEntry_PixelFormat_BayerBG8");
+    if (isAvail)
+    {
+        LOG(INFO) << "EnumEntry_PixelFormat_BayerBG8" << std::endl;
+        res = PylonDeviceFeatureFromString(hDev_, "PixelFormat", "BayerBG8");
+        //     /* Enable Balance White Auto by setting the operating mode to Continuous */
+        res = PylonDeviceFeatureFromString(hDev_, "BalanceWhiteAuto", "Off");
     }
 
     /* Disable acquisition start trigger if available. */
