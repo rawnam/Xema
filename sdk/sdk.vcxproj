@@ -29,6 +29,7 @@
     <ClInclude Include="open_cam3d.h" />
     <ClInclude Include="socket_tcp.h" />
     <ClInclude Include="utils.h" />
+    <ClInclude Include="xema_enums.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

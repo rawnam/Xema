@@ -34,6 +34,13 @@ extern "C"
 		Normal = 0,
 		Reflect = 1,
 	};
+	
+	enum class XemaColor
+	{
+		Rgb = 0,
+		Bgr = 1,
+		Bayer = 2,
+	};
 	 
 	//函数名： DfConnect
 	//功能： 连接相机
@@ -104,6 +111,13 @@ extern "C"
 	//输出参数： brightness(亮度图)
 	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 	DF_SDK_API int DfGetBrightnessData(unsigned char* brightness);
+
+	//函数名： DfGetColorBrightnessData
+	//功能： 获取亮度图
+	//输入参数：无
+	//输出参数： brightness(亮度图),color(亮度图颜色类型)
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfGetColorBrightnessData(unsigned char* brightness,XemaColor color);
 
 	//函数名： DfGetUndistortBrightnessData
 	//功能： 获取去畸变后的亮度图
@@ -855,3 +869,10 @@ DF_SDK_API int DfGetCameraPixelType(int& type);
 //输出参数： dst（类型）
 //返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
 DF_SDK_API int DfBayerToRgb(unsigned char* src, unsigned char* dst);
+
+//函数名： DfRgbToGray
+//功能：RGB格式转gray格式 
+//输入参数：无
+//输出参数： dst（类型）
+//返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
+DF_SDK_API int DfRgbToGray(unsigned char* src, unsigned char* dst);

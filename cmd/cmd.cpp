@@ -1,6 +1,7 @@
 #pragma once
 #ifdef _WIN32 
 #include "../sdk/open_cam3d.h" 
+#include "../sdk/xema_enums.h"
 #include <windows.h>
 #elif __linux
 #include "../sdk/open_cam3d.h" 
@@ -2089,6 +2090,17 @@ int configure_focusing(const char* ip)
 		//}
 
 		DfGetFocusingImage(img.data, image_size * sizeof(char));
+
+		int pixel_type = 0;
+		DfGetCameraPixelType(pixel_type);
+
+		if (pixel_type == (int)XemaPixelType::BayerRG8)
+		{
+
+			cv::Mat color_img(height, width, CV_8UC3, cv::Scalar(0));
+			DfBayerToRgb(img.data, color_img.data);
+			DfRgbToGray(color_img.data, img.data);
+		}
 
 		float temperature = 0;
 		DfGetProjectorTemperature(temperature);

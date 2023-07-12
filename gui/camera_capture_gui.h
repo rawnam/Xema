@@ -5,6 +5,7 @@
 #include "settings_file_function.h"
 #include <opencv2/core.hpp>
 #include "../sdk/open_cam3d.h"
+#include "../sdk/xema_enums.h"
 #include "../calibration/calibrate_function.h"
 //#include "../firmware/system_config_settings.h"
 #include "../firmware/protocol.h"
@@ -314,6 +315,7 @@ private:
 	cv::Mat render_image_gray_depth_;
 	cv::Mat render_image_color_depth_;
 	cv::Mat render_image_color_height_;
+	cv::Mat color_brightness_map_;
 
 	int min_depth_value_;
 	int max_depth_value_;
@@ -375,4 +377,8 @@ private:
 	bool hide_save_gui_flag_ = false;
 
 	std::mutex mtx_save_;
+
+	XemaPixelType pixel_type_ = XemaPixelType::Mono;
+
+	
 };

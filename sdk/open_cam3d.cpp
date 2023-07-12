@@ -12,8 +12,8 @@
 #include "../test/triangulation.h"
 #include "../firmware/protocol.h" 
 #include "../firmware/system_config_settings.h"
-#include "../firmware/camera.h"
 #include <configuring_network.h>
+#include "xema_enums.h"
 
 #ifdef _WIN32 
  
@@ -30,6 +30,8 @@ using namespace std::chrono;
 INITIALIZE_EASYLOGGINGPP
 
 XemaEngine engine_ = XemaEngine::Normal;
+
+XemaPixelType pixel_type_ = XemaPixelType::Mono;
 
 //const int image_width = 1920;
 //const int image_height = 1200;
@@ -79,7 +81,9 @@ float* undistort_map_y_ = NULL;
 float* distorted_map_x_ = NULL;
 float* distorted_map_y_ = NULL;
 
- 
+
+unsigned char* rgb_buf_ = NULL;
+bool bayer_to_rgb_flag_ = false;
 /**************************************************************************************************************************/
 
 std::time_t getTimeStamp(long long& msec)
@@ -296,6 +300,28 @@ int  undistortDepthTransformPointcloud(float* undistort_depth_map, float* undist
 
 
 	return DF_SUCCESS;
+}
+
+
+DF_SDK_API int DfRgbToGray(unsigned char* src, unsigned char* dst)
+{
+	int height = camera_height_;
+	int width = camera_width_;
+
+	for (int r = 0; r < height; r++)
+	{
+
+		for (int c = 0; c < width; c++)
+		{
+			//0.299 R  + 0.587 G + B
+			dst[r * width + c] = src[3 * (r * width + c) + 0] * 0.299 + 
+				0.587 * src[3 * (r * width + c) + 1] + 0.114 * src[3 * (r * width + c) + 2];
+		}
+
+	}
+
+
+	return 0;
 }
  
 DF_SDK_API int DfBayerToRgb(unsigned char* src, unsigned char* dst)
@@ -779,6 +805,18 @@ DF_SDK_API int DfConnect(const char* camera_id)
 		return DF_ERROR_2D_CAMERA;
 	} 
 
+	int pixel_type = 0;
+
+	ret = DfGetCameraPixelType(pixel_type);
+	if (ret == DF_SUCCESS)
+	{
+		pixel_type_ = XemaPixelType(pixel_type);
+	}
+	else if (ret == DF_UNKNOWN)
+	{
+		pixel_type_ = XemaPixelType::Mono;
+	}
+
 	camera_width_ = width;
 	camera_height_ = height;
 
@@ -798,7 +836,7 @@ DF_SDK_API int DfConnect(const char* camera_id)
 	brightness_bug_size_ = image_size_;
 	brightness_buf_ = new unsigned char[brightness_bug_size_];
 	 
-
+	rgb_buf_ = new unsigned char[3*brightness_bug_size_];
 	/******************************************************************************************************/
 	//产生畸变校正表
 	undistort_map_x_ = (float*)(new char[depth_buf_size_]);
@@ -1173,6 +1211,7 @@ DF_SDK_API int DfCaptureData(int exposure_num, char* timestamp)
 	}
  
 	 
+	bayer_to_rgb_flag_ = false;
 	 
 	std::string time = get_timestamp();
 	for (int i = 0; i < time.length(); i++)
@@ -1323,6 +1362,54 @@ DF_SDK_API int DfGetUndistortDepthDataFloat(float* depth)
 	return DF_SUCCESS;
 }
 
+//函数名： DfGetColorBrightnessData
+//功能： 获取亮度图
+//输入参数：无
+//输出参数： brightness(亮度图),color(亮度图颜色类型)
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfGetColorBrightnessData(unsigned char* brightness, XemaColor color)
+{
+	if(pixel_type_ == XemaPixelType::BayerRG8)
+	{
+
+		if (!bayer_to_rgb_flag_)
+		{
+			DfBayerToRgb(brightness_buf_, rgb_buf_);
+			bayer_to_rgb_flag_ = true;
+		}
+
+		switch (color)
+		{
+		case XemaColor::Rgb:
+		{
+			memcpy(brightness, rgb_buf_,3*brightness_bug_size_);
+		}
+			break;
+		case XemaColor::Bgr:
+		{
+			for (int i = 0; i < brightness_bug_size_; i++)
+			{
+				brightness[3 * i + 0] = rgb_buf_[3 * i + 2];
+				brightness[3 * i + 1] = rgb_buf_[3 * i + 1];
+				brightness[3 * i + 2] = rgb_buf_[3 * i + 0];
+			}
+		}
+			break;
+		case XemaColor::Bayer:
+		{
+			memcpy(brightness, brightness_buf_, brightness_bug_size_);
+		}
+			break;
+		default:
+			break;
+		}
+
+	}
+
+
+	return DF_SUCCESS;
+}
+
 //函数名： DfGetBrightnessData
 //功能： 采集点云数据并阻塞至返回结果
 //输入参数：无
@@ -1339,13 +1426,31 @@ DF_SDK_API int DfGetBrightnessData(unsigned char* brightness)
 
 	LOG(INFO) << "Trans Brightness:";
 
-	memcpy(brightness, brightness_buf_, brightness_bug_size_);
+	if (pixel_type_ == XemaPixelType::Mono)
+	{
+		memcpy(brightness, brightness_buf_, brightness_bug_size_); 
+	}
+	else if (pixel_type_ == XemaPixelType::BayerRG8)
+	{
+		if (!bayer_to_rgb_flag_)
+		{
+			DfBayerToRgb(brightness_buf_, rgb_buf_);
+			bayer_to_rgb_flag_ = true;
+		}
+
+		DfRgbToGray(rgb_buf_, brightness);
+	}
+	else
+	{
+		return DF_FAILED;
+	}
+
 
 	//brightness = brightness_buf_;
 
 	LOG(INFO) << "Get Brightness!";
 
-	return 0;
+	return DF_SUCCESS;
 }
 
 //函数名： DfGetUndistortBrightnessData
@@ -1616,6 +1721,7 @@ DF_SDK_API int DfDisconnect(const char* camera_id)
 	delete[] undistort_map_y_;
 	delete[] distorted_map_x_;
 	delete[] distorted_map_y_;
+	delete[] rgb_buf_;
 
 	depth_buf_ = NULL;
 	brightness_buf_ = NULL;
@@ -1625,6 +1731,7 @@ DF_SDK_API int DfDisconnect(const char* camera_id)
 	undistort_map_y_ = NULL;
 	distorted_map_x_ = NULL;
 	distorted_map_y_ = NULL;
+	rgb_buf_ = NULL;
 
 	connected_flag_ = false;
 

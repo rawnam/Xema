@@ -2235,6 +2235,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 	int image_size = width * height;
 
 	cv::Mat brightness(height, width, CV_8U, cv::Scalar(0));
+	cv::Mat color_brightness(height, width, CV_8UC3, cv::Scalar(0));
 	cv::Mat depth(height, width, CV_32F, cv::Scalar(0.));
 	cv::Mat point_cloud(height, width, CV_32FC3, cv::Scalar(0.));
 	cv::Mat undistort_brightness(height, width, CV_8U, cv::Scalar(0));
@@ -2339,8 +2340,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 			ret_code = 0;
 
 		}
-
-
+		 
 	}
 
 
@@ -2354,6 +2354,13 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 			std::cout << "Get Brightness Error!" << std::endl;
 		}
 
+		if (pixel_type_ == XemaPixelType::BayerRG8)
+		{
+			DfGetColorBrightnessData(color_brightness.data, XemaColor::Bgr);
+			color_brightness_map_ = color_brightness.clone();
+		}
+		 
+		  
 		//获取深度图数据
 		ret_code = DfGetDepthDataFloat((float*)depth.data);
 
@@ -2731,6 +2738,17 @@ void  CameraCaptureGui::do_pushButton_connect()
 				{
 					qDebug() << "Get Firmware Version Error!;";
 					break;
+				}
+
+				int type = 0;
+				ret_code = DfGetCameraPixelType(type);
+				if (DF_SUCCESS == ret_code)
+				{
+					pixel_type_ = XemaPixelType(type);
+				}
+				else
+				{
+					pixel_type_ = XemaPixelType::Mono;
 				}
 
 				//获取相机型号参数
@@ -3540,7 +3558,18 @@ void CameraCaptureGui::do_undate_show_slot()
 		return;
 	}
 
-	renderBrightnessImage(brightness_map_);
+	
+	if (XemaPixelType::Mono == pixel_type_)
+	{
+		renderBrightnessImage(brightness_map_);
+	}
+	else if(XemaPixelType::BayerRG8 == pixel_type_)
+	{
+		render_image_brightness_ = color_brightness_map_.clone();
+	}
+
+		
+
 	renderDepthImage(depth_map_);
 	renderHeightImage(height_map_);
 
@@ -3708,7 +3737,10 @@ void CameraCaptureGui::do_comboBox_activated_ip(int index)
 
 void CameraCaptureGui::do_checkBox_toggled_over_exposure(bool state)
 {
-	renderBrightnessImage(brightness_map_); 
+	if (pixel_type_ == XemaPixelType::Mono)
+	{
+		renderBrightnessImage(brightness_map_); 
+	}
 	showImage();
 	processing_gui_settings_data_.Instance().show_over_exposure = state;
 }

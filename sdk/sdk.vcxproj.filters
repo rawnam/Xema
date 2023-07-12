@@ -41,5 +41,8 @@
     <ClInclude Include="open_cam3d.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="xema_enums.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
