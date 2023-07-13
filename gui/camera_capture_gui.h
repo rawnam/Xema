@@ -132,6 +132,8 @@ private:
 
 	bool renderBrightnessImage(cv::Mat brightness);
 
+	bool renderColorBrightnessImage(cv::Mat brightness);
+
 	void undateSystemConfigUiData();
 
 	double computePointsDistance(cv::Point2f p_0, cv::Point2f p_1, cv::Mat point_cloud);

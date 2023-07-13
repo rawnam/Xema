@@ -436,6 +436,48 @@ bool CameraCaptureGui::saveSettingData(QString path)
 }
 
 
+
+bool CameraCaptureGui::renderColorBrightnessImage(cv::Mat brightness)
+{
+	cv::Mat color_map(brightness.size(), CV_8UC3, cv::Scalar(0, 0, 0));
+
+	int nr = color_map.rows;
+	int nc = color_map.cols;
+
+	for (int r = 0; r < nr; r++)
+	{
+		cv::Vec3b* ptr_b = brightness.ptr<cv::Vec3b>(r);
+		cv::Vec3b* ptr_cb = color_map.ptr<cv::Vec3b>(r);
+		for (int c = 0; c < nc; c++)
+		{
+			if (ptr_b[c][2] == 255)
+			{
+				ptr_cb[c][0] = 255;
+				ptr_cb[c][1] = 0;
+				ptr_cb[c][2] = 0;
+			}
+			else
+			{
+				ptr_cb[c][0] = ptr_b[c][0];
+				ptr_cb[c][1] = ptr_b[c][1];
+				ptr_cb[c][2] = ptr_b[c][2];
+			}
+		}
+
+	}
+	if (ui.checkBox_over_exposure->isChecked())
+	{
+		render_image_brightness_ = color_map.clone();
+
+	}
+	else
+	{
+		render_image_brightness_ = brightness.clone();
+
+	}
+	return true;
+}
+
 bool CameraCaptureGui::renderBrightnessImage(cv::Mat brightness)
 {
 
@@ -3565,7 +3607,9 @@ void CameraCaptureGui::do_undate_show_slot()
 	}
 	else if(XemaPixelType::BayerRG8 == pixel_type_)
 	{
-		render_image_brightness_ = color_brightness_map_.clone();
+		//render_image_brightness_ = color_brightness_map_.clone();
+
+		renderColorBrightnessImage(color_brightness_map_);
 	}
 
 		
@@ -3740,6 +3784,10 @@ void CameraCaptureGui::do_checkBox_toggled_over_exposure(bool state)
 	if (pixel_type_ == XemaPixelType::Mono)
 	{
 		renderBrightnessImage(brightness_map_); 
+	}
+	else if (XemaPixelType::BayerRG8 == pixel_type_)
+	{ 
+		renderColorBrightnessImage(color_brightness_map_);
 	}
 	showImage();
 	processing_gui_settings_data_.Instance().show_over_exposure = state;
