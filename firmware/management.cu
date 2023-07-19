@@ -903,6 +903,30 @@ bool cuda_generate_pointcloud_base_table()
 
 /********************************************************************************************************************************************/
 
+
+bool cuda_copy_result_to_hdr_color(int serial_flag,int brigntness_serial,cv::Mat brightness)
+{
+	CHECK(cudaMemcpyAsync(d_hdr_brightness_list_[serial_flag], brightness.data, 1 * d_image_height_*d_image_width_ * sizeof(unsigned char), cudaMemcpyHostToDevice));
+
+
+	if(!load_calib_data_flag_)
+	{
+		return false;
+	}
+ 
+	cv::imwrite("brightness.bmp",brightness);
+
+	CHECK(cudaMemcpyAsync(d_hdr_depth_map_list_[serial_flag], d_depth_map_, 1 * d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyDeviceToDevice)); 
+
+	float val  = 0;
+	CHECK(cudaMemcpyAsync(d_hdr_bright_pixel_sum_list_[serial_flag], &val, sizeof(float), cudaMemcpyHostToDevice)); 
+ 	cuda_count_sum_pixel << <blocksPerGrid, threadsPerBlock >> > (d_hdr_brightness_list_[serial_flag],d_image_height_,d_image_width_,d_hdr_bright_pixel_sum_list_[serial_flag]);
+ 
+	LOG(INFO)<<"cuda_copy_result_to_hdr: "<<serial_flag;
+	return true;
+}
+
+
 bool cuda_copy_result_to_hdr(int serial_flag,int brigntness_serial)
 {
 	CHECK(cudaMemcpyAsync(d_hdr_brightness_list_[serial_flag], d_patterns_list_[brigntness_serial], 1 * d_image_height_*d_image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToDevice));
