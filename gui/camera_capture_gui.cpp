@@ -367,27 +367,52 @@ bool CameraCaptureGui::saveOneFrameData(QString path_name)
 
 	if (SaveDataType::Undistort == save_data_type_)
 	{
+		cv::Mat texture = undistort_brightness_map_.clone();
+
+		//if (XemaPixelType::BayerRG8 == pixel_type_)
+		//{
+		//	if (GENERATE_BRIGHTNESS_DEFAULT_ != firmware_config_param_.generate_brightness_model)
+		//	{
+
+		//		cv::Mat camera_matrix(3, 3, CV_64F, calib_param_.intrinsic);
+		//		cv::Mat camera_dist(1, 5, CV_64F, calib_param_.distortion);
+
+		//		cv::undistort(color_brightness_map_, texture, camera_matrix, camera_dist);
+		//		cv::cvtColor(texture, texture, cv::COLOR_BGR2RGB);
+		//	}
+		//}
+
 		QString brightness_str = path_name + "_bright.bmp";
-		cv::imwrite(brightness_str.toLocal8Bit().toStdString(), undistort_brightness_map_);
+		cv::imwrite(brightness_str.toLocal8Bit().toStdString(), texture);
 
 		QString depth_str = path_name + "_depth_map.tiff";
 		cv::imwrite(depth_str.toLocal8Bit().toStdString(), undistort_depth_map_);
 
 		QString points_str = path_name + "_depth_map.ply";
 		FileIoFunction file_io_machine;
-		file_io_machine.SaveBinPointsToPly(undistort_pointcloud_map_, points_str, undistort_brightness_map_);
+		file_io_machine.SaveBinPointsToPly(undistort_pointcloud_map_, points_str, texture);
 	}
 	else
 	{
+		cv::Mat texture = brightness_map_.clone();
+
+		if (XemaPixelType::BayerRG8 == pixel_type_)
+		{
+			if (GENERATE_BRIGHTNESS_DEFAULT_ != firmware_config_param_.generate_brightness_model)
+			{
+				cv::cvtColor(color_brightness_map_, texture, cv::COLOR_BGR2RGB); 
+			}
+		}
+
 		QString brightness_str = path_name + "_bright.bmp";
-		cv::imwrite(brightness_str.toLocal8Bit().toStdString(), brightness_map_);
+		cv::imwrite(brightness_str.toLocal8Bit().toStdString(), texture);
 
 		QString depth_str = path_name + "_depth_map.tiff";
 		cv::imwrite(depth_str.toLocal8Bit().toStdString(), depth_map_);
 
 		QString points_str = path_name + ".ply"; 
 		FileIoFunction file_io_machine;
-		file_io_machine.SaveBinPointsToPly(pointcloud_map_, points_str, brightness_map_);
+		file_io_machine.SaveBinPointsToPly(pointcloud_map_, points_str, texture);
 	}
 
 
@@ -2276,7 +2301,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 
 	int image_size = width * height;
 
-	cv::Mat brightness(height, width, CV_8U, cv::Scalar(0));
+	cv::Mat brightness(height, width, CV_8U, cv::Scalar(0)); 
 	cv::Mat color_brightness(height, width, CV_8UC3, cv::Scalar(0));
 	cv::Mat depth(height, width, CV_32F, cv::Scalar(0.));
 	cv::Mat point_cloud(height, width, CV_32FC3, cv::Scalar(0.));
@@ -2400,6 +2425,8 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 		{
 			DfGetColorBrightnessData(color_brightness.data, XemaColor::Bgr);
 			color_brightness_map_ = color_brightness.clone();
+
+  
 		}
 		 
 		  
@@ -2879,8 +2906,7 @@ void  CameraCaptureGui::do_pushButton_connect()
 			connected_flag_ = true;
 			ui.lineEdit_ip->setDisabled(true);
 
-			CalibrationParam calib_param;
-			ret_code = DfGetCalibrationParam(&calib_param);
+			ret_code = DfGetCalibrationParam(&calib_param_);
 
 			if (0 == ret_code)
 			{
@@ -2889,7 +2915,7 @@ void  CameraCaptureGui::do_pushButton_connect()
 				{
 					for (int c = 0; c < 3; c++)
 					{
-						std::cout << calib_param.intrinsic[3 * r + c] << "\t";
+						std::cout << calib_param_.intrinsic[3 * r + c] << "\t";
 					}
 					std::cout << std::endl;
 				}
@@ -2899,7 +2925,7 @@ void  CameraCaptureGui::do_pushButton_connect()
 				{
 					for (int c = 0; c < 4; c++)
 					{
-						std::cout << calib_param.extrinsic[4 * r + c] << "\t";
+						std::cout << calib_param_.extrinsic[4 * r + c] << "\t";
 					}
 					std::cout << std::endl;
 				}
@@ -2909,7 +2935,7 @@ void  CameraCaptureGui::do_pushButton_connect()
 				{
 					for (int c = 0; c < 12; c++)
 					{
-						std::cout << calib_param.distortion[1 * r + c] << "\t";
+						std::cout << calib_param_.distortion[1 * r + c] << "\t";
 					}
 					std::cout << std::endl;
 				}
@@ -3609,7 +3635,17 @@ void CameraCaptureGui::do_undate_show_slot()
 	{
 		//render_image_brightness_ = color_brightness_map_.clone();
 
-		renderColorBrightnessImage(color_brightness_map_);
+
+		if (GENERATE_BRIGHTNESS_DEFAULT_ == firmware_config_param_.generate_brightness_model)
+		{ 
+			renderBrightnessImage(brightness_map_);
+		}
+		else
+		{
+			renderColorBrightnessImage(color_brightness_map_); 
+		}
+
+		 
 	}
 
 		

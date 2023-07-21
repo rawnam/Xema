@@ -317,7 +317,7 @@ private:
 	cv::Mat render_image_gray_depth_;
 	cv::Mat render_image_color_depth_;
 	cv::Mat render_image_color_height_;
-	cv::Mat color_brightness_map_;
+	cv::Mat color_brightness_map_; 
 
 	int min_depth_value_;
 	int max_depth_value_;
@@ -329,6 +329,7 @@ private:
 	int camera_height_;
 
 
+	CalibrationParam calib_param_;
 	GuiConfigDataStruct processing_gui_settings_data_;
 	SettingsFileFunction config_system_param_machine_;
 

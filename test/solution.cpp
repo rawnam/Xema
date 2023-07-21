@@ -3210,4 +3210,31 @@ bool DfSolution::reconstructMixedVariableWavelengthPatternsBaseXYSR(std::vector<
 
 
 
+bool DfSolution::test_calib_shake()
+{
+	float r[9] = { 0.976078,0.0123287,-0.21707,-0.0134238,0.999904,-0.00357109,0.217005,0.00639956,0.97615 };
+	cv::Mat rotate(3, 3, CV_32F, r);
+	cv::Mat angles;
+
+	rotate_matrix_to_euler_angles(rotate, angles);
+
+
+	float r_1[9] = { 0.976142,0.0124168,-0.216777,-0.0133835,0.999906,-0.00299181,0.216719,0.00582166,0.976217 };
+	cv::Mat rotate_1(3, 3, CV_32F, r_1);
+	cv::Mat angles_1;
+
+	rotate_matrix_to_euler_angles(rotate_1, angles_1);
+	std::cout << "angles: " << angles << std::endl;
+	std::cout << "angles_1: " << angles_1 << std::endl;
+	std::cout << "angles_d : " << angles_1 - angles << std::endl;
+
+	float t[3] = { 342.134,-0.632868,23.4816 };
+	cv::Mat trans(3, 1, CV_32F, t);
+
+	float t_1[3] = { 341.966,-0.60676,23.3156 };
+	cv::Mat trans_1(3, 1, CV_32F, t_1);
+
+	std::cout << "trans_d : " << trans_1 - trans;
+}
+
 

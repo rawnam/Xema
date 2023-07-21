@@ -72,6 +72,7 @@ bool convertBayer2Blue(cv::Mat bayer, cv::Mat& blue);
 
 bool convertBayer2Rgb(cv::Mat bayer, cv::Mat& rgb);
 
+bool rotate_matrix_to_euler_angles(cv::Mat rotate, cv::Mat &angles);
 
 // Bayer格式转RGB格式  
 void bayer2rgb(cv::Mat& bayer, cv::Mat& rgb);

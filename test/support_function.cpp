@@ -11,7 +11,7 @@
 #include "support_function.h"
 #include "iostream" 
 #include <fstream> 
-
+#include <opencv2/calib3d.hpp>
 /**************************************************************************************************************************/
 
 std::time_t getTimeStamp(int& msec)
@@ -1026,4 +1026,17 @@ void bayerBg2Rgb(int width, int height, unsigned char *src, unsigned char *dst)
 	free(bayer);
 	free(p_rgb);
  
+}
+
+
+bool rotate_matrix_to_euler_angles(cv::Mat rotate, cv::Mat& angles)
+{
+	if (rotate.empty())
+	{
+		return false;
+	}
+
+	cv::Rodrigues(rotate, angles);
+
+	angles = angles * 180.0 / CV_PI;
 }
