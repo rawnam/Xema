@@ -1441,6 +1441,249 @@ int Scan3D::captureFrame06Repetition(int repetition_count)
     return frame_status;
 }
 
+
+int Scan3D::captureFrame06RepetitionColor(int repetition_count)
+{
+       LOG(INFO) << "cuda_clear_reconstruct_cache:";
+    cuda_clear_reconstruct_cache();
+    initCache();
+
+    int frame_status = DF_SUCCESS;
+    cuda_clear_repetition_02_patterns();
+
+
+
+    if (patterns_sets_num_ < 9)
+    {
+        return DF_ERROR_LOST_PATTERN_SETS;
+    }
+
+    if (!camera_->streamOn())
+    {
+        LOG(INFO) << "Stream On Error";
+        frame_status = DF_ERROR_CAMERA_STREAM;
+        return DF_ERROR_CAMERA_STREAM;
+    }
+
+    // unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
+    cv::Mat img(image_height_,image_width_,CV_8U,cv::Scalar(0));
+    cv::Mat color_img(image_height_,image_width_,CV_8UC3,cv::Scalar(0,0,0)); 
+
+    for(int r= 0;r< repetition_count;r++)
+    {
+        int n = 0;
+  
+        LOG(INFO) << "pattern_mode06";
+        int ret = lc3010_.pattern_mode06();
+        if(DF_SUCCESS != ret)
+        {
+            frame_status = ret;
+            camera_->streamOff();
+            return ret;
+        }
+
+        lc3010_.start_pattern_sequence();
+        LOG(INFO) << "start_pattern_sequence";
+
+        for (int g_i = 0; g_i < 16; g_i++)
+        {
+            LOG(INFO) << "receiving " << g_i << "th image";
+            bool status = camera_->grap(img.data);
+            LOG(INFO) << "status=" << status;
+
+            if (status)
+            {
+
+                cv::cvtColor(img, color_img, cv::COLOR_BayerBG2BGR);
+                std::vector<cv::Mat> channels;
+                cv::split(color_img, channels);
+
+                cuda_copy_minsw8_pattern_to_memory(channels[0].data, g_i);
+                // cuda_copy_pattern_to_memory(img_ptr, i);
+                cuda_merge_repetition_02_patterns(g_i);
+            }
+            else
+            {
+                LOG(INFO) << "grad failed!";
+                camera_->streamOff(); 
+
+                frame_status = DF_ERROR_CAMERA_GRAP;
+                return DF_ERROR_CAMERA_GRAP;
+            }
+        }
+
+        /*********************************************************************************************/
+
+        /***********************************************************************************************/
+    }
+
+    camera_->streamOff();
+    lc3010_.stop_pattern_sequence();
+    LOG(INFO) << "GXStreamOff";
+ 
+
+    cuda_handle_repetition_model06(repetition_count); 
+ 
+    cuda_normalize_phase(0); 
+    LOG(INFO) << "parallel_cuda_unwrap_phase";
+    cuda_generate_pointcloud_base_table();
+    // depth_filter(system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r / 1000.);
+    LOG(INFO) << "generate_pointcloud_base_table";
+
+
+    cuda_copy_depth_from_memory(buff_depth_);
+    cuda_copy_pointcloud_from_memory(buff_pointcloud_);
+
+    if (1 == generate_brightness_model_)
+    { 
+        cuda_copy_brightness_from_memory(buff_brightness_);
+    }
+    // else
+    // {
+
+    //     captureTextureImage(generate_brightness_model_, generate_brightness_exposure_,buff_brightness_);
+    // }
+
+    return frame_status;
+}
+
+int Scan3D::captureFrame06HdrColor()
+{
+
+    LOG(INFO) << "cuda_clear_reconstruct_cache:";
+    cuda_clear_reconstruct_cache();
+    initCache();
+
+    LOG(INFO)<<"Mixed HDR Exposure Base Confidence:";  
+    int frame_status = DF_SUCCESS;
+
+    
+
+
+    if (patterns_sets_num_ < 9)
+    {
+        return DF_ERROR_LOST_PATTERN_SETS;
+    }
+
+    LOG(INFO) << "Stream On:";
+    if (!camera_->streamOn())
+    {
+        LOG(INFO) << "Stream On Error";
+        return DF_ERROR_CAMERA_STREAM;
+    }
+ 
+ 
+    cv::Mat img(image_height_,image_width_,CV_8U,cv::Scalar(0));
+    cv::Mat color_img(image_height_,image_width_,CV_8UC3,cv::Scalar(0,0,0)); 
+
+    for(int hdr_i= 0;hdr_i< hdr_num_;hdr_i++)
+    {
+        int led_current = led_current_list_[hdr_i];
+        int ret = lc3010_.SetLedCurrent(led_current, led_current, led_current);
+        if (DF_SUCCESS != ret)
+        {
+            LOG(ERROR) << "set led error: " << ret;
+            frame_status = DF_ERROR_LIGHTCRAFTER_SET_CURRENT;
+        }
+
+        LOG(INFO)<<"Set LED: "<<led_current;
+ 
+        float exposure = camera_exposure_list_[hdr_i];
+
+        if (exposure > max_camera_exposure_)
+        {
+            exposure = max_camera_exposure_;
+        }
+        else if (exposure < min_camera_exposure_)
+        {
+            exposure = min_camera_exposure_;
+        }
+
+        LOG(INFO) << "Set Camera Exposure Time: " << exposure;
+
+        if(camera_->setExposure(exposure))
+        {
+            lc3010_.set_camera_exposure(exposure);
+        } 
+
+        /***************************************************************************************************/
+
+        ret = lc3010_.pattern_mode06();
+        if (DF_SUCCESS != ret)
+        {
+            camera_->streamOff();
+            return ret;
+        }
+
+        lc3010_.start_pattern_sequence();
+
+        for (int g_i = 0; g_i < 16; g_i++)
+        {
+            LOG(INFO) << "grap " << g_i << " image:";
+            if (!camera_->grap(img.data))
+            {
+
+                camera_->streamOff();
+                return DF_ERROR_CAMERA_GRAP;
+            }
+            LOG(INFO) << "finished!";
+
+            // if (0 == g_i)
+            // {
+            //     // cuda_copy_brightness_to_memory(img_ptr);
+            // }
+
+            cv::cvtColor(img, color_img, cv::COLOR_BayerBG2BGR);
+            std::vector<cv::Mat> channels;
+            cv::split(color_img, channels);
+
+            cuda_copy_minsw8_pattern_to_memory(channels[0].data, g_i);
+
+            cuda_handle_minsw8(g_i);
+            // copy to gpu
+
+            if (15 == g_i)
+            {
+                cuda_normalize_phase(0);
+                cuda_generate_pointcloud_base_table();
+                LOG(INFO) << "cuda_generate_pointcloud_base_table";
+            }
+        }
+
+        /****************************************************************************************************/
+ 
+        cuda_copy_result_to_hdr(hdr_i, 0);
+    }
+
+    camera_->streamOff();
+    lc3010_.stop_pattern_sequence();
+    cuda_merge_hdr_data(hdr_num_, buff_depth_, buff_brightness_);
+
+    // if (1 != generate_brightness_model_)
+    // {
+    //     captureTextureImage(generate_brightness_model_, generate_brightness_exposure_, buff_brightness_);
+    // }
+    /******************************************************************************************************/
+    LOG(INFO) << "led_current_: " << led_current_;
+    lc3010_.init();
+    int ret = lc3010_.SetLedCurrent(led_current_, led_current_, led_current_);
+    if (DF_SUCCESS != ret)
+    {
+        LOG(ERROR) << "set led error: " << ret;
+        frame_status = DF_ERROR_LIGHTCRAFTER_SET_CURRENT;
+    }
+
+    LOG(INFO) << "Set Led: " << led_current_ << "\n";
+    LOG(INFO) << "Set Camera Exposure Time: " << camera_exposure_ << "\n";
+    if (camera_->setExposure(camera_exposure_))
+    {
+        lc3010_.set_camera_exposure(camera_exposure_);
+    }
+
+    return frame_status;
+}
+
+
 int Scan3D::captureFrame06Hdr()
 {
 
@@ -1644,6 +1887,105 @@ int Scan3D::captureFrame06()
     }
 
     delete[] img_ptr;
+
+    camera_->streamOff();
+    LOG(INFO) << "Stream Off";
+
+    lc3010_.stop_pattern_sequence();
+ 
+    
+    cuda_copy_depth_from_memory(buff_depth_);
+    cuda_copy_pointcloud_from_memory(buff_pointcloud_);
+
+    if (1 == generate_brightness_model_)
+    { 
+        cuda_copy_brightness_from_memory(buff_brightness_);
+    }
+    // else
+    // {
+    //     captureTextureImage(generate_brightness_model_, generate_brightness_exposure_,buff_brightness_);
+    // }
+
+    return DF_SUCCESS;
+}
+
+
+int Scan3D::captureFrame06Color()
+{
+      LOG(INFO) << "cuda_clear_reconstruct_cache:";
+    cuda_clear_reconstruct_cache();
+    initCache();
+
+
+    int ret = DF_SUCCESS;
+
+ 
+    
+    if(patterns_sets_num_ < 9)
+    { 
+        return DF_ERROR_LOST_PATTERN_SETS;
+    }
+
+    ret = lc3010_.pattern_mode06();
+    if(DF_SUCCESS != ret)
+    {
+        return ret;
+    }
+
+
+
+    LOG(INFO) << "Stream On:";
+    if (!camera_->streamOn())
+    {
+        LOG(INFO) << "Stream On Error";
+        return DF_ERROR_CAMERA_STREAM;
+    }
+
+    lc3010_.start_pattern_sequence();
+
+
+    // unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
+
+    cv::Mat color_img(image_height_,image_width_,CV_8UC3,cv::Scalar(0,0,0));
+    cv::Mat img(image_height_,image_width_,CV_8U,cv::Scalar(0));
+
+    for (int i = 0; i < 16; i++)
+    {
+        LOG(INFO)<<"grap "<<i<<" image:";
+        if (!camera_->grap(img.data))
+        { 
+            camera_->streamOff();
+            return DF_ERROR_CAMERA_GRAP;
+        }
+        LOG(INFO)<<"finished!";
+
+
+
+        cv::cvtColor(img,color_img,cv::COLOR_BayerBG2BGR);
+
+        std::vector<cv::Mat> channels;
+        cv::split(color_img,channels);
+
+
+        if(0 == i)
+        {
+            cuda_copy_brightness_to_memory(channels[0].data);
+        }
+
+        cuda_copy_minsw8_pattern_to_memory(channels[0].data, i);  
+
+        cuda_handle_minsw8(i);
+        // copy to gpu
+  
+        if(15 == i)
+        { 
+            cuda_normalize_phase(0); 
+            cuda_generate_pointcloud_base_table();
+            LOG(INFO) << "cuda_generate_pointcloud_base_table"; 
+        } 
+   
+    }
+ 
 
     camera_->streamOff();
     LOG(INFO) << "Stream Off";

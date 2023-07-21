@@ -190,6 +190,9 @@ bool cuda_generate_pointcloud_base_minitable();
 /***********************************************************************************/
 //hdr 
 
+
+bool cuda_copy_result_to_hdr_color(int serial_flag,int brigntness_serial,cv::Mat brightness); 
+
 bool cuda_copy_result_to_hdr(int serial_flag,int brigntness_serial);
 
 

@@ -1,11 +1,7 @@
 #pragma once
 #include<iostream>
+#include "../sdk/xema_enums.h"
 
-enum class XemaPixelType
-{
-	Mono = 0,
-	BayerRG8 = 1, 
-};
 
 class Camera
 {
