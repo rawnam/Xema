@@ -1729,7 +1729,7 @@ int set_calib_looktable(const char* ip, const char* calib_param_path)
 		return -1;
 	}
 
-	std::cout << "version: " << version << std::endl;
+	std::cout << "test version: " << version << std::endl;
 	ret = DfDisconnectNet();
 
 	MiniLookupTableFunction minilooktable_machine;
@@ -1752,7 +1752,7 @@ int set_calib_looktable(const char* ip, const char* calib_param_path)
 
 
 	std::cout << "Start Generate LookTable Param" << std::endl;
-	//bool ok = looktable_machine.generateLookTable(xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping);
+	//bool ok = minilooktable_machine.generateLookTable(xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping);
 	bool ok = minilooktable_machine.generateBigLookTable(xL_rotate_x, xL_rotate_y, rectify_R1, pattern_mapping, pattern_minimapping);
 	std::cout << "Finished Generate LookTable Param: " << ok << std::endl;
 
@@ -1762,7 +1762,23 @@ int set_calib_looktable(const char* ip, const char* calib_param_path)
 	pattern_mapping.convertTo(pattern_mapping, CV_32F);
 	pattern_minimapping.convertTo(pattern_minimapping, CV_32F);
 
-	cv::imwrite("../cmd_table.tiff", pattern_mapping);
+	cv::Mat filling_map(pattern_mapping.size(), CV_8U, cv::Scalar(0));
+
+	for (int i = 0; i < pattern_mapping.rows; i++)
+	{
+		for (int j = 0; j < pattern_mapping.cols; j++)
+		{
+			if (pattern_mapping.at<float>(i, j) != -2.)
+			{
+				filling_map.at<uchar>(i, j) = 255;
+			}
+		}
+	}
+
+	std::cout << "filling_map.rows: " << filling_map.rows << std::endl;
+	std::cout << "filling_map.cols: " << filling_map.cols << std::endl;
+	cv::imwrite("../pattern_mapping.bmp", filling_map);
+	cv::imwrite("../pattern_mapping.tiff", pattern_mapping);
 	DfRegisterOnDropped(on_dropped);
 
 	ret = DfConnectNet(ip);
