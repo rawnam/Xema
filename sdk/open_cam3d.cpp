@@ -532,6 +532,7 @@ int depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 //
 //}
 
+
 int undistortBrightnessMap(unsigned char* brightness_map) //最近邻
 {
 
@@ -574,6 +575,54 @@ int undistortBrightnessMap(unsigned char* brightness_map) //最近邻
 	brightness_map_temp = NULL;
 	return DF_SUCCESS;
 }
+
+
+
+int undistortColorBrightnessMap(unsigned char* brightness_map) //最近邻
+{
+
+	int nr = camera_height_;
+	int nc = camera_width_;
+
+	unsigned char* b_map = new unsigned char[nr * nc];
+	memset(b_map, 0, sizeof(unsigned char) * nr * nc);
+
+	unsigned char* g_map = new unsigned char[nr * nc];
+	memset(g_map, 0, sizeof(unsigned char) * nr * nc);
+
+	unsigned char* r_map = new unsigned char[nr * nc];
+	memset(r_map, 0, sizeof(unsigned char) * nr * nc);
+
+	for (int r = 0; r < nr; r++)
+	{
+		for (int c = 0; c < nc; c++)
+		{
+			b_map[r * nc + c] = brightness_map[3 * (r * nc + c) + 0];
+			g_map[r * nc + c] = brightness_map[3 * (r * nc + c) + 1];
+			r_map[r * nc + c] = brightness_map[3 * (r * nc + c) + 2];
+
+		}
+
+	}
+
+	undistortBrightnessMap(b_map);
+	undistortBrightnessMap(g_map);
+	undistortBrightnessMap(r_map);
+
+	for (int r = 0; r < nr; r++)
+	{
+		for (int c = 0; c < nc; c++)
+		{
+			brightness_map[3 * (r * nc + c) + 0] = b_map[r * nc + c];
+			brightness_map[3 * (r * nc + c) + 1] = g_map[r * nc + c];
+			brightness_map[3 * (r * nc + c) + 2] = r_map[r * nc + c];
+		}
+
+	}
+
+	return DF_SUCCESS;
+}
+
 
 
 int undistortDepthMap(float* depth_map)
@@ -1358,6 +1407,61 @@ DF_SDK_API int DfGetUndistortDepthDataFloat(float* depth)
 	undistortDepthMap(depth);
 
 	LOG(INFO) << "Get Undistort Depth!";
+
+	return DF_SUCCESS;
+}
+
+//函数名： DfGetUndistortColorBrightnessData
+//功能： 获取去畸变后的彩色亮度图
+//输入参数：无
+//输出参数： brightness(亮度图)
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfGetUndistortColorBrightnessData(unsigned char* brightness, XemaColor color)
+{
+
+	if (pixel_type_ == XemaPixelType::BayerRG8)
+	{
+
+		if (!bayer_to_rgb_flag_)
+		{
+			DfBayerToRgb(brightness_buf_, rgb_buf_);
+			bayer_to_rgb_flag_ = true;
+		}
+
+		switch (color)
+		{
+		case XemaColor::Rgb:
+		{
+			memcpy(brightness, rgb_buf_, 3 * brightness_bug_size_);
+			undistortColorBrightnessMap(brightness);
+			
+		}
+		break;
+		case XemaColor::Bgr:
+		{
+			for (int i = 0; i < brightness_bug_size_; i++)
+			{
+				brightness[3 * i + 0] = rgb_buf_[3 * i + 2];
+				brightness[3 * i + 1] = rgb_buf_[3 * i + 1];
+				brightness[3 * i + 2] = rgb_buf_[3 * i + 0];
+			}
+
+			undistortColorBrightnessMap(brightness);
+		}
+		break;
+		case XemaColor::Bayer:
+		{
+			memcpy(brightness, brightness_buf_, brightness_bug_size_);
+
+			undistortBrightnessMap(brightness);
+		}
+		break;
+		default:
+			break;
+		}
+
+	}
+
 
 	return DF_SUCCESS;
 }

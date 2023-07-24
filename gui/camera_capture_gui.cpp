@@ -369,18 +369,20 @@ bool CameraCaptureGui::saveOneFrameData(QString path_name)
 	{
 		cv::Mat texture = undistort_brightness_map_.clone();
 
-		//if (XemaPixelType::BayerRG8 == pixel_type_)
-		//{
-		//	if (GENERATE_BRIGHTNESS_DEFAULT_ != firmware_config_param_.generate_brightness_model)
-		//	{
+		if (XemaPixelType::BayerRG8 == pixel_type_)
+		{
+			if (GENERATE_BRIGHTNESS_DEFAULT_ != firmware_config_param_.generate_brightness_model)
+			{
 
-		//		cv::Mat camera_matrix(3, 3, CV_64F, calib_param_.intrinsic);
-		//		cv::Mat camera_dist(1, 5, CV_64F, calib_param_.distortion);
+				texture = undistort_color_brightness_map_.clone();
 
-		//		cv::undistort(color_brightness_map_, texture, camera_matrix, camera_dist);
-		//		cv::cvtColor(texture, texture, cv::COLOR_BGR2RGB);
-		//	}
-		//}
+				//cv::Mat camera_matrix(3, 3, CV_64F, calib_param_.intrinsic);
+				//cv::Mat camera_dist(1, 5, CV_64F, calib_param_.distortion);
+
+				//cv::undistort(color_brightness_map_, texture, camera_matrix, camera_dist);
+				cv::cvtColor(texture, texture, cv::COLOR_BGR2RGB);
+			}
+		}
 
 		QString brightness_str = path_name + "_bright.bmp";
 		cv::imwrite(brightness_str.toLocal8Bit().toStdString(), texture);
@@ -2303,6 +2305,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 
 	cv::Mat brightness(height, width, CV_8U, cv::Scalar(0)); 
 	cv::Mat color_brightness(height, width, CV_8UC3, cv::Scalar(0));
+	cv::Mat undistort_color_brightness(height, width, CV_8UC3, cv::Scalar(0));
 	cv::Mat depth(height, width, CV_32F, cv::Scalar(0.));
 	cv::Mat point_cloud(height, width, CV_32FC3, cv::Scalar(0.));
 	cv::Mat undistort_brightness(height, width, CV_8U, cv::Scalar(0));
@@ -2425,6 +2428,10 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 		{
 			DfGetColorBrightnessData(color_brightness.data, XemaColor::Bgr);
 			color_brightness_map_ = color_brightness.clone();
+
+			undistort_color_brightness_map_ = color_brightness.clone();
+		
+			DfGetUndistortColorBrightnessData(undistort_color_brightness_map_.data, XemaColor::Bgr);
 
   
 		}

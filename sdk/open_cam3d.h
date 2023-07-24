@@ -119,6 +119,13 @@ extern "C"
 	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 	DF_SDK_API int DfGetColorBrightnessData(unsigned char* brightness,XemaColor color);
 
+	//函数名： DfGetUndistortColorBrightnessData
+	//功能： 获取去畸变后的彩色亮度图
+	//输入参数：无
+	//输出参数： brightness(亮度图)
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfGetUndistortColorBrightnessData(unsigned char* brightness, XemaColor color);
+
 	//函数名： DfGetUndistortBrightnessData
 	//功能： 获取去畸变后的亮度图
 	//输入参数：无
