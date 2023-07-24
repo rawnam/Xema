@@ -533,7 +533,7 @@ int LightCrafter3010::write_pattern_table(unsigned char* pattern_index, unsigned
 
     int exposure_rate = camera_exposure_ / 2000;
 
-    pre_illumination_dark_time = 1000 + 170 * (exposure_rate);
+    pre_illumination_dark_time = 1000 + 170 * (exposure_rate); //根据经验的值
     // pose_illumination_dark_time = 500+ 30*(exposure_rate);
     // pose_illumination_dark_time = 1000+ 30*(exposure_rate);
 
@@ -545,9 +545,12 @@ int LightCrafter3010::write_pattern_table(unsigned char* pattern_index, unsigned
         pre_illumination_dark_time = camera_min_exposure_ - camera_exposure + 1000;
         illumination_time = camera_exposure;
 
-        if(pre_illumination_dark_time > 10000)
+        if(pre_illumination_dark_time > 12000)
         {
-            pre_illumination_dark_time= 10000; 
+            pre_illumination_dark_time= 12000;  
+            //此行代码涉及到两个issue：
+            //1. https://gitee.com/open3dv/xema/issues/I66IGV
+            //2. https://gitee.com/open3dv/xema/issues/I7JVG0
         }
     }
 
