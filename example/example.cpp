@@ -105,6 +105,9 @@ int main()
 	unsigned char* brightness_data = (unsigned char*)malloc(sizeof(unsigned char) * width * height);
 	memset(brightness_data, 0, sizeof(unsigned char) * width * height);
 
+	unsigned char* color_brightness_data = (unsigned char*)malloc(sizeof(unsigned char) * width * height * 3);
+	memset(color_brightness_data, 0, sizeof(unsigned char) * width * height * 3);
+
 	int capture_num = 0;
 
 	if (0 == ret_code)
@@ -238,6 +241,11 @@ int main()
 				std::cout << "Get Brightness!" << std::endl;
 			}
 
+			if (3 == channels)
+			{
+				ret_code = DfGetColorBrightnessData(color_brightness_data,XemaColor::Rgb);
+			}
+
 			//获取深度图数据
 			ret_code = DfGetDepthDataFloat(depth_data);
 
@@ -286,6 +294,7 @@ int main()
 	}
 
 	free(brightness_data);
+	free(color_brightness_data);
 	free(depth_data);
 	free(point_cloud_data);
 	free(height_map_data);

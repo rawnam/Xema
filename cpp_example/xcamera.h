@@ -34,6 +34,13 @@ extern "C" {
 			Reflect = 1,
 		};
 
+		enum class XemaColor
+		{
+			Rgb = 0,
+			Bgr = 1,
+			Bayer = 2,
+		};
+
         class XCamera
         {
         public:
@@ -53,6 +60,13 @@ extern "C" {
 			//输出参数： width(图像宽)、height(图像高)
 			//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
 			virtual  int  getCameraResolution(int* width, int* height) = 0;
+
+			//函数名： DfGetCameraChannels
+			//功能： 获取相机图像通道数
+			//输入参数： 无
+			//输出参数： channels(通道数)
+			//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
+			virtual int  getCameraChannels(int* channels) = 0;
 
 			//函数名： DfSetCaptureEngine
 			//功能： 设置采集引擎
@@ -103,6 +117,20 @@ extern "C" {
 			//输出参数： undistort_brightness(亮度图)
 			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 			virtual  int getUndistortBrightnessData(unsigned char* undistort_brightness) = 0;
+
+			//函数名： getColorBrightnessData
+			//功能： 获取亮度图
+			//输入参数：无
+			//输出参数： brightness(亮度图),color(亮度图颜色类型)
+			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+			virtual int getColorBrightnessData(unsigned char* brightness, XemaColor color) = 0;
+
+			//函数名： getUndistortColorBrightnessData
+			//功能： 获取去畸变后的彩色亮度图
+			//输入参数：无
+			//输出参数： brightness(亮度图)
+			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+			virtual int getUndistortColorBrightnessData(unsigned char* brightness, XemaColor color) = 0;
 			 
 			//功能： 获取校正到基准平面的高度映射图
 			//输入参数：无  

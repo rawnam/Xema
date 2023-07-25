@@ -6,6 +6,7 @@
 #include <mutex>
 #include <thread>
 #include "../sdk/socket_tcp.h" 
+#include "../sdk/xema_enums.h"
 #include "../firmware/camera_param.h" 
 #include "../firmware/system_config_settings.h"
 
@@ -36,21 +37,28 @@ extern "C" {
 			//输入参数： 无
 			//输出参数： width(图像宽)、height(图像高)
 			//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
-			int  getCameraResolution(int* width, int* height)override;
+			int getCameraResolution(int* width, int* height)override;
+
+			//函数名： DfGetCameraChannels
+			//功能： 获取相机图像通道数
+			//输入参数： 无
+			//输出参数： channels(通道数)
+			//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
+			int getCameraChannels(int* channels)override;
 
 			//函数名： DfSetCaptureEngine
 			//功能： 设置采集引擎
 			//输入参数：engine
 			//输出参数：  
 			//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
-			virtual int setCaptureEngine(XemaEngine engine)override;
+			int setCaptureEngine(XemaEngine engine)override;
 
 			//函数名： DfGetCaptureEngine
 			//功能： 设置采集引擎
 			//输入参数：
 			//输出参数：engine
 			//返回值： 类型（int）:返回0表示设置参数成功;返回-1表示设置参数失败。
-			virtual int getCaptureEngine(XemaEngine& engine)override;
+			int getCaptureEngine(XemaEngine& engine)override;
 
 			//功能： 采集一帧数据并阻塞至返回状态
 			//输入参数： exposure_num（曝光次数）：设置值为1为单曝光，大于1为多曝光模式（具体参数在相机gui中设置）.
@@ -87,6 +95,20 @@ extern "C" {
 			//输出参数： brightness(亮度图)
 			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 			int getBrightnessData(unsigned char* brightness)override;
+
+			//函数名： getColorBrightnessData
+			//功能： 获取亮度图
+			//输入参数：无
+			//输出参数： brightness(亮度图),color(亮度图颜色类型)
+			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+			int getColorBrightnessData(unsigned char* brightness, XemaColor color)override;
+
+			//函数名： getUndistortColorBrightnessData
+			//功能： 获取去畸变后的彩色亮度图
+			//输入参数：无
+			//输出参数： brightness(亮度图)
+			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+			int getUndistortColorBrightnessData(unsigned char* brightness, XemaColor color)override;
 
 			//功能： 获取校正到基准平面的高度映射图
 			//输入参数：无  
@@ -321,6 +343,13 @@ extern "C" {
 			int getParamBrightnessGain(float& gain)override;
 
 		public:
+
+			int rgbToGray(unsigned char* src, unsigned char* dst);
+
+			int bayerToRgb(unsigned char* src, unsigned char* dst);
+
+			int undistortColorBrightnessMap(unsigned char* brightness_map);
+
 			int undistortBrightnessMap(unsigned char* brightness_map);
 
 			int undistortDepthMap(float* depth_map);
@@ -350,6 +379,8 @@ extern "C" {
 			int getCalibrationParam(struct CameraCalibParam& calibration_param);
  
 			int getFrameStatus(int& status);
+ 
+			int getCameraPixelType(int& type);
 
 			std::string get_timestamp();
 
@@ -372,6 +403,8 @@ extern "C" {
 			int (*p_OnDropped_)(void*) = 0;
 
 			XemaEngine engine_ = XemaEngine::Normal;
+
+			XemaPixelType pixel_type_ = XemaPixelType::Mono;
 
 			std::string camera_ip_;
 			int multiple_exposure_model_ = 1;
@@ -406,6 +439,9 @@ extern "C" {
 			float* undistort_map_y_ = NULL;
 			float* distorted_map_x_ = NULL;
 			float* distorted_map_y_ = NULL;
+
+			unsigned char* rgb_buf_ = NULL;
+			bool bayer_to_rgb_flag_ = false;
 		};
 		 
 
