@@ -1,7 +1,6 @@
 #pragma once
 #ifdef _WIN32 
 #include "../sdk/open_cam3d.h" 
-#include "../sdk/xema_enums.h"
 #include <windows.h>
 #elif __linux
 #include "../sdk/open_cam3d.h" 
@@ -21,6 +20,7 @@
 #include <iomanip>
 #include "../test/LookupTableFunction.h"
 #include "../test/triangulation.h"
+#include "../sdk/xema_enums.h"
 
 using namespace std;
 
