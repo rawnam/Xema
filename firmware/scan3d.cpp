@@ -1498,6 +1498,11 @@ int Scan3D::captureFrame06RepetitionColor(int repetition_count)
                 std::vector<cv::Mat> channels;
                 cv::split(color_img, channels);
 
+                if (0 == g_i)
+                {
+                    cuda_copy_brightness_to_memory(channels[0].data);
+                }
+
                 cuda_copy_minsw8_pattern_to_memory(channels[0].data, g_i);
                 // cuda_copy_pattern_to_memory(img_ptr, i);
                 cuda_merge_repetition_02_patterns(g_i);
@@ -1575,6 +1580,7 @@ int Scan3D::captureFrame06HdrColor()
  
     cv::Mat img(image_height_,image_width_,CV_8U,cv::Scalar(0));
     cv::Mat color_img(image_height_,image_width_,CV_8UC3,cv::Scalar(0,0,0)); 
+    cv::Mat brightness_img(image_height_,image_width_,CV_8U,cv::Scalar(0));
 
     for(int hdr_i= 0;hdr_i< hdr_num_;hdr_i++)
     {
@@ -1628,14 +1634,17 @@ int Scan3D::captureFrame06HdrColor()
             }
             LOG(INFO) << "finished!";
 
-            // if (0 == g_i)
-            // {
-            //     // cuda_copy_brightness_to_memory(img_ptr);
-            // }
+
 
             cv::cvtColor(img, color_img, cv::COLOR_BayerBG2BGR);
             std::vector<cv::Mat> channels;
             cv::split(color_img, channels);
+
+            if (0 == g_i)
+            {
+                cuda_copy_brightness_to_memory(channels[0].data);
+                brightness_img = channels[0].clone();
+            } 
 
             cuda_copy_minsw8_pattern_to_memory(channels[0].data, g_i);
 
@@ -1652,7 +1661,7 @@ int Scan3D::captureFrame06HdrColor()
 
         /****************************************************************************************************/
  
-        cuda_copy_result_to_hdr(hdr_i, 0);
+        cuda_copy_result_to_hdr_color(hdr_i, 0,brightness_img);
     }
 
     camera_->streamOff();

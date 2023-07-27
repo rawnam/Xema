@@ -914,7 +914,7 @@ bool cuda_copy_result_to_hdr_color(int serial_flag,int brigntness_serial,cv::Mat
 		return false;
 	}
  
-	cv::imwrite("brightness.bmp",brightness);
+	// cv::imwrite("brightness.bmp",brightness);
 
 	CHECK(cudaMemcpyAsync(d_hdr_depth_map_list_[serial_flag], d_depth_map_, 1 * d_image_height_*d_image_width_ * sizeof(float), cudaMemcpyDeviceToDevice)); 
 
@@ -922,7 +922,7 @@ bool cuda_copy_result_to_hdr_color(int serial_flag,int brigntness_serial,cv::Mat
 	CHECK(cudaMemcpyAsync(d_hdr_bright_pixel_sum_list_[serial_flag], &val, sizeof(float), cudaMemcpyHostToDevice)); 
  	cuda_count_sum_pixel << <blocksPerGrid, threadsPerBlock >> > (d_hdr_brightness_list_[serial_flag],d_image_height_,d_image_width_,d_hdr_bright_pixel_sum_list_[serial_flag]);
  
-	LOG(INFO)<<"cuda_copy_result_to_hdr: "<<serial_flag;
+	LOG(INFO)<<"cuda_copy_result_to_hdr color: "<<serial_flag;
 	return true;
 }
 
@@ -1301,19 +1301,18 @@ int cuda_copy_minsw8_pattern_to_memory(unsigned char* pattern_ptr,int serial_fla
 	{
 		return -1;
 	}
- 
 
 	cv::Mat smooth_mat(d_image_height_, d_image_width_, CV_8UC1, pattern_ptr);
-	if (7< serial_flag || serial_flag < 2)
+	if (7 < serial_flag || serial_flag < 2)
 	{
 		LOG(INFO) << "Start GaussianBlur:";
 		cv::GaussianBlur(smooth_mat, smooth_mat, cv::Size(5, 5), 1, 1);
 
 		LOG(INFO) << "finished GaussianBlur!";
 	}
-LOG(INFO) << "start copy:";
-	CHECK(cudaMemcpyAsync(d_patterns_list_[serial_flag], smooth_mat.data, d_image_height_*d_image_width_* sizeof(unsigned char), cudaMemcpyHostToDevice)); 
-LOG(INFO) << "copy finished!";
+	LOG(INFO) << "start copy:";
+	CHECK(cudaMemcpyAsync(d_patterns_list_[serial_flag], smooth_mat.data, d_image_height_ * d_image_width_ * sizeof(unsigned char), cudaMemcpyHostToDevice));
+	LOG(INFO) << "copy finished!";
 }
 
 
