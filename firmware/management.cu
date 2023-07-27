@@ -346,6 +346,9 @@ bool cuda_malloc_repetition_memory()
 	{
 		cudaMalloc((void**)&d_repetition_02_merge_patterns_list_[i], d_image_height_*d_image_width_ * sizeof(unsigned short)); 
 	}
+
+	cudaMalloc((void**)&d_merge_brightness_map_, d_image_height_*d_image_width_ * sizeof(unsigned short)); 
+	
 	cudaDeviceSynchronize();
 	return true;
 }
@@ -368,6 +371,8 @@ bool cuda_free_repetition_memory()
 	{
 		cudaFree(d_repetition_02_merge_patterns_list_[i]);  
 	}
+
+	cudaFree(d_merge_brightness_map_);  
 	
 	return true;
 }
@@ -929,7 +934,7 @@ bool cuda_copy_result_to_hdr_color(int serial_flag,int brigntness_serial,cv::Mat
 
 bool cuda_copy_result_to_hdr(int serial_flag,int brigntness_serial)
 {
-	CHECK(cudaMemcpyAsync(d_hdr_brightness_list_[serial_flag], d_patterns_list_[brigntness_serial], 1 * d_image_height_*d_image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToDevice));
+	CHECK(cudaMemcpyAsync(d_hdr_brightness_list_[serial_flag], d_brightness_map_, 1 * d_image_height_*d_image_width_ * sizeof(unsigned char), cudaMemcpyDeviceToDevice));
 
 
 	if(!load_calib_data_flag_)
@@ -1108,10 +1113,12 @@ bool cuda_compute_merge_phase(int repetition_count)
 bool cuda_clear_repetition_02_patterns()
 {
 	for(int i = 0;i< D_REPETITION_02_MAX_NUM;i++)
-	{ 
-		 cudaMemset(d_repetition_02_merge_patterns_list_[i], 0,h_image_height_*h_image_width_*sizeof(ushort));
-		// CHECK(cudaMemcpyAsync(d_repetition_02_merge_patterns_list_[i], &val,image_width_* image_height_*sizeof(ushort), cudaMemcpyHostToDevice));
+	{
+				cudaMemset(d_repetition_02_merge_patterns_list_[i], 0, h_image_height_ * h_image_width_ * sizeof(ushort));
+				// CHECK(cudaMemcpyAsync(d_repetition_02_merge_patterns_list_[i], &val,image_width_* image_height_*sizeof(ushort), cudaMemcpyHostToDevice));
 	}
+	cudaMemset(d_merge_brightness_map_, 0, h_image_height_ * h_image_width_ * sizeof(ushort));
+
 	// cudaDeviceSynchronize();
   
   return true;
@@ -1119,6 +1126,12 @@ bool cuda_clear_repetition_02_patterns()
 
 bool cuda_merge_repetition_02_patterns(int repetition_serial)
 {
+	if(0 == repetition_serial)
+	{
+		kernel_merge_pattern<< <blocksPerGrid, threadsPerBlock >> >(d_brightness_map_,
+		h_image_height_, h_image_width_,d_merge_brightness_map_);
+	}
+	 
 	// int merge_serial = repetition_serial%19; 
 	kernel_merge_pattern<< <blocksPerGrid, threadsPerBlock >> >(d_patterns_list_[repetition_serial],h_image_height_, h_image_width_,d_repetition_02_merge_patterns_list_[repetition_serial]);
 
@@ -1303,11 +1316,10 @@ int cuda_copy_minsw8_pattern_to_memory(unsigned char* pattern_ptr,int serial_fla
 	}
 
 	cv::Mat smooth_mat(d_image_height_, d_image_width_, CV_8UC1, pattern_ptr);
-	if (7 < serial_flag || serial_flag < 2)
+	if (7 < serial_flag || 2> serial_flag)
 	{
 		LOG(INFO) << "Start GaussianBlur:";
-		cv::GaussianBlur(smooth_mat, smooth_mat, cv::Size(5, 5), 1, 1);
-
+		cv::GaussianBlur(smooth_mat, smooth_mat, cv::Size(5, 5), 1, 1); 
 		LOG(INFO) << "finished GaussianBlur!";
 	}
 	LOG(INFO) << "start copy:";
@@ -1318,9 +1330,9 @@ int cuda_copy_minsw8_pattern_to_memory(unsigned char* pattern_ptr,int serial_fla
 
 int cuda_handle_repetition_model06(int repetition_count)
 {
-
  
-	kernel_merge_brigntness_map<< <blocksPerGrid, threadsPerBlock >> >(d_repetition_02_merge_patterns_list_[0],repetition_count,h_image_height_, h_image_width_,d_brightness_map_);
+	kernel_merge_brigntness_map<< <blocksPerGrid, threadsPerBlock >> >(d_merge_brightness_map_,
+	repetition_count,h_image_height_, h_image_width_,d_brightness_map_);
 	 
 
     kernel_generate_merge_threshold_map << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,
@@ -1380,6 +1392,7 @@ int cuda_handle_repetition_model06(int repetition_count)
 
 				//六步相移
 				int i= 2; 
+
 				kernel_six_step_phase_shift << <blocksPerGrid, threadsPerBlock >> > (d_image_width_,d_image_height_,d_patterns_list_[i+0],
 				d_patterns_list_[i + 1], d_patterns_list_[i + 2],d_patterns_list_[i + 3],d_patterns_list_[i + 4],d_patterns_list_[i + 5]
 				,d_wrap_map_list_[3], d_confidence_map_list_[3]); 

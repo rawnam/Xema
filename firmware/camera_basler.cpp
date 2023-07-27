@@ -477,13 +477,20 @@ bool CameraBasler::openCamera()
         // CHECK( res );
         res = PylonDeviceFeatureFromString( hDev_, "TriggerMode", "On" );
         // CHECK( res );
-        res = PylonDeviceFeatureFromString( hDev_, "TriggerSource", "Line2" );
+        res = PylonDeviceFeatureFromString(hDev_, "TriggerSource", "Line2");
         // CHECK( res );
-        res = PylonDeviceFeatureFromString( hDev_, "ExposureMode", "Timed" );
+        res = PylonDeviceFeatureFromString(hDev_, "ExposureMode", "Timed");
         // CHECK( res );
-        res = PylonDeviceSetFloatFeature( hDev_, "ExposureTime", 12000.0 );
+        res = PylonDeviceSetFloatFeature(hDev_, "ExposureTime", 600.0);
+        double max_frame = 0;
+        res = PylonDeviceGetFloatFeature(hDev_, "ResultingFrameRate", &max_frame);
+        LOG(INFO) << "max frame: " << max_frame;
+        min_camera_exposure_ = 1000000 / ((int)max_frame);
+        LOG(INFO) << "min_camera_exposure_: " << min_camera_exposure_;
+
+        res = PylonDeviceSetFloatFeature(hDev_, "ExposureTime", 12000.0);
         // CHECK( res );
-        res = PylonDeviceSetFloatFeature( hDev_, "Gain", 0.0 );
+        res = PylonDeviceSetFloatFeature(hDev_, "Gain", 0.0);
         // CHECK( res );
     }
 
@@ -502,7 +509,9 @@ bool CameraBasler::openCamera()
     res = PylonDeviceFeatureFromString( hDev_, "AcquisitionMode", "Continuous" );
     // CHECK( res );
 
-    min_camera_exposure_ = 6250;
+
+
+    // min_camera_exposure_ = 6250*2;
 
     camera_opened_state_ = true;
     
