@@ -1089,7 +1089,7 @@ namespace XEMA {
 		}
 
 		transform_pointcloud_flag_ = false;
-
+		bayer_to_rgb_flag_ = false;
 
 
 		int status = DF_SUCCESS;
