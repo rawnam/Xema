@@ -5577,9 +5577,23 @@ int handle_commands(int client_sock)
     	ret = handle_cmd_get_frame_03_parallel(client_sock); 
 	    break;
     case DF_CMD_GET_REPETITION_FRAME_04:
-	    LOG(INFO)<<"DF_CMD_GET_REPETITION_FRAME_04";   
-        ret = handle_cmd_get_frame_04_repetition_02_parallel(client_sock);
-	    break;
+    {
+
+        LOG(INFO) << "DF_CMD_GET_REPETITION_FRAME_04";
+        XemaPixelType type;
+        scan3d_.getCameraPixelType(type);
+
+        if (type == XemaPixelType::Mono)
+        {
+
+                ret = handle_cmd_get_frame_04_repetition_02_parallel(client_sock);
+        }
+        else if (type == XemaPixelType::BayerRG8)
+        {
+                ret = handle_cmd_get_frame_06_repetition_color(client_sock);
+        }
+    }
+        break;
     case DF_CMD_GET_FRAME_04:
     {
         LOG(INFO) << "DF_CMD_GET_FRAME_04";
