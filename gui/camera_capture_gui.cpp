@@ -1296,9 +1296,9 @@ void CameraCaptureGui::updateRectifyGray(int use, int r, float s)
 				if (1 == use)
 				{
 					addLogMessage(tr("打开相位校正！"));
-					QString str = tr("半径: ") + QString::number(r);
-					addLogMessage(str); 
-					str = tr("标准差: ") + QString::number(s);
+					//QString str = tr("半径: ") + QString::number(r);
+					//addLogMessage(str); 
+					QString str = tr("强度: ") + QString::number(s);
 					addLogMessage(str);
 				}
 				else
