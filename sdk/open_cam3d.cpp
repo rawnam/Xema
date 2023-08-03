@@ -535,6 +535,12 @@ int depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 
 int undistortBrightnessMap(unsigned char* brightness_map) //最近邻
 {
+ 
+	LOG(INFO) << "undistortBrightnessMap:";
+	if (!connected_flag_)
+	{
+		return DF_NOT_CONNECT;
+	}
 
 	int nr = camera_height_;
 	int nc = camera_width_;
@@ -605,9 +611,30 @@ int undistortColorBrightnessMap(unsigned char* brightness_map) //最近邻
 
 	}
 
-	undistortBrightnessMap(b_map);
-	undistortBrightnessMap(g_map);
-	undistortBrightnessMap(r_map);
+	if (DF_SUCCESS != undistortBrightnessMap(b_map))
+	{
+		delete[] b_map;
+		delete[] g_map;
+		delete[] r_map;
+		return DF_FAILED;
+	}
+
+	if (DF_SUCCESS != undistortBrightnessMap(g_map))
+	{
+		delete[] b_map;
+		delete[] g_map;
+		delete[] r_map;
+		return DF_FAILED;
+	}
+
+	if (DF_SUCCESS != undistortBrightnessMap(r_map))
+	{
+		delete[] b_map;
+		delete[] g_map;
+		delete[] r_map;
+		return DF_FAILED;
+	}
+
 
 	for (int r = 0; r < nr; r++)
 	{
@@ -619,6 +646,10 @@ int undistortColorBrightnessMap(unsigned char* brightness_map) //最近邻
 		}
 
 	}
+
+	delete[] b_map;
+	delete[] g_map;
+	delete[] r_map;
 
 	return DF_SUCCESS;
 }
@@ -1418,6 +1449,18 @@ DF_SDK_API int DfGetUndistortDepthDataFloat(float* depth)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetUndistortColorBrightnessData(unsigned char* brightness, XemaColor color)
 {
+	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	LOG(INFO) << "DfGetUndistortColorBrightnessData:";
+	if (!connected_flag_)
+	{
+		return DF_NOT_CONNECT;
+	}
+
 
 	if (pixel_type_ == XemaPixelType::BayerRG8)
 	{
@@ -1427,18 +1470,41 @@ DF_SDK_API int DfGetUndistortColorBrightnessData(unsigned char* brightness, Xema
 			DfBayerToRgb(brightness_buf_, rgb_buf_);
 			bayer_to_rgb_flag_ = true;
 		}
+		else
+		{
+			return DF_FAILED;
+		}
+
+		if (NULL == rgb_buf_)
+		{
+			return DF_FAILED;
+		}
 
 		switch (color)
 		{
 		case XemaColor::Rgb:
 		{
+			if (3 * brightness_bug_size_ != sizeof(brightness))
+			{
+				return DF_FAILED;
+			}
+
 			memcpy(brightness, rgb_buf_, 3 * brightness_bug_size_);
-			undistortColorBrightnessMap(brightness);
-			
+			if (DF_SUCCESS != undistortColorBrightnessMap(brightness))
+			{
+				return DF_FAILED;
+			}
+
 		}
 		break;
 		case XemaColor::Bgr:
 		{
+
+			if (3*brightness_bug_size_ != sizeof(brightness))
+			{
+				return DF_FAILED;
+			}
+
 			for (int i = 0; i < brightness_bug_size_; i++)
 			{
 				brightness[3 * i + 0] = rgb_buf_[3 * i + 2];
@@ -1446,14 +1512,24 @@ DF_SDK_API int DfGetUndistortColorBrightnessData(unsigned char* brightness, Xema
 				brightness[3 * i + 2] = rgb_buf_[3 * i + 0];
 			}
 
-			undistortColorBrightnessMap(brightness);
+			if (DF_SUCCESS != undistortColorBrightnessMap(brightness))
+			{
+				return DF_FAILED;
+			}
 		}
 		break;
 		case XemaColor::Bayer:
 		{
+			if (brightness_bug_size_ != sizeof(brightness))
+			{
+				return DF_FAILED;
+			}
 			memcpy(brightness, brightness_buf_, brightness_bug_size_);
 
-			undistortBrightnessMap(brightness);
+			if (DF_SUCCESS != undistortBrightnessMap(brightness))
+			{
+				return DF_FAILED;
+			}
 		}
 		break;
 		default:
@@ -1473,6 +1549,12 @@ DF_SDK_API int DfGetUndistortColorBrightnessData(unsigned char* brightness, Xema
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetColorBrightnessData(unsigned char* brightness, XemaColor color)
 {
+	LOG(INFO) << "DfGetColorBrightnessData:";
+	if (!connected_flag_)
+	{
+		return DF_NOT_CONNECT;
+	}
+
 	if(pixel_type_ == XemaPixelType::BayerRG8)
 	{
 
@@ -1802,7 +1884,7 @@ DF_SDK_API int DfGetPointcloudData(float* point_cloud)
 //返回值： 类型（int）:返回0表示断开成功;返回-1表示断开失败.
 DF_SDK_API int DfDisconnect(const char* camera_id)
 {
-
+  
 	LOG(INFO) << "DfDisconnect:";
 	if (!connected_flag_)
 	{
