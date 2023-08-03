@@ -412,6 +412,7 @@ extern "C" {
 
 
 			std::timed_mutex command_mutex_;
+			std::timed_mutex undistort_mutex_;
 
 			std::thread heartbeat_thread;
 			int heartbeat_error_count_ = 0;

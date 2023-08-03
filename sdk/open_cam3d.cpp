@@ -55,6 +55,7 @@ int repetition_exposure_model_ = 2;
 
 
 std::timed_mutex command_mutex_;
+std::timed_mutex undistort_mutex_;
 /**************************************************************************************************************/
 
 
@@ -1449,7 +1450,7 @@ DF_SDK_API int DfGetUndistortDepthDataFloat(float* depth)
 //返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 DF_SDK_API int DfGetUndistortColorBrightnessData(unsigned char* brightness, XemaColor color)
 {
-	std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	std::unique_lock<std::timed_mutex> lck(undistort_mutex_, std::defer_lock);
 	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
 	{
 		LOG(INFO) << "--";
@@ -1484,11 +1485,7 @@ DF_SDK_API int DfGetUndistortColorBrightnessData(unsigned char* brightness, Xema
 		{
 		case XemaColor::Rgb:
 		{
-			if (3 * brightness_bug_size_ != sizeof(brightness))
-			{
-				return DF_FAILED;
-			}
-
+  
 			memcpy(brightness, rgb_buf_, 3 * brightness_bug_size_);
 			if (DF_SUCCESS != undistortColorBrightnessMap(brightness))
 			{
@@ -1498,12 +1495,7 @@ DF_SDK_API int DfGetUndistortColorBrightnessData(unsigned char* brightness, Xema
 		}
 		break;
 		case XemaColor::Bgr:
-		{
-
-			if (3*brightness_bug_size_ != sizeof(brightness))
-			{
-				return DF_FAILED;
-			}
+		{ 
 
 			for (int i = 0; i < brightness_bug_size_; i++)
 			{
@@ -1519,11 +1511,7 @@ DF_SDK_API int DfGetUndistortColorBrightnessData(unsigned char* brightness, Xema
 		}
 		break;
 		case XemaColor::Bayer:
-		{
-			if (brightness_bug_size_ != sizeof(brightness))
-			{
-				return DF_FAILED;
-			}
+		{ 
 			memcpy(brightness, brightness_buf_, brightness_bug_size_);
 
 			if (DF_SUCCESS != undistortBrightnessMap(brightness))

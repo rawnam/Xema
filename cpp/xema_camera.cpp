@@ -1202,6 +1202,12 @@ namespace XEMA {
 
 	int XemaCamera::getColorBrightnessData(unsigned char* brightness, XemaColor color)
 	{
+		LOG(INFO) << "getColorBrightnessData:";
+		if (!connected_flag_)
+		{
+			return DF_NOT_CONNECT;
+		}
+
 		if (pixel_type_ == XemaPixelType::BayerRG8)
 		{
 
@@ -1246,6 +1252,19 @@ namespace XEMA {
 	int XemaCamera::getUndistortColorBrightnessData(unsigned char* brightness, XemaColor color)
 	{
 
+		std::unique_lock<std::timed_mutex> lck(undistort_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		LOG(INFO) << "getUndistortColorBrightnessData:"<< (int)pixel_type_;
+		if (!connected_flag_)
+		{
+			return DF_NOT_CONNECT;
+		}
+
+
 		if (pixel_type_ == XemaPixelType::BayerRG8)
 		{
 
@@ -1254,18 +1273,33 @@ namespace XEMA {
 				bayerToRgb(brightness_buf_, rgb_buf_);
 				bayer_to_rgb_flag_ = true;
 			}
+			else
+			{
+
+				LOG(ERROR) << "bayer_to_rgb_flag_";
+				return DF_FAILED;
+			}
+
+			if (NULL == rgb_buf_)
+			{
+				return DF_FAILED;
+			}
 
 			switch (color)
 			{
 			case XemaColor::Rgb:
-			{
+			{ 
 				memcpy(brightness, rgb_buf_, 3 * brightness_bug_size_);
-				undistortColorBrightnessMap(brightness);
+				if (DF_SUCCESS != undistortColorBrightnessMap(brightness))
+				{
+					return DF_FAILED;
+				}
 
 			}
 			break;
 			case XemaColor::Bgr:
-			{
+			{ 
+
 				for (int i = 0; i < brightness_bug_size_; i++)
 				{
 					brightness[3 * i + 0] = rgb_buf_[3 * i + 2];
@@ -1273,14 +1307,22 @@ namespace XEMA {
 					brightness[3 * i + 2] = rgb_buf_[3 * i + 0];
 				}
 
-				undistortColorBrightnessMap(brightness);
+				if (DF_SUCCESS != undistortColorBrightnessMap(brightness))
+				{
+					LOG(ERROR) << "undistortColorBrightnessMap";
+					return DF_FAILED;
+				}
 			}
 			break;
 			case XemaColor::Bayer:
-			{
+			{ 
 				memcpy(brightness, brightness_buf_, brightness_bug_size_);
 
-				undistortBrightnessMap(brightness);
+				if (DF_SUCCESS != undistortBrightnessMap(brightness))
+				{
+					LOG(ERROR) << "undistortColorBrightnessMap";
+					return DF_FAILED;
+				}
 			}
 			break;
 			default:
@@ -4051,6 +4093,7 @@ namespace XEMA {
 	int XemaCamera::undistortColorBrightnessMap(unsigned char* brightness_map)  
 	{
 
+
 		int nr = camera_height_;
 		int nc = camera_width_;
 
@@ -4075,9 +4118,30 @@ namespace XEMA {
 
 		}
 
-		undistortBrightnessMap(b_map);
-		undistortBrightnessMap(g_map);
-		undistortBrightnessMap(r_map);
+		if (DF_SUCCESS != undistortBrightnessMap(b_map))
+		{
+			delete[] b_map;
+			delete[] g_map;
+			delete[] r_map;
+			return DF_FAILED;
+		}
+
+		if (DF_SUCCESS != undistortBrightnessMap(g_map))
+		{
+			delete[] b_map;
+			delete[] g_map;
+			delete[] r_map;
+			return DF_FAILED;
+		}
+
+		if (DF_SUCCESS != undistortBrightnessMap(r_map))
+		{
+			delete[] b_map;
+			delete[] g_map;
+			delete[] r_map;
+			return DF_FAILED;
+		}
+
 
 		for (int r = 0; r < nr; r++)
 		{
@@ -4090,6 +4154,9 @@ namespace XEMA {
 
 		}
 
+		delete[] b_map;
+		delete[] g_map;
+		delete[] r_map;
 		return DF_SUCCESS;
 	}
 
