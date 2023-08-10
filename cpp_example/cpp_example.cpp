@@ -35,6 +35,11 @@ int main()
 	XCamera* p_camera = (XCamera*)createXCamera();
 
 
+	char version[64] = "";
+	p_camera->getSdkVersion(version);
+	std::cout << "version: " << version << std::endl;
+
+
 	//连接相机 
 	//ret_code = p_camera->connect(pBaseinfo[0].ip);
 	ret_code = p_camera->connect("192.168.100.36");

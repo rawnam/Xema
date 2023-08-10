@@ -422,6 +422,15 @@ extern "C"
 	//输出参数：gain(亮度图增益)
 	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 	DF_SDK_API int DfGetParamBrightnessGain(float& gain);
+
+	//函数名： DfGetSdkVersion
+	//功能： 获取sdk版本
+	//输入参数：无
+	//输出参数：version(版本)
+	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	DF_SDK_API int DfGetSdkVersion(char version[64]);
+
+
 }
 
 

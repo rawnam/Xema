@@ -3229,6 +3229,18 @@ namespace XEMA {
 		close_socket(g_sock);
 		return DF_SUCCESS;
 	}
+
+	//函数名： getSdkVersion
+//功能： 获取sdk版本
+//输入参数：无
+//输出参数：version(版本)
+//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+	int XemaCamera::getSdkVersion(char version[64])
+	{
+
+		std::strcpy(version, "v1.4.0");
+		return DF_SUCCESS;
+	}
  
 	int XemaCamera::getParamBrightnessGain(float& gain)
 	{

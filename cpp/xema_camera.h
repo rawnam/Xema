@@ -342,6 +342,13 @@ extern "C" {
 			//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 			int getParamBrightnessGain(float& gain)override;
 
+			//函数名： getSdkVersion
+			//功能： 获取sdk版本
+			//输入参数：无
+			//输出参数：version(版本)
+			//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
+			int getSdkVersion(char version[64])override;
+
 		public:
 
 			int rgbToGray(unsigned char* src, unsigned char* dst);

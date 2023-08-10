@@ -48,6 +48,9 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	config_system_param_machine_.getFirmwareConfigData(firmware_config_param_);
 	config_system_param_machine_.getGuiConfigData(processing_gui_settings_data_);
 
+	char version[64] = "";
+	DfGetSdkVersion(version);
+	processing_gui_settings_data_.Instance().version = QString(version);
 
 
 
@@ -80,9 +83,7 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	m_pMaskLayer->setFixedSize(this->size());//设置窗口大小
 	m_pMaskLayer->setVisible(false);//初始状态下隐藏，待需要显示时使用
 	this->stackUnder(m_pMaskLayer);//其中pWrapper为当前窗口的QWidget
- 
- 
-
+  
 }
 
 CameraCaptureGui::~CameraCaptureGui()
@@ -451,8 +452,7 @@ bool CameraCaptureGui::loadSettingData(QString path)
 }
 
 bool CameraCaptureGui::saveSettingData(QString path)
-{
-
+{ 
 	config_system_param_machine_.setSystemConfigData(system_config_param_);
 	config_system_param_machine_.setFirmwareConfigData(firmware_config_param_);
 	config_system_param_machine_.setGuiConfigData(processing_gui_settings_data_);
@@ -680,8 +680,11 @@ void CameraCaptureGui::undateSystemConfigUiData()
 
 	ui.spinBox_camera_exposure->setMaximum(exposure_time_max_);
 	ui.spinBox_camera_exposure->setMinimum(exposure_time_min_);
-
+	
+ 
 	do_comboBox_activated_engine(processing_gui_settings_data_.Instance().engine);
+ 
+ 
 }
 
 void CameraCaptureGui::setUiData()
@@ -3814,7 +3817,7 @@ void CameraCaptureGui::do_comboBox_activated_engine(int index)
 	default:
 		break;
 	}
-
+	qDebug() << "dd engine: " << processing_gui_settings_data_.Instance().engine;
 }
 
 void CameraCaptureGui::do_comboBox_activated_ip(int index)
@@ -3910,6 +3913,7 @@ void CameraCaptureGui::do_checkBox_toggled_depth_filter(bool state)
 void CameraCaptureGui::do_checkBox_toggled_auto_save(bool state) 
 {
 	processing_gui_settings_data_.Instance().auto_save = state;
+  
 }
 
 void CameraCaptureGui::do_checkBox_toggled_hdr(bool state)

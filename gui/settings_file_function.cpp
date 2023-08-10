@@ -382,7 +382,30 @@ bool SettingsFileFunction::loadProcessingSettingsFile(QString path)
 		}
 	}
 
+	/*********************************************************************************************************************************/
 
+	if (rootObject.contains("sdk") && rootObject["sdk"].isObject())
+	{
+		QJsonObject sdk_Obj = rootObject["sdk"].toObject();
+
+  
+		if (sdk_Obj.contains("repetition_count") && sdk_Obj["repetition_count"].isDouble())
+		{
+			gui_config_.Instance().repetition_count = sdk_Obj.value("repetition_count").toInt();
+		} 
+
+		if (sdk_Obj.contains("exposure_model") && sdk_Obj["exposure_model"].isDouble())
+		{
+			gui_config_.Instance().exposure_model = sdk_Obj.value("exposure_model").toInt();
+		} 
+
+		if (sdk_Obj.contains("engine") && sdk_Obj["engine"].isDouble())
+		{
+			gui_config_.Instance().engine = sdk_Obj.value("engine").toInt();
+		}
+
+ 
+	}
 
 
 
@@ -512,6 +535,18 @@ bool SettingsFileFunction::saveProcessingSettingsFile(QString path)
 
 	/************************************************************************************************************************************/
 
+
+	QJsonObject jsonObject_sdk;  
+	jsonObject_sdk.insert("engine", gui_config_.Instance().engine);
+	jsonObject_sdk.insert("exposure_model", gui_config_.Instance().exposure_model);
+	jsonObject_sdk.insert("repetition_count", gui_config_.Instance().repetition_count);
+	jsonObject_sdk.insert("version", gui_config_.Instance().version);
+	rootObject.insert("sdk", jsonObject_sdk);
+
+	/***************************************************************************************************************************************/
+
+
+
 	jsonDoc.setObject(rootObject);
 
 	// 将json以文本形式写入文件并关闭文件。
@@ -530,7 +565,7 @@ void SettingsFileFunction::getGuiConfigData(struct GuiConfigDataStruct& param)
 
 void SettingsFileFunction::setGuiConfigData(struct GuiConfigDataStruct param)
 {
-	gui_config_.Instance() = param.Instance();
+	gui_config_.Instance() = param.Instance(); 
 }
 
 

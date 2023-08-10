@@ -26,6 +26,10 @@ int main()
 		std::cout << "mac: "<< pBaseinfo[i].mac <<"  ip: "<< pBaseinfo[i].ip<<std::endl;
 	}
 
+	char version[64] = "";
+	DfGetSdkVersion(version);
+	std::cout << "version: " << version << std::endl;
+
 	char* ip = pBaseinfo[0].ip; 
 	 
 	//连接相机 
