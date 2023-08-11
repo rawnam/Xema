@@ -4,6 +4,8 @@ CalibrationParamGui::CalibrationParamGui(QWidget* parent)
 	: QDialog(parent)
 {
 	ui.setupUi(this);
+
+	ui.retranslateUi(this);
 }
 
 CalibrationParamGui::~CalibrationParamGui()
@@ -74,4 +76,9 @@ bool CalibrationParamGui::setShowCalibrationMessage(struct SystemConfigParam con
 	ui.textEdit_standard_plane->setText(plane_str);
 
 	return true;
+}
+
+void CalibrationParamGui::updateLanguage()
+{
+	ui.retranslateUi(this);
 }

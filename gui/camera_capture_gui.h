@@ -5,6 +5,7 @@
 #include "settings_file_function.h"
 #include <opencv2/core.hpp>
 #include "../sdk/open_cam3d.h"
+#include "../sdk/xema_enums.h"
 #include "../calibration/calibrate_function.h"
 //#include "../firmware/system_config_settings.h"
 #include "../firmware/protocol.h"
@@ -41,6 +42,7 @@ class CameraCaptureGui : public QWidget
 public:
 	CameraCaptureGui(QWidget* parent = Q_NULLPTR);
 	~CameraCaptureGui();
+	void updateLanguage();
 
 	void getFirmwareVersion(QString& version);
 
@@ -94,6 +96,8 @@ public:
 	void sleep(int sectime);
 
 	bool getShowCalibrationMessage(struct SystemConfigParam& config_param, struct CameraCalibParam& calibration_param);
+ 
+	void setGuiConfigParam(GuiConfigDataStruct param);
 
 	void getGuiConfigParam(struct GuiConfigDataStruct& gui_param);
 
@@ -128,6 +132,8 @@ private:
 
 	bool renderBrightnessImage(cv::Mat brightness);
 
+	bool renderColorBrightnessImage(cv::Mat brightness);
+
 	void undateSystemConfigUiData();
 
 	double computePointsDistance(cv::Point2f p_0, cv::Point2f p_1, cv::Mat point_cloud);
@@ -141,6 +147,8 @@ signals:
 	void send_images_update();
 
 	void send_log_update(QString str);
+
+	void send_update_language(QString val);
 
 public slots:
 
@@ -304,11 +312,13 @@ private:
 	cv::Mat height_map_;
 	cv::Mat undistort_depth_map_;
 	cv::Mat undistort_brightness_map_;
+	cv::Mat undistort_color_brightness_map_;
 	cv::Mat undistort_pointcloud_map_;
 	cv::Mat render_image_brightness_;
 	cv::Mat render_image_gray_depth_;
 	cv::Mat render_image_color_depth_;
 	cv::Mat render_image_color_height_;
+	cv::Mat color_brightness_map_; 
 
 	int min_depth_value_;
 	int max_depth_value_;
@@ -320,6 +330,7 @@ private:
 	int camera_height_;
 
 
+	CalibrationParam calib_param_;
 	GuiConfigDataStruct processing_gui_settings_data_;
 	SettingsFileFunction config_system_param_machine_;
 
@@ -363,11 +374,15 @@ private:
 	int exposure_time_min_ = 1700;
 	int exposure_time_max_ = 100000;
 
-	char firmware_version_[_VERSION_LENGTH_] = { "请先连接相机" };
+	QString firmware_version_;
 	char info_[INFO_SIZE] = {'\0'};
 
 	SaveDataType save_data_type_ = SaveDataType::Origin;
 	bool hide_save_gui_flag_ = false;
 
 	std::mutex mtx_save_;
+
+	XemaPixelType pixel_type_ = XemaPixelType::Mono;
+
+	
 };

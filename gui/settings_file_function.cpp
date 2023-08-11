@@ -65,7 +65,8 @@ SettingsFileFunction::SettingsFileFunction()
 	gui_config_.Instance().show_image_flag = 1;
 	gui_config_.Instance().auto_save = false; 
 	gui_config_.Instance().show_over_exposure = true;
-	gui_config_.Instance().engine = 1;
+	gui_config_.Instance().engine = 1; 
+	gui_config_.Instance().language = "ch";
 	 
 
 	firmware_config_param_.generate_brightness_exposure = 12000;
@@ -374,6 +375,11 @@ bool SettingsFileFunction::loadProcessingSettingsFile(QString path)
 		{
 			gui_config_.Instance().engine = gui_Obj.value("engine").toInt();
 		}
+
+		if (gui_Obj.contains("language") && gui_Obj["language"].isString())
+		{
+			gui_config_.Instance().language = gui_Obj.value("language").toString();
+		}
 	}
 
 
@@ -498,6 +504,7 @@ bool SettingsFileFunction::saveProcessingSettingsFile(QString path)
 	jsonObject_gui.insert("auto_save", gui_config_.Instance().auto_save); 
 	jsonObject_gui.insert("show_image_flag", gui_config_.Instance().show_image_flag);
 	jsonObject_gui.insert("engine", gui_config_.Instance().engine);
+	jsonObject_gui.insert("language", gui_config_.Instance().language);
 
 	rootObject.insert("gui", jsonObject_gui);
 

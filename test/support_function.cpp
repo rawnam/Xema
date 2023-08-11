@@ -11,7 +11,7 @@
 #include "support_function.h"
 #include "iostream" 
 #include <fstream> 
-
+#include <opencv2/calib3d.hpp>
 /**************************************************************************************************************************/
 
 std::time_t getTimeStamp(int& msec)
@@ -309,7 +309,12 @@ void  getFiles(std::string path, std::vector<std::string>& files)
 
 }
 
-
+// 双线性插值函数  
+double BilinearInterpolationColor(double x, double y, double q11, double q12, double q21, double q22) {
+    double r1 = (q21 - q11) * y + q11;
+    double r2 = (q22 - q12) * y + q12;
+    return (r2 - r1) * x + r1;
+}
 
 /**************************************************************************************************************************/
 bool SavePointToTxt(cv::Mat deep_map, std::string path, cv::Mat texture_map)
@@ -723,6 +728,23 @@ bool convertBayer2Gray(cv::Mat bayer, cv::Mat& gray)
 }
 
 
+bool convertBayer2Rgb(cv::Mat bayer, cv::Mat& rgb)
+{
+	if (bayer.empty())
+	{
+		return false;
+	}
+
+	cv::Mat color_mat;
+
+	cv::cvtColor(bayer, color_mat, cv::COLOR_BayerRG2RGB);
+
+	rgb = color_mat.clone();
+
+
+	return true;
+}
+
 bool convertBayer2Blue(cv::Mat bayer, cv::Mat& blue)
 {
 	if (bayer.empty())
@@ -745,4 +767,276 @@ bool convertBayer2Blue(cv::Mat bayer, cv::Mat& blue)
 	blue = b.clone();
 
 	return true;
+}
+ 
+
+void bayer2rgb(cv::Mat& bayer, cv::Mat& rgb) 
+{
+	int rows = bayer.rows;
+	int cols = bayer.cols;
+
+	//定义RGB图像  
+	rgb.create(rows, cols, CV_8UC3);
+
+	uchar* ptr_rgb = rgb.data;
+
+	for (int i = 0; i < rows; i++) 
+	{
+		for (int j = 0; j < cols; j++) 
+		{
+			uchar b = bayer.at<uchar>(i, j);
+			uchar g, r;
+
+			if (i % 2 == 0) { //偶数行  
+				if (j % 2 == 0) { //偶数列  
+					g = bayer.at<uchar>(i, j + 1);
+					r = bayer.at<uchar>(i + 1, j + 1);
+				}
+				else { //奇数列  
+					g = bayer.at<uchar>(i + 1, j);
+					r = bayer.at<uchar>(i, j - 1);
+				}
+			}
+			else { //奇数行  
+				if (j % 2 == 0) { //偶数列  
+					g = bayer.at<uchar>(i + 1, j);
+					r = bayer.at<uchar>(i, j + 1);
+				}
+				else { //奇数列  
+					g = bayer.at<uchar>(i, j - 1);
+					r = bayer.at<uchar>(i + 1, j - 1);
+				}
+			}
+
+			//双线性插值  
+			ptr_rgb[3 * (i * cols + j) + 0] = b;
+			ptr_rgb[3 * (i * cols + j) + 1] = (g + ptr_rgb[3 * (i * cols + j-1) + 1] + ptr_rgb[3 * ((i-1) * cols + j) + 1] + ptr_rgb[3 * ((i-1) * cols + j-1) + 1]) / 4;
+			ptr_rgb[3 * (i * cols + j) + 2] = (r + ptr_rgb[3 * ((i - 1) * cols + j+1) + 2] + ptr_rgb[3 * ((i - 1) * cols + j) + 2] + ptr_rgb[3 * (i * cols + j + 1) + 2]) / 4;
+
+			//rgb.at<cv::Vec3b>(i, j)[0] = b;
+			//rgb.at<cv::Vec3b>(i, j)[1] = (g + rgb.at<cv::Vec3b>(i, j - 1)[1] + rgb.at<cv::Vec3b>(i - 1, j)[1] + rgb.at<cv::Vec3b>(i - 1, j - 1)[1]) / 4;
+			//rgb.at<cv::Vec3b>(i, j)[2] = (r + rgb.at<cv::Vec3b>(i - 1, j + 1)[2] + rgb.at<cv::Vec3b>(i - 1, j)[2] + rgb.at<cv::Vec3b>(i, j + 1)[2]) / 4;
+		}
+	}
+}
+
+
+/**
+ * @brief BayerBG2RGB，BayerBG格式图像转为RGB图像
+ * @param src，输入图像，CV_8UC1格式Bayer图像
+ * @param dst，输出图像，CV_8UC3格式彩色图像
+ */
+void BayerBG2RGB(const cv::Mat& src, cv::Mat& dst)
+{
+	//BG格式的Bayer图像排列如下
+	/*
+	 * B G B G B G B
+	 * G R G R G R G
+	 * B G B G B G B
+	 * G R G R G R G
+	 * B G B G B G B
+	 * G R G R G R G
+	 * B G B G B G B
+	*/
+
+	//按3×3的邻域处理，边缘需填充至少1个像素的宽度
+	int nBorder = 1;
+	cv::Mat bayer;
+	cv::copyMakeBorder(src, bayer, nBorder, nBorder, nBorder, nBorder, cv::BORDER_REPLICATE);
+
+	cv::Mat rgb(bayer.size(), CV_8UC3);
+	rgb.setTo(cv::Scalar(0, 0, 0));
+	uchar* pBayer = (uchar*)bayer.ptr();
+	uchar* pRGB = (uchar*)rgb.ptr();
+	int nW = bayer.cols;
+	int nH = bayer.rows;
+
+	//注意：OpenCV中约定用Mat存储3通道彩色图像时，第0通道为B分量，第1通道表示G分量，第2通道表示R分量
+	//在从cv::cvtColor函数的注释中有如下解释：
+	/* Note that the default color format in OpenCV is often referred to as RGB but it is actually BGR (the
+	 * bytes are reversed). So the first byte in a standard (24-bit) color image will be an 8-bit Blue
+	 * component, the second byte will be Green, and the third byte will be Red.
+	*/
+
+	for (int i = nBorder; i < nH - nBorder; i++)
+	{
+		for (int j = nBorder; j < nW - nBorder; j++)
+		{
+			//3×3邻域像素定义
+			/*
+			 * |M00 M01 M02|
+			 * |M10 M11 M12|
+			 * |M20 M21 M22|
+			*/
+			int nM00 = (i - 1) * nW + (j - 1); int nM01 = (i - 1) * nW + (j + 0);  int nM02 = (i - 1) * nW + (j + 1);
+			int nM10 = (i - 0) * nW + (j - 1); int nM11 = (i - 0) * nW + (j + 0);  int nM12 = (i - 0) * nW + (j + 1);
+			int nM20 = (i + 1) * nW + (j - 1); int nM21 = (i + 1) * nW + (j + 0);  int nM22 = (i + 1) * nW + (j + 1);
+
+			if (i % 2 == 0)
+			{
+				if (j % 2 == 0)     //偶数行偶数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 0] = pBayer[nM11];//b
+					pRGB[i * nW * 3 + j * 3 + 2] = ((pBayer[nM00] + pBayer[nM02] + pBayer[nM20] + pBayer[nM22]) >> 2);//r
+					pRGB[i * nW * 3 + j * 3 + 1] = ((pBayer[nM01] + pBayer[nM10] + pBayer[nM12] + pBayer[nM21]) >> 2);//g
+				}
+				else             //偶数行奇数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 1] = pBayer[nM11];//g
+					pRGB[i * nW * 3 + j * 3 + 2] = (pBayer[nM01] + pBayer[nM21]) >> 1;//r
+					pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM10] + pBayer[nM12]) >> 1;//b
+				}
+			}
+			else
+			{
+				if (j % 2 == 0)     //奇数行偶数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 1] = pBayer[nM11];//g
+					pRGB[i * nW * 3 + j * 3 + 2] = (pBayer[nM10] + pBayer[nM12]) >> 1;//r
+					pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM01] + pBayer[nM21]) >> 1;//b
+				}
+				else             //奇数行奇数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 2] = pBayer[nM11];//r
+					pRGB[i * nW * 3 + j * 3 + 1] = (pBayer[nM01] + pBayer[nM21] + pBayer[nM10] + pBayer[nM12]) >> 2;//g
+					pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM00] + pBayer[nM02] + pBayer[nM20] + pBayer[nM22]) >> 2;//b
+				}
+			}
+		}
+	}
+
+	dst = rgb(cv::Rect(nBorder, nBorder, src.cols, src.rows)).clone();
+}
+
+
+void bayerBg2Rgb(int width, int height, unsigned char *src, unsigned char *dst)
+{
+	//BG格式的Bayer图像排列如下
+	/*
+	 * B G B G B G B
+	 * G R G R G R G
+	 * B G B G B G B
+	 * G R G R G R G
+	 * B G B G B G B
+	 * G R G R G R G
+	 * B G B G B G B
+	*/
+
+	//按3×3的邻域处理，边缘需填充至少1个像素的宽度
+	int nBorder = 1; 
+	unsigned char* bayer = (unsigned char*)malloc(sizeof(unsigned char) * (width + 2 * nBorder) * (height+2*nBorder)); 
+	memset(bayer, 0, sizeof(unsigned char) * (width + 2 * nBorder) * (height + 2 * nBorder));
+
+	for (int r = 0; r < height; r++)
+	{ 
+		for (int c = 0; c < width; c++)
+		{
+			bayer[(r + nBorder) * (width+ 2 * nBorder) + (c + nBorder)] = src[r * width + c];
+		}
+	}
+
+	for (int b = 0; b < nBorder; b++)
+	{
+		for (int r = 0; r < height; r++)
+		{
+			bayer[(r+ nBorder )* (width + 2 * nBorder) + b] = src[r * width];
+			bayer[(r + nBorder) * (width + 2 * nBorder) + b + 2*nBorder+  width - 1] = src[r * width+ width -1];
+		}
+	}
+	 
+	for (int b = 0; b < nBorder; b++)
+	{
+		for (int c = 0; c < width+ 2 * nBorder; c++)
+		{
+			bayer[b * (width + 2 * nBorder) + c] = bayer[nBorder * (width + 2 * nBorder) + c];
+			bayer[(nBorder + height + b) * (width + 2 * nBorder) + c] = bayer[(nBorder + height-1) * (width + 2 * nBorder) + c];
+		} 
+	}
+
+ 
+	unsigned char* p_rgb = (unsigned char*)malloc(sizeof(unsigned char) * 3*(width + 2 * nBorder) * (height + 2 * nBorder));
+	memset(p_rgb, 0, sizeof(unsigned char) *3* (width + 2 * nBorder) * (height + 2 * nBorder));
+
+ 
+	unsigned char* pBayer = bayer;
+	unsigned char* pRGB = p_rgb;
+	int nW = width + 2 * nBorder;
+	int nH = height + 2 * nBorder;
+
+  
+	for (int i = nBorder; i < nH - nBorder; i++)
+	{
+		for (int j = nBorder; j < nW - nBorder; j++)
+		{
+			//3×3邻域像素定义
+			/*
+			 * |M00 M01 M02|
+			 * |M10 M11 M12|
+			 * |M20 M21 M22|
+			*/
+			int nM00 = (i - 1) * nW + (j - 1); int nM01 = (i - 1) * nW + (j + 0);  int nM02 = (i - 1) * nW + (j + 1);
+			int nM10 = (i - 0) * nW + (j - 1); int nM11 = (i - 0) * nW + (j + 0);  int nM12 = (i - 0) * nW + (j + 1);
+			int nM20 = (i + 1) * nW + (j - 1); int nM21 = (i + 1) * nW + (j + 0);  int nM22 = (i + 1) * nW + (j + 1);
+
+			if (i % 2 == 0)
+			{
+				if (j % 2 == 0)     //偶数行偶数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 0] = pBayer[nM11];//b
+					pRGB[i * nW * 3 + j * 3 + 2] = ((pBayer[nM00] + pBayer[nM02] + pBayer[nM20] + pBayer[nM22]) >> 2);//r
+					pRGB[i * nW * 3 + j * 3 + 1] = ((pBayer[nM01] + pBayer[nM10] + pBayer[nM12] + pBayer[nM21]) >> 2);//g
+				}
+				else             //偶数行奇数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 1] = pBayer[nM11];//g
+					pRGB[i * nW * 3 + j * 3 + 2] = (pBayer[nM01] + pBayer[nM21]) >> 1;//r
+					pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM10] + pBayer[nM12]) >> 1;//b
+				}
+			}
+			else
+			{
+				if (j % 2 == 0)     //奇数行偶数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 1] = pBayer[nM11];//g
+					pRGB[i * nW * 3 + j * 3 + 2] = (pBayer[nM10] + pBayer[nM12]) >> 1;//r
+					pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM01] + pBayer[nM21]) >> 1;//b
+				}
+				else             //奇数行奇数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 2] = pBayer[nM11];//r
+					pRGB[i * nW * 3 + j * 3 + 1] = (pBayer[nM01] + pBayer[nM21] + pBayer[nM10] + pBayer[nM12]) >> 2;//g
+					pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM00] + pBayer[nM02] + pBayer[nM20] + pBayer[nM22]) >> 2;//b
+				}
+			}
+		}
+	}
+
+
+	for (int r = 0; r < height; r++)
+	{
+		for (int c = 0; c < width; c++)
+		{
+			dst[3 * (r * width + c) + 0] = pRGB[3 * ((r + nBorder) * (width + 2 * nBorder) + c + nBorder) + 0];
+			dst[3 * (r * width + c) + 1] = pRGB[3 * ((r + nBorder) * (width + 2 * nBorder) + c + nBorder) + 1];
+			dst[3 * (r * width + c) + 2] = pRGB[3 * ((r + nBorder) * (width + 2 * nBorder) + c + nBorder) + 2];
+		}
+	}
+	
+
+	free(bayer);
+	free(p_rgb);
+ 
+}
+
+
+bool rotate_matrix_to_euler_angles(cv::Mat rotate, cv::Mat& angles)
+{
+	if (rotate.empty())
+	{
+		return false;
+	}
+
+	cv::Rodrigues(rotate, angles);
+
+	angles = angles * 180.0 / CV_PI;
 }

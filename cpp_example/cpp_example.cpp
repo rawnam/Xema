@@ -36,20 +36,28 @@ int main()
 
 
 	//连接相机 
-	ret_code = p_camera->connect(pBaseinfo[0].ip); 
+	//ret_code = p_camera->connect(pBaseinfo[0].ip);
+	ret_code = p_camera->connect("192.168.100.36");
 
 	int width = 0, height = 0;
+	int channels = 1;
+
 	if (0 == ret_code)
 	{
 		//必须连接相机成功后，才可获取相机分辨率
 		ret_code = p_camera->getCameraResolution(&width, &height);
 		std::cout << "Width: " << width << "    Height: " << height << std::endl;
+
+		ret_code = p_camera->getCameraChannels(&channels);
+		std::cout<< "channels: " << channels << std::endl;
 	}
 	else
 	{
 		std::cout << "Connect Camera Error!";
 		return -1;
 	}
+
+
 
 	//获取相机的标定参数
 	CalibrationParam calib_param;
@@ -108,6 +116,9 @@ int main()
 
 	unsigned char* brightness_data = (unsigned char*)malloc(sizeof(unsigned char) * width * height);
 	memset(brightness_data, 0, sizeof(unsigned char) * width * height);
+
+	unsigned char* color_brightness_data = (unsigned char*)malloc(sizeof(unsigned char) * width * height * 3);
+	memset(color_brightness_data, 0, sizeof(unsigned char) * width * height * 3);
 
 	int capture_num = 0;
 
@@ -255,12 +266,28 @@ int main()
 
 		if (0 == ret_code)
 		{
-			//获取亮度图数据
-			ret_code = p_camera->getBrightnessData(brightness_data);
-			if (0 == ret_code)
+			if (1 == channels)
 			{
-				std::cout << "Get Brightness!" << std::endl;
+				//获取亮度图数据
+				ret_code = p_camera->getBrightnessData(brightness_data);
+				if (0 == ret_code)
+				{
+					std::cout << "Get Brightness!" << std::endl;
+				}
 			}
+			else if(3 == channels)
+			{
+				//获取亮度图数据
+				ret_code = p_camera->getColorBrightnessData(color_brightness_data,XemaColor::Rgb);
+				if (0 == ret_code)
+				{
+					std::cout << "Get color Brightness!" << std::endl;
+				}
+			}
+
+
+
+
 
 			//获取深度图数据
 			ret_code = p_camera->getDepthData(depth_data);

@@ -1538,6 +1538,252 @@ int handle_cmd_get_raw_01(int client_sock)
 }  
 
 
+
+int handle_cmd_get_frame_06_repetition_color(int client_sock)
+{
+    /**************************************************************************************/
+
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+	
+    frame_status_ = DF_FRAME_CAPTURING;
+    
+    int repetition_count = 1;
+
+    int ret = recv_buffer(client_sock, (char*)(&repetition_count), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+        frame_status_ = DF_ERROR_NETWORK;
+    	return DF_FAILED;
+    }
+    LOG(INFO)<<"repetition_count: "<<repetition_count<<"\n";
+    /***************************************************************************************/
+
+
+    int depth_buf_size = camera_width_*camera_height_*4;
+    float* depth_map = new float[depth_buf_size];
+
+    int brightness_buf_size = camera_width_*camera_height_*1;
+    unsigned char* brightness = new unsigned char[brightness_buf_size]; 
+
+    if(repetition_count< 1)
+    {
+      repetition_count = 1;
+    }
+    
+    if(repetition_count> 10)
+    {
+      repetition_count = 10;
+    }
+
+    ret = scan3d_.captureFrame06RepetitionColor(repetition_count);
+    if (DF_SUCCESS != ret)
+    {
+    //   LOG(ERROR) << "captureFrame04BaseConfidence code: " << ret;
+    //   frame_status_ = ret;
+      
+        handle_error(ret);
+    }
+ 
+    scan3d_.removeOutlierBaseDepthFilter();
+    scan3d_.removeOutlierBaseRadiusFilter();
+
+        
+    if(1!=generate_brightness_model)
+    {
+        scan3d_.captureTextureImage(generate_brightness_model,generate_brightness_exposure_time,brightness);
+    }
+    else
+    { 
+         scan3d_.copyBrightnessData(brightness);
+    }
+
+    // scan3d_.copyBrightnessData(brightness);
+    scan3d_.copyDepthData(depth_map); 
+ 
+    LOG(INFO)<<"capture Frame04 Repetition02 Finished!";
+
+    if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
+    { 
+        cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+        cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
+        cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
+        memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
+        LOG(INFO) << "Bilateral";
+
+
+    }
+
+
+   /***************************************************************************************************/
+    LOG(INFO) << "start send depth, buffer_size= "<< depth_buf_size;
+    ret = send_buffer(client_sock, (const char *)depth_map, depth_buf_size);
+    LOG(INFO) << "depth ret= "<<ret;
+
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!";
+        // delete [] buffer;
+        delete[] depth_map;
+        delete[] brightness;
+
+        frame_status_ = DF_ERROR_NETWORK;
+        return DF_FAILED;
+    }
+
+    LOG(INFO) << "start send brightness, buffer_size= "<<brightness_buf_size;
+    ret = send_buffer(client_sock, (const char *)brightness, brightness_buf_size);
+    LOG(INFO) << "brightness ret= "<<ret;
+
+    LOG(INFO) << "Send Frame06 repetition";
+
+    float temperature = lc3010.get_projector_temperature();
+
+    LOG(INFO) << "temperature: " << temperature << " deg";
+
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) <<"send error, close this connection!";
+        // delete [] buffer;
+        delete[] depth_map;
+        delete[] brightness;
+
+        frame_status_ = DF_ERROR_NETWORK;
+        return DF_FAILED;
+    }
+    LOG(INFO) << "frame sent!";
+    // delete [] buffer;
+    delete[] depth_map;
+    delete[] brightness;
+
+    if (DF_FRAME_CAPTURING == frame_status_)
+    {
+        frame_status_ = DF_SUCCESS;
+    }
+    return DF_SUCCESS;
+
+    
+
+}
+
+ 
+int handle_cmd_get_frame_06_hdr_color(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;	
+    }
+
+    LOG(INFO)<<"Frame06 HDR Exposure:"; 
+    frame_status_ = DF_FRAME_CAPTURING;
+
+
+    int depth_buf_size = camera_width_*camera_height_*4;
+    float* depth_map = new float[depth_buf_size];
+
+    int brightness_buf_size = camera_width_*camera_height_*1;
+    unsigned char* brightness = new unsigned char[brightness_buf_size]; 
+
+    int ret = scan3d_.captureFrame06HdrColor(); 
+
+    if(DF_SUCCESS != ret)
+    { 
+        //  LOG(ERROR)<<"captureFrame06Hdr code: "<<ret;
+        //  frame_status_ = ret;
+         
+        handle_error(ret);
+    }
+
+    // std::thread  t_merge_brightness(&Scan3D::mergeBrightness, &scan3d_);
+ 
+    scan3d_.removeOutlierBaseDepthFilter();
+    scan3d_.removeOutlierBaseRadiusFilter();
+         
+    scan3d_.copyDepthData(depth_map);
+
+ 
+    LOG(INFO)<<"copy depth";  
+    LOG(INFO)<<"Reconstruct Frame04 Finished!";
+   
+
+    if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
+    { 
+        cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+        cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
+        cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
+        memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
+        LOG(INFO) << "Bilateral";
+    }
+
+   /***************************************************************************************************/
+    LOG(INFO) << "start send depth, buffer_size= "<< depth_buf_size;
+    ret = send_buffer(client_sock, (const char *)depth_map, depth_buf_size);
+    LOG(INFO) << "depth ret= "<<ret;
+
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!";
+        // delete [] buffer;
+        delete[] depth_map;
+        
+        // t_merge_brightness.join();
+        delete[] brightness;
+
+        frame_status_ = DF_ERROR_NETWORK;
+        return DF_FAILED;
+    }
+
+    // t_merge_brightness.join();
+    // scan3d_.copyBrightnessData(brightness);
+
+    if (1 != generate_brightness_model)
+    {
+        // t_merge_brightness.detach();
+        scan3d_.captureTextureImage(generate_brightness_model, generate_brightness_exposure_time, brightness);
+    }
+    else
+    {
+        // t_merge_brightness.join();
+        scan3d_.copyBrightnessData(brightness);
+    }
+
+    LOG(INFO) << "start send brightness, buffer_size= "<<brightness_buf_size;
+    ret = send_buffer(client_sock, (const char *)brightness, brightness_buf_size);
+    LOG(INFO) << "brightness ret= "<<ret;
+
+    LOG(INFO) << "Send Frame06";
+
+    float temperature = lc3010.get_projector_temperature();
+
+    LOG(INFO) << "temperature: " << temperature << " deg";
+
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) <<"send error, close this connection!";
+        // delete [] buffer;
+        delete[] depth_map;
+        delete[] brightness;
+
+        frame_status_ = DF_ERROR_NETWORK;
+        return DF_FAILED;
+    }
+    LOG(INFO) << "frame sent!";
+    // delete [] buffer;
+    delete[] depth_map;
+    delete[] brightness;  
+
+    if (DF_FRAME_CAPTURING == frame_status_)
+    {
+        frame_status_ = DF_SUCCESS;
+    }
+    return DF_SUCCESS;
+
+}
+
+
 int handle_cmd_get_frame_06_hdr(int client_sock)
 {
     if(check_token(client_sock) == DF_FAILED)
@@ -2346,6 +2592,115 @@ int handle_cmd_get_standard_plane_param_parallel(int client_sock)
      
 }
 
+
+
+int handle_cmd_get_frame_06_color(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;	
+    }
+
+    frame_status_ = DF_FRAME_CAPTURING;
+    int ret = DF_SUCCESS;
+
+    int depth_buf_size = camera_width_*camera_height_*4;
+    float* depth_map = new float[depth_buf_size];
+
+    int brightness_buf_size = camera_width_*camera_height_*1;
+    unsigned char* brightness = new unsigned char[brightness_buf_size]; 
+ 
+
+    LOG(INFO)<<"captureFrame06"; 
+    ret = scan3d_.captureFrame06Color();
+    if(DF_SUCCESS != ret)
+    { 
+         LOG(ERROR)<<"captureFrame06 code: "<<ret;
+        //  frame_status_ = ret;
+        
+        handle_error(ret);
+    }
+    scan3d_.removeOutlierBaseDepthFilter();
+    scan3d_.removeOutlierBaseRadiusFilter();
+
+     
+    LOG(INFO)<<"Reconstruct Frame06 Finished!";
+    // scan3d_.copyBrightnessData(brightness);
+
+        
+    if(1!=generate_brightness_model)
+    {
+        scan3d_.captureTextureImage(generate_brightness_model,generate_brightness_exposure_time,brightness);
+    }
+    else
+    { 
+        scan3d_.copyBrightnessData(brightness);
+    }
+
+    scan3d_.copyDepthData(depth_map);
+
+ 
+    LOG(INFO)<<"copy depth";  
+
+    if(1 == system_config_settings_machine_.Instance().firwmare_param_.use_bilateral_filter)
+    { 
+        cv::Mat depth_mat(camera_height_, camera_width_, CV_32FC1, depth_map);
+        cv::Mat depth_bilateral_mat(camera_height_, camera_width_, CV_32FC1, cv::Scalar(0));
+        cv::bilateralFilter(depth_mat, depth_bilateral_mat, system_config_settings_machine_.Instance().firwmare_param_.bilateral_filter_param_d, 2.0, 10.0); 
+        memcpy(depth_map,(float*)depth_bilateral_mat.data,depth_buf_size);
+        LOG(INFO) << "Bilateral"; 
+    }
+  
+
+    LOG(INFO) << "start send depth, buffer_size= "<< depth_buf_size;
+    ret = send_buffer(client_sock, (const char *)depth_map, depth_buf_size);
+    LOG(INFO) << "depth ret= "<<ret;
+
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!";
+        // delete [] buffer;
+        delete[] depth_map;
+        delete[] brightness;
+
+        frame_status_ = DF_ERROR_NETWORK;
+
+        return DF_FAILED;
+    }
+
+    LOG(INFO) << "start send brightness, buffer_size= "<<brightness_buf_size;
+    ret = send_buffer(client_sock, (const char *)brightness, brightness_buf_size);
+    LOG(INFO) << "brightness ret= "<<ret;
+
+    LOG(INFO) << "Send Frame06";
+
+    float temperature = lc3010.get_projector_temperature();
+
+    LOG(INFO) << "temperature: " << temperature << " deg";
+
+    if (ret == DF_FAILED)
+    {
+        printf("send error, close this connection!\n");
+        // delete [] buffer;
+        delete[] depth_map;
+        delete[] brightness;
+
+        frame_status_ = DF_ERROR_NETWORK;
+
+        return DF_FAILED;
+    }
+    LOG(INFO) << "frame sent!";
+    // delete [] buffer;
+    delete[] depth_map;
+    delete[] brightness;
+
+    if (DF_FRAME_CAPTURING == frame_status_)
+    {
+        frame_status_ = DF_SUCCESS;
+    }
+
+    return DF_SUCCESS;
+}
 
 
 int handle_cmd_get_frame_06(int client_sock)
@@ -3184,6 +3539,30 @@ int handle_cmd_get_param_camera_exposure(int client_sock)
   
 }
  
+ 
+//获取相机像素类型
+int handle_cmd_get_camera_pixel_type(int client_sock)
+{
+   if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    } 
+
+    XemaPixelType type;
+    scan3d_.getCameraPixelType(type);
+
+    int val = (int)type;
+	
+    int ret = send_buffer(client_sock, (char*)(&val), sizeof(int));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+ 
+
+    return DF_SUCCESS;
+}
 
 //获取生成亮度参数
 int handle_cmd_get_param_brightness_exposure_model(int client_sock)
@@ -3231,6 +3610,28 @@ int handle_cmd_set_param_brightness_exposure_model(int client_sock)
  
     system_config_settings_machine_.Instance().firwmare_param_.generate_brightness_exposure_model = model;
  
+  
+    return DF_SUCCESS;
+}
+
+
+//设置亮度图增益参数
+int handle_cmd_get_param_brightness_gain(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+	   
+    float gain = system_config_settings_machine_.Instance().firwmare_param_.brightness_gain;
+
+    int ret = send_buffer(client_sock, (char*)(&gain), sizeof(float));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO)<<"send error, close this connection!\n";
+	    return DF_FAILED;
+    }
+
   
     return DF_SUCCESS;
 }
@@ -3829,6 +4230,28 @@ int handle_cmd_get_param_bilateral_filter(int client_sock)
     }
  
 
+    return DF_SUCCESS;
+}
+
+//获取混合多曝光参数
+int handle_cmd_get_param_brightness_hdr_exposure(int client_sock)
+{
+    if (check_token(client_sock) == DF_FAILED)
+    {
+        return DF_FAILED;
+    }
+
+    int param[11];
+    param[0] = system_config_settings_machine_.Instance().firwmare_param_.brightness_hdr_exposure_num;
+
+    memcpy(param + 1, system_config_settings_machine_.Instance().firwmare_param_.brightness_hdr_exposure_param_list, sizeof(int) * 10); 
+
+    int ret = send_buffer(client_sock, (char *)(&param), sizeof(int) * 11);
+    if (ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
+    }
     return DF_SUCCESS;
 }
 
@@ -5148,37 +5571,50 @@ int handle_commands(int client_sock)
 	    ret = handle_cmd_test_get_frame_01(client_sock); 
 	    break;
     case DF_CMD_GET_FRAME_HDR:
-	    LOG(INFO)<<"DF_CMD_GET_FRAME_HDR";  
-        if(1 == system_config_settings_machine_.Instance().firwmare_param_.hdr_model)
-        {
+        LOG(INFO) << "DF_CMD_GET_FRAME_HDR"; 
+        { 
+                XemaPixelType type;
+                scan3d_.getCameraPixelType(type);
 
-            std::vector<int> led_list;
-            std::vector<int> exposure_list;
+                if (type == XemaPixelType::Mono)
+                {
+                if (1 == system_config_settings_machine_.Instance().firwmare_param_.hdr_model)
+                {
 
-            for(int i= 0;i< 6;i++)
-            {
-                led_list.push_back(system_config_settings_machine_.Instance().config_param_.exposure_param[i]);
-                exposure_list.push_back(system_config_settings_machine_.Instance().config_param_.camera_exposure_time);
-            }
-  
-            scan3d_.setParamHdr(system_config_settings_machine_.Instance().config_param_.exposure_num,led_list,exposure_list);
- 
-            ret = handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(client_sock);
+                    std::vector<int> led_list;
+                    std::vector<int> exposure_list;
+
+                    for (int i = 0; i < 6; i++)
+                    {
+                        led_list.push_back(system_config_settings_machine_.Instance().config_param_.exposure_param[i]);
+                        exposure_list.push_back(system_config_settings_machine_.Instance().config_param_.camera_exposure_time);
+                    }
+
+                    scan3d_.setParamHdr(system_config_settings_machine_.Instance().config_param_.exposure_num, led_list, exposure_list);
+
+                    ret = handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(client_sock);
+                }
+                else if (2 == system_config_settings_machine_.Instance().firwmare_param_.hdr_model)
+                {
+                    std::vector<int> led_current_list;
+                    std::vector<int> camera_exposure_list;
+                    for (int i = 0; i < 6; i++)
+                    {
+                        led_current_list.push_back(system_config_settings_machine_.Instance().firwmare_param_.mixed_led_param_list[i]);
+                        camera_exposure_list.push_back(system_config_settings_machine_.Instance().firwmare_param_.mixed_exposure_param_list[i]);
+                    }
+
+                    scan3d_.setParamHdr(system_config_settings_machine_.Instance().firwmare_param_.mixed_exposure_num, led_current_list, camera_exposure_list);
+
+                    ret = handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(client_sock);
+                }
+                }
+                else if (type == XemaPixelType::BayerRG8)
+                {
+                    ret = handle_cmd_get_frame_06_hdr_color(client_sock);
+                }
         }
-        else if (2 == system_config_settings_machine_.Instance().firwmare_param_.hdr_model)
-        {
-            std::vector<int> led_current_list;
-            std::vector<int> camera_exposure_list;
-            for (int i = 0; i < 6; i++)
-            {
-                led_current_list.push_back(system_config_settings_machine_.Instance().firwmare_param_.mixed_led_param_list[i]);
-                camera_exposure_list.push_back(system_config_settings_machine_.Instance().firwmare_param_.mixed_exposure_param_list[i]);
-            }
 
-            scan3d_.setParamHdr(system_config_settings_machine_.Instance().firwmare_param_.mixed_exposure_num, led_current_list, camera_exposure_list);
-
-            ret = handle_cmd_get_frame_04_hdr_parallel_mixed_led_and_exposure(client_sock);
-        } 
         break;
  
 	case DF_CMD_GET_FRAME_03:
@@ -5186,28 +5622,95 @@ int handle_commands(int client_sock)
     	ret = handle_cmd_get_frame_03_parallel(client_sock); 
 	    break;
     case DF_CMD_GET_REPETITION_FRAME_04:
-	    LOG(INFO)<<"DF_CMD_GET_REPETITION_FRAME_04";   
-        ret = handle_cmd_get_frame_04_repetition_02_parallel(client_sock);
-	    break; 
-	case DF_CMD_GET_FRAME_04:
-	    LOG(INFO)<<"DF_CMD_GET_FRAME_04";   
-    	ret = handle_cmd_get_frame_04_parallel(client_sock); 
-	    break;
+    {
+
+        LOG(INFO) << "DF_CMD_GET_REPETITION_FRAME_04";
+        XemaPixelType type;
+        scan3d_.getCameraPixelType(type);
+
+        if (type == XemaPixelType::Mono)
+        {
+
+                ret = handle_cmd_get_frame_04_repetition_02_parallel(client_sock);
+        }
+        else if (type == XemaPixelType::BayerRG8)
+        {
+                ret = handle_cmd_get_frame_06_repetition_color(client_sock);
+        }
+    }
+        break;
+    case DF_CMD_GET_FRAME_04:
+    {
+        LOG(INFO) << "DF_CMD_GET_FRAME_04";
+        XemaPixelType type;
+        scan3d_.getCameraPixelType(type);
+
+        if (type == XemaPixelType::Mono)
+        {
+            ret = handle_cmd_get_frame_04_parallel(client_sock);
+        }
+        else if (type == XemaPixelType::BayerRG8)
+        {
+            ret = handle_cmd_get_frame_06_color(client_sock);
+        }
+    }
+
+    break;
     case DF_CMD_GET_FRAME_05:
         LOG(INFO) << "DF_CMD_GET_FRAME_05";
         ret = handle_cmd_get_frame_05_parallel(client_sock);
         break;
     case DF_CMD_GET_FRAME_06:
-        LOG(INFO) << "DF_CMD_GET_FRAME_06";
-        ret = handle_cmd_get_frame_06(client_sock);
-        break;
+        {
+            LOG(INFO) << "DF_CMD_GET_FRAME_06";
+            XemaPixelType type;
+            scan3d_.getCameraPixelType(type);
+
+            if (type == XemaPixelType::Mono)
+            {
+                ret = handle_cmd_get_frame_06(client_sock);
+            }
+            else if (type == XemaPixelType::BayerRG8)
+            {
+                ret = handle_cmd_get_frame_06_color(client_sock);
+            }
+        } 
+    break;
     case DF_CMD_GET_FRAME_06_HDR:
+    { 
         LOG(INFO) << "DF_CMD_GET_FRAME_06";
-        ret = handle_cmd_get_frame_06_hdr(client_sock);
-        break;
+
+            XemaPixelType type;
+            scan3d_.getCameraPixelType(type);
+
+            if (type == XemaPixelType::Mono)
+            {
+                ret = handle_cmd_get_frame_06_hdr(client_sock);
+            }
+            else if (type == XemaPixelType::BayerRG8)
+            {
+                ret = handle_cmd_get_frame_06_hdr_color(client_sock);
+            }
+    }
+
+    break;
     case DF_CMD_GET_REPETITION_FRAME_06:
-        LOG(INFO) << "DF_CMD_GET_FRAME_06";
-        ret = handle_cmd_get_frame_06_repetition(client_sock);
+    {
+            LOG(INFO) << "DF_CMD_GET_FRAME_06";
+
+            XemaPixelType type;
+            scan3d_.getCameraPixelType(type);
+
+            if (type == XemaPixelType::Mono)
+            {
+                ret = handle_cmd_get_frame_06_repetition(client_sock);
+            }
+            else if (type == XemaPixelType::BayerRG8)
+            {
+                ret = handle_cmd_get_frame_06_repetition_color(client_sock);
+            }
+    }
+
         break;  
 	case DF_CMD_GET_POINTCLOUD:
 	    LOG(INFO)<<"DF_CMD_GET_POINTCLOUD"; 
@@ -5451,10 +5954,17 @@ int handle_commands(int client_sock)
         LOG(INFO)<<"DF_CMD_GET_FRAME_STATUS"; 
         ret = handle_cmd_get_frame_status(client_sock);
         break;
- 
+     case DF_CMD_GET_PARAM_BRIGHTNESS_HDR_EXPOSURE:
+        LOG(INFO)<<"DF_CMD_GET_PARAM_BRIGHTNESS_HDR_EXPOSURE"; 
+        ret = handle_cmd_get_param_brightness_hdr_exposure(client_sock);
+        break;
     case DF_CMD_SET_PARAM_BRIGHTNESS_HDR_EXPOSURE:
         LOG(INFO)<<"DF_CMD_SET_PARAM_BRIGHTNESS_HDR_EXPOSURE"; 
         ret = handle_cmd_set_param_brightness_hdr_exposure(client_sock);
+        break;
+    case DF_CMD_GET_PARAM_BRIGHTNESS_GAIN:
+        LOG(INFO)<<"DF_CMD_GET_PARAM_BRIGHTNESS_GAIN"; 
+        ret = handle_cmd_get_param_brightness_gain(client_sock);
         break;
     case DF_CMD_SET_PARAM_BRIGHTNESS_GAIN:
         LOG(INFO)<<"DF_CMD_SET_PARAM_BRIGHTNESS_GAIN"; 
@@ -5467,6 +5977,10 @@ int handle_commands(int client_sock)
     case DF_CMD_GET_PARAM_BRIGHTNESS_EXPOSURE_MODEL:
         LOG(INFO)<<"DF_CMD_GET_PARAM_BRIGHTNESS_EXPOSURE_MODEL"; 
         ret = handle_cmd_get_param_brightness_exposure_model(client_sock);
+        break;
+    case DF_CMD_GET_CAMERA_PIXEL_TYPE:
+        LOG(INFO)<<"DF_CMD_GET_CAMERA_PIXEL_TYPE"; 
+        ret = handle_cmd_get_camera_pixel_type(client_sock);
         break;
 	default:
 	    LOG(INFO)<<"DF_CMD_UNKNOWN";

@@ -1606,13 +1606,6 @@ bool MiniLookupTableFunction::takeMiniMapBack(cv::Mat& _theMiniMap, cv::Mat& _th
 	return true;
 }
 
-
-// 关于这个函数，是通过输入矫正后的图像的u,v坐标以及矫正后相机的位姿（包括旋转与内参），输出矫正前的坐标
-// 注意事项：当目标相机的内参是fx=1，fy=1，u0=0,v0=0时，这时输入的矫正后坐标即为归一化坐标
-// 这个函数需要自己写一个新的：包括修改输入为归一化的矫正后坐标，输出为矫正前坐标
-// 输入参数：1.光机的内参；2.光机的畸变；3.光机的旋转；4.固定为[1,0,0;0,1,0;0,0,1]归一化相机内参；5.输入一个归一化的校正后row与矫正前的col；
-// 输出参数：输出这个前后坐标所对应的校正后col；
-// 可改进的点：不知可否改进，内参修改成f=2000,u0、v0=2000，这时的表所对应的就是那个map
 double MiniLookupTableFunction::calculateNormalizedCol(cv::InputArray _cameraMatrix, cv::InputArray _distCoeffs,
 	cv::InputArray _matR, cv::InputArray _newCameraMatrix, double _row_undistorted, double _col_distorted)
 {
@@ -1659,7 +1652,7 @@ double MiniLookupTableFunction::calculateNormalizedCol(cv::InputArray _cameraMat
 	double k6 = distCoeffs.cols + distCoeffs.rows - 1 >= 8 ? ((double*)distCoeffs.data)[7] : 0.;
 
 	// 核心算法：输入的行已知，但输入的列是未知的，所以要根据猜测的列计算出一个畸变矫正前的列，根据大小的对比可以优化输入的列，当精度达到时就退出
-	double guess_left = -1;
+	double guess_left = 0;
 	double guess_right = 1;
 	double guess_col_distorted = -1;
 	double guess_col_distorted_r = -1.1;
@@ -1668,9 +1661,9 @@ double MiniLookupTableFunction::calculateNormalizedCol(cv::InputArray _cameraMat
 	double _yy = _row_undistorted * ir[4] + ir[5];
 	double _ww = _row_undistorted * ir[7] + ir[8];
 
-	// 添加一个计数器，查看插值了几次
 	int num = 0;
-
+	double right_maximum;
+	double left_minimum;
 
 	// 寻找极值点
 	for (col_undistorted = (guess_left + guess_right) / 2; abs(guess_col_distorted_r - guess_col_distorted) > 1e-16; col_undistorted = (guess_left + guess_right) / 2)
@@ -1714,24 +1707,72 @@ double MiniLookupTableFunction::calculateNormalizedCol(cv::InputArray _cameraMat
 			guess_right = col_undistorted;
 		}
 		num += 1;
-		if (num >= 200)
+		if (num >= 100)
+		{
+			break;
+		}
+	}
+
+	right_maximum = col_undistorted;
+	guess_left = -1;
+	guess_right = 0;
+	guess_col_distorted = -1;
+	guess_col_distorted_r = -1.1;
+
+	// 寻找极值点
+	for (col_undistorted = (guess_left + guess_right) / 2; abs(guess_col_distorted_r - guess_col_distorted) > 1e-16; col_undistorted = (guess_left + guess_right) / 2)
+	{
+		double _x = _xx + col_undistorted * ir[0];
+		double _y = _yy + col_undistorted * ir[3];
+		double _w = _ww + col_undistorted * ir[6];
+		//获取摄像机坐标系第四列参数
+		//归一化坐标，此处的X，Y是已经投影结束的坐标
+		double w = 1. / _w, x = _x * w, y = _y * w;
+		double x2 = x * x, y2 = y * y;
+		double r2 = x2 + y2, _2xy = 2 * x * y;
+		double kr = (1 + ((k3 * r2 + k2) * r2 + k1) * r2) / (1 + ((k6 * r2 + k5) * r2 + k4) * r2);
+		//归一化坐标转化为图像坐标
+		double u = fx * (x * kr + p1 * _2xy + p2 * (r2 + 2 * x2)) + u0;
+		double v = fy * (y * kr + p1 * (r2 + 2 * y2) + p2 * _2xy) + v0;
+		guess_col_distorted = u;
+
+		_x = _xx + (col_undistorted + 1e-8) * ir[0];
+		_y = _yy + (col_undistorted + 1e-8) * ir[3];
+		_w = _ww + (col_undistorted + 1e-8) * ir[6];
+		//获取摄像机坐标系第四列参数
+		//归一化坐标，此处的X，Y是已经投影结束的坐标
+		w = 1. / _w, x = _x * w, y = _y * w;
+		x2 = x * x, y2 = y * y;
+		r2 = x2 + y2, _2xy = 2 * x * y;
+		kr = (1 + ((k3 * r2 + k2) * r2 + k1) * r2) / (1 + ((k6 * r2 + k5) * r2 + k4) * r2);
+		//归一化坐标转化为图像坐标
+		u = fx * (x * kr + p1 * _2xy + p2 * (r2 + 2 * x2)) + u0;
+		v = fy * (y * kr + p1 * (r2 + 2 * y2) + p2 * _2xy) + v0;
+		guess_col_distorted_r = u;
+
+		if (guess_col_distorted_r - guess_col_distorted > 0.0)
+		{
+			guess_right = col_undistorted;
+		}
+		else
+		{
+			guess_left = col_undistorted;
+		}
+		num += 1;
+		if (num >= 100)
 		{
 			//std::cout << "1001" << std::endl;
 			break;
 		}
 	}
-	//std::cout << guess_col_distorted << std::endl;
-	//std::cout << col_undistorted << std::endl;
-	guess_left = -1;
-	guess_right = col_undistorted;
+	left_minimum = col_undistorted;
+	guess_left = left_minimum;
+	guess_right = right_maximum;
 	guess_col_distorted = -1;
 	num = 0;
 
-	//std::cout << "_col_distorted" << _col_distorted << std::endl;
 	for (col_undistorted = (guess_left + guess_right) / 2; abs(_col_distorted - guess_col_distorted) > precision; col_undistorted = (guess_left + guess_right) / 2)
 	{
-
-		//std::cout << "运行进入函数" << col_undistorted << std::endl;
 		double _x = _xx + col_undistorted * ir[0];
 		double _y = _yy + col_undistorted * ir[3];
 		double _w = _ww + col_undistorted * ir[6];
@@ -1747,7 +1788,6 @@ double MiniLookupTableFunction::calculateNormalizedCol(cv::InputArray _cameraMat
 		guess_col_distorted = u;
 
 		num += 1;
-		//std::cout << num << std::endl;
 		if ((_col_distorted - guess_col_distorted) < 0)
 		{
 			guess_right = (guess_right + guess_left) / 2;

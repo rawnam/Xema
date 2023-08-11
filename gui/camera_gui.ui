@@ -112,7 +112,21 @@
     <property name="title">
      <string>设置</string>
     </property>
+    <widget class="QMenu" name="menu">
+     <property name="font">
+      <font>
+       <family>SimSun-ExtB</family>
+       <pointsize>12</pointsize>
+      </font>
+     </property>
+     <property name="title">
+      <string>语言</string>
+     </property>
+     <addaction name="action_language_chinese"/>
+     <addaction name="action_language_english"/>
+    </widget>
     <addaction name="action_select_calibration_board"/>
+    <addaction name="menu"/>
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menu_setting"/>
@@ -207,6 +221,33 @@
   <action name="action_update_firmware">
    <property name="text">
     <string>固件升级</string>
+   </property>
+  </action>
+  <action name="action_language_chinese">
+   <property name="text">
+    <string>简体中文</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+    </font>
+   </property>
+  </action>
+  <action name="action_language_english">
+   <property name="text">
+    <string>English</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Times New Roman</family>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
+   </property>
+  </action>
+  <action name="actionEnglish">
+   <property name="text">
+    <string>English</string>
    </property>
   </action>
  </widget>

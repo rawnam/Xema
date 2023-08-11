@@ -100,7 +100,7 @@ __device__ unsigned short* d_repetition_merge_patterns_list_[6];
 
 #define D_REPETITION_02_MAX_NUM 37
 __device__ unsigned short* d_repetition_02_merge_patterns_list_[D_REPETITION_02_MAX_NUM];  
-
+__device__ unsigned short* d_merge_brightness_map_;
 /**********************************************************************/
 void cuda_set_param_system_config(SystemConfigDataStruct param);
     
@@ -194,6 +194,9 @@ bool cuda_generate_pointcloud_base_minitable();
 
 /***********************************************************************************/
 //hdr 
+
+
+bool cuda_copy_result_to_hdr_color(int serial_flag,int brigntness_serial,cv::Mat brightness); 
 
 bool cuda_copy_result_to_hdr(int serial_flag,int brigntness_serial);
 

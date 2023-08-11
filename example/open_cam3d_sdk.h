@@ -35,6 +35,14 @@ extern "C"
 		Reflect = 1,
 	};
 
+
+	enum class XemaColor
+	{
+		Rgb = 0,
+		Bgr = 1,
+		Bayer = 2,
+	};
+
 	//函数名： DfConnect
 	//功能： 连接相机
 	//输入参数： camera_id（相机ip地址）
@@ -48,6 +56,13 @@ extern "C"
 	//输出参数： width(图像宽)、height(图像高)
 	//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
 	DF_SDK_API int  DfGetCameraResolution(int* width, int* height);
+
+	//函数名： DfGetCameraChannels
+	//功能： 获取相机图像通道数
+	//输入参数： 无
+	//输出参数： channels(通道数)
+	//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
+	DF_SDK_API int  DfGetCameraChannels(int* channels);
 
 	//函数名： DfSetCaptureEngine
 	//功能： 设置采集引擎
@@ -97,6 +112,20 @@ extern "C"
 	//输出参数： brightness(亮度图)
 	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
 	DF_SDK_API int DfGetBrightnessData(unsigned char* brightness);
+
+	//函数名： DfGetColorBrightnessData
+	//功能： 获取亮度图
+	//输入参数：无
+	//输出参数： brightness(亮度图),color(亮度图颜色类型)
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfGetColorBrightnessData(unsigned char* brightness, XemaColor color);
+
+	//函数名： DfGetUndistortColorBrightnessData
+	//功能： 获取去畸变后的彩色亮度图
+	//输入参数：无
+	//输出参数： brightness(亮度图)
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfGetUndistortColorBrightnessData(unsigned char* brightness, XemaColor color);
 
 	//函数名： DfGetUndistortBrightnessData
 	//功能： 获取去畸变后的亮度图
@@ -394,4 +423,5 @@ extern "C"
 	//输出参数：gain(亮度图增益)
 	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 	DF_SDK_API int DfGetParamBrightnessGain(float& gain);
+
 }

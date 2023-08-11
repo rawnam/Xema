@@ -4,6 +4,7 @@
 #include "encode.h" 
 #include <opencv2/highgui.hpp>
 #include "reconstruct.h" 
+#include "support_function.h"
 
 //struct _finddata_t
 //{
@@ -81,6 +82,8 @@ public:
 	bool findMaskBaseConfidence(cv::Mat confidence_map, int threshold, cv::Mat& mask);
 
 	bool findMaskBaseConfidenceLocalGrads(cv::Mat confidence_map, float threshold, cv::Mat& mask);
+
+	bool test_calib_shake();
 
 public:
 	int confidence_level_ = 50;

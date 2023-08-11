@@ -13,6 +13,7 @@
 #include "../firmware/protocol.h" 
 #include "../firmware/system_config_settings.h"
 #include <configuring_network.h>
+#include "xema_enums.h"
 
 #ifdef _WIN32 
  
@@ -29,6 +30,8 @@ using namespace std::chrono;
 INITIALIZE_EASYLOGGINGPP
 
 XemaEngine engine_ = XemaEngine::Normal;
+
+XemaPixelType pixel_type_ = XemaPixelType::Mono;
 
 //const int image_width = 1920;
 //const int image_height = 1200;
@@ -52,6 +55,7 @@ int repetition_exposure_model_ = 2;
 
 
 std::timed_mutex command_mutex_;
+std::timed_mutex undistort_mutex_;
 /**************************************************************************************************************/
 
 
@@ -78,7 +82,9 @@ float* undistort_map_y_ = NULL;
 float* distorted_map_x_ = NULL;
 float* distorted_map_y_ = NULL;
 
- 
+
+unsigned char* rgb_buf_ = NULL;
+bool bayer_to_rgb_flag_ = false;
 /**************************************************************************************************************************/
 
 std::time_t getTimeStamp(long long& msec)
@@ -297,6 +303,140 @@ int  undistortDepthTransformPointcloud(float* undistort_depth_map, float* undist
 	return DF_SUCCESS;
 }
 
+
+DF_SDK_API int DfRgbToGray(unsigned char* src, unsigned char* dst)
+{
+	int height = camera_height_;
+	int width = camera_width_;
+
+	for (int r = 0; r < height; r++)
+	{
+
+		for (int c = 0; c < width; c++)
+		{
+			//0.299 R  + 0.587 G + B
+			dst[r * width + c] = src[3 * (r * width + c) + 0] * 0.299 + 
+				0.587 * src[3 * (r * width + c) + 1] + 0.114 * src[3 * (r * width + c) + 2];
+		}
+
+	}
+
+
+	return 0;
+}
+ 
+DF_SDK_API int DfBayerToRgb(unsigned char* src, unsigned char* dst)
+{
+  
+	int height = camera_height_;
+	int width = camera_width_;
+
+	//按3×3的邻域处理，边缘需填充至少1个像素的宽度
+	int nBorder = 1;
+	unsigned char* bayer = (unsigned char*)malloc(sizeof(unsigned char) * (width + 2 * nBorder) * (height + 2 * nBorder));
+	memset(bayer, 0, sizeof(unsigned char) * (width + 2 * nBorder) * (height + 2 * nBorder));
+
+	for (int r = 0; r < height; r++)
+	{
+		for (int c = 0; c < width; c++)
+		{
+			bayer[(r + nBorder) * (width + 2 * nBorder) + (c + nBorder)] = src[r * width + c];
+		}
+	}
+
+	for (int b = 0; b < nBorder; b++)
+	{
+		for (int r = 0; r < height; r++)
+		{
+			bayer[(r + nBorder) * (width + 2 * nBorder) + b] = src[r * width];
+			bayer[(r + nBorder) * (width + 2 * nBorder) + b + 2 * nBorder + width - 1] = src[r * width + width - 1];
+		}
+	}
+
+	for (int b = 0; b < nBorder; b++)
+	{
+		for (int c = 0; c < width + 2 * nBorder; c++)
+		{
+			bayer[b * (width + 2 * nBorder) + c] = bayer[nBorder * (width + 2 * nBorder) + c];
+			bayer[(nBorder + height + b) * (width + 2 * nBorder) + c] = bayer[(nBorder + height - 1) * (width + 2 * nBorder) + c];
+		}
+	}
+	 
+	unsigned char* p_rgb = (unsigned char*)malloc(sizeof(unsigned char) * 3 * (width + 2 * nBorder) * (height + 2 * nBorder));
+	memset(p_rgb, 0, sizeof(unsigned char) * 3 * (width + 2 * nBorder) * (height + 2 * nBorder));
+
+
+	unsigned char* pBayer = bayer;
+	unsigned char* pRGB = p_rgb;
+	int nW = width + 2 * nBorder;
+	int nH = height + 2 * nBorder;
+
+
+	for (int i = nBorder; i < nH - nBorder; i++)
+	{
+		for (int j = nBorder; j < nW - nBorder; j++)
+		{
+			//3×3邻域像素定义
+			/*
+			 * |M00 M01 M02|
+			 * |M10 M11 M12|
+			 * |M20 M21 M22|
+			*/
+			int nM00 = (i - 1) * nW + (j - 1); int nM01 = (i - 1) * nW + (j + 0);  int nM02 = (i - 1) * nW + (j + 1);
+			int nM10 = (i - 0) * nW + (j - 1); int nM11 = (i - 0) * nW + (j + 0);  int nM12 = (i - 0) * nW + (j + 1);
+			int nM20 = (i + 1) * nW + (j - 1); int nM21 = (i + 1) * nW + (j + 0);  int nM22 = (i + 1) * nW + (j + 1);
+
+			if (i % 2 == 0)
+			{
+				if (j % 2 == 0)     //偶数行偶数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 0] = pBayer[nM11];//b
+					pRGB[i * nW * 3 + j * 3 + 2] = ((pBayer[nM00] + pBayer[nM02] + pBayer[nM20] + pBayer[nM22]) >> 2);//r
+					pRGB[i * nW * 3 + j * 3 + 1] = ((pBayer[nM01] + pBayer[nM10] + pBayer[nM12] + pBayer[nM21]) >> 2);//g
+				}
+				else             //偶数行奇数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 1] = pBayer[nM11];//g
+					pRGB[i * nW * 3 + j * 3 + 2] = (pBayer[nM01] + pBayer[nM21]) >> 1;//r
+					pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM10] + pBayer[nM12]) >> 1;//b
+				}
+			}
+			else
+			{
+				if (j % 2 == 0)     //奇数行偶数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 1] = pBayer[nM11];//g
+					pRGB[i * nW * 3 + j * 3 + 2] = (pBayer[nM10] + pBayer[nM12]) >> 1;//r
+					pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM01] + pBayer[nM21]) >> 1;//b
+				}
+				else             //奇数行奇数列
+				{
+					pRGB[i * nW * 3 + j * 3 + 2] = pBayer[nM11];//r
+					pRGB[i * nW * 3 + j * 3 + 1] = (pBayer[nM01] + pBayer[nM21] + pBayer[nM10] + pBayer[nM12]) >> 2;//g
+					pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM00] + pBayer[nM02] + pBayer[nM20] + pBayer[nM22]) >> 2;//b
+				}
+			}
+		}
+	}
+
+
+	for (int r = 0; r < height; r++)
+	{
+		for (int c = 0; c < width; c++)
+		{
+			dst[3 * (r * width + c) + 0] = pRGB[3 * ((r + nBorder) * (width + 2 * nBorder) + c + nBorder) + 0];
+			dst[3 * (r * width + c) + 1] = pRGB[3 * ((r + nBorder) * (width + 2 * nBorder) + c + nBorder) + 1];
+			dst[3 * (r * width + c) + 2] = pRGB[3 * ((r + nBorder) * (width + 2 * nBorder) + c + nBorder) + 2];
+		}
+	}
+
+
+	free(bayer);
+	free(p_rgb);
+
+	return 0;
+}
+
 int depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 {
 
@@ -393,8 +533,15 @@ int depthTransformPointcloud(float* depth_map, float* point_cloud_map)
 //
 //}
 
+
 int undistortBrightnessMap(unsigned char* brightness_map) //最近邻
 {
+ 
+	LOG(INFO) << "undistortBrightnessMap:";
+	if (!connected_flag_)
+	{
+		return DF_NOT_CONNECT;
+	}
 
 	int nr = camera_height_;
 	int nc = camera_width_;
@@ -435,6 +582,79 @@ int undistortBrightnessMap(unsigned char* brightness_map) //最近邻
 	brightness_map_temp = NULL;
 	return DF_SUCCESS;
 }
+
+
+
+int undistortColorBrightnessMap(unsigned char* brightness_map) //最近邻
+{
+
+	int nr = camera_height_;
+	int nc = camera_width_;
+
+	unsigned char* b_map = new unsigned char[nr * nc];
+	memset(b_map, 0, sizeof(unsigned char) * nr * nc);
+
+	unsigned char* g_map = new unsigned char[nr * nc];
+	memset(g_map, 0, sizeof(unsigned char) * nr * nc);
+
+	unsigned char* r_map = new unsigned char[nr * nc];
+	memset(r_map, 0, sizeof(unsigned char) * nr * nc);
+
+	for (int r = 0; r < nr; r++)
+	{
+		for (int c = 0; c < nc; c++)
+		{
+			b_map[r * nc + c] = brightness_map[3 * (r * nc + c) + 0];
+			g_map[r * nc + c] = brightness_map[3 * (r * nc + c) + 1];
+			r_map[r * nc + c] = brightness_map[3 * (r * nc + c) + 2];
+
+		}
+
+	}
+
+	if (DF_SUCCESS != undistortBrightnessMap(b_map))
+	{
+		delete[] b_map;
+		delete[] g_map;
+		delete[] r_map;
+		return DF_FAILED;
+	}
+
+	if (DF_SUCCESS != undistortBrightnessMap(g_map))
+	{
+		delete[] b_map;
+		delete[] g_map;
+		delete[] r_map;
+		return DF_FAILED;
+	}
+
+	if (DF_SUCCESS != undistortBrightnessMap(r_map))
+	{
+		delete[] b_map;
+		delete[] g_map;
+		delete[] r_map;
+		return DF_FAILED;
+	}
+
+
+	for (int r = 0; r < nr; r++)
+	{
+		for (int c = 0; c < nc; c++)
+		{
+			brightness_map[3 * (r * nc + c) + 0] = b_map[r * nc + c];
+			brightness_map[3 * (r * nc + c) + 1] = g_map[r * nc + c];
+			brightness_map[3 * (r * nc + c) + 2] = r_map[r * nc + c];
+		}
+
+	}
+
+	delete[] b_map;
+	delete[] g_map;
+	delete[] r_map;
+
+	return DF_SUCCESS;
+}
+
 
 
 int undistortDepthMap(float* depth_map)
@@ -666,6 +886,18 @@ DF_SDK_API int DfConnect(const char* camera_id)
 		return DF_ERROR_2D_CAMERA;
 	} 
 
+	int pixel_type = 0;
+
+	ret = DfGetCameraPixelType(pixel_type);
+	if (ret == DF_SUCCESS)
+	{
+		pixel_type_ = XemaPixelType(pixel_type);
+	}
+	else if (ret == DF_UNKNOWN)
+	{
+		pixel_type_ = XemaPixelType::Mono;
+	}
+
 	camera_width_ = width;
 	camera_height_ = height;
 
@@ -685,7 +917,7 @@ DF_SDK_API int DfConnect(const char* camera_id)
 	brightness_bug_size_ = image_size_;
 	brightness_buf_ = new unsigned char[brightness_bug_size_];
 	 
-
+	rgb_buf_ = new unsigned char[3*brightness_bug_size_];
 	/******************************************************************************************************/
 	//产生畸变校正表
 	undistort_map_x_ = (float*)(new char[depth_buf_size_]);
@@ -769,6 +1001,45 @@ DF_SDK_API int DfConnect(const char* camera_id)
 
 	  
 	return 0;
+}
+
+//函数名： DfGetCameraChannels
+//功能： 获取相机图像通道数
+//输入参数： 无
+//输出参数： channels(通道数)
+//返回值： 类型（int）:返回0表示获取参数成功;返回-1表示获取参数失败.
+DF_SDK_API int  DfGetCameraChannels(int* channels)
+{
+	int type = 0;
+	int ret = DfGetCameraPixelType(type);
+
+	if (ret != DF_SUCCESS)
+	{ 
+		return ret;
+	}
+
+	XemaPixelType pixel = (XemaPixelType)type;
+
+	switch (pixel)
+	{
+	case XemaPixelType::Mono:
+	{
+		*channels = 1;
+	}
+	break;
+	case XemaPixelType::BayerRG8:
+	{
+		*channels = 3;
+	}
+	break;
+
+	default:
+		*channels = 1;
+	}
+	 
+ 
+
+	return DF_SUCCESS;
 }
 
 //函数名： DfGetCameraResolution
@@ -1021,6 +1292,7 @@ DF_SDK_API int DfCaptureData(int exposure_num, char* timestamp)
 	}
  
 	 
+	bayer_to_rgb_flag_ = false;
 	 
 	std::string time = get_timestamp();
 	for (int i = 0; i < time.length(); i++)
@@ -1171,6 +1443,147 @@ DF_SDK_API int DfGetUndistortDepthDataFloat(float* depth)
 	return DF_SUCCESS;
 }
 
+//函数名： DfGetUndistortColorBrightnessData
+//功能： 获取去畸变后的彩色亮度图
+//输入参数：无
+//输出参数： brightness(亮度图)
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfGetUndistortColorBrightnessData(unsigned char* brightness, XemaColor color)
+{
+	std::unique_lock<std::timed_mutex> lck(undistort_mutex_, std::defer_lock);
+	while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	{
+		LOG(INFO) << "--";
+	}
+
+	LOG(INFO) << "DfGetUndistortColorBrightnessData:";
+	if (!connected_flag_)
+	{
+		return DF_NOT_CONNECT;
+	}
+
+
+	if (pixel_type_ == XemaPixelType::BayerRG8)
+	{
+
+		if (!bayer_to_rgb_flag_)
+		{
+			DfBayerToRgb(brightness_buf_, rgb_buf_);
+			bayer_to_rgb_flag_ = true;
+		}
+		else
+		{
+			return DF_FAILED;
+		}
+
+		if (NULL == rgb_buf_)
+		{
+			return DF_FAILED;
+		}
+
+		switch (color)
+		{
+		case XemaColor::Rgb:
+		{
+  
+			memcpy(brightness, rgb_buf_, 3 * brightness_bug_size_);
+			if (DF_SUCCESS != undistortColorBrightnessMap(brightness))
+			{
+				return DF_FAILED;
+			}
+
+		}
+		break;
+		case XemaColor::Bgr:
+		{ 
+
+			for (int i = 0; i < brightness_bug_size_; i++)
+			{
+				brightness[3 * i + 0] = rgb_buf_[3 * i + 2];
+				brightness[3 * i + 1] = rgb_buf_[3 * i + 1];
+				brightness[3 * i + 2] = rgb_buf_[3 * i + 0];
+			}
+
+			if (DF_SUCCESS != undistortColorBrightnessMap(brightness))
+			{
+				return DF_FAILED;
+			}
+		}
+		break;
+		case XemaColor::Bayer:
+		{ 
+			memcpy(brightness, brightness_buf_, brightness_bug_size_);
+
+			if (DF_SUCCESS != undistortBrightnessMap(brightness))
+			{
+				return DF_FAILED;
+			}
+		}
+		break;
+		default:
+			break;
+		}
+
+	}
+
+
+	return DF_SUCCESS;
+}
+
+//函数名： DfGetColorBrightnessData
+//功能： 获取亮度图
+//输入参数：无
+//输出参数： brightness(亮度图),color(亮度图颜色类型)
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfGetColorBrightnessData(unsigned char* brightness, XemaColor color)
+{
+	LOG(INFO) << "DfGetColorBrightnessData:";
+	if (!connected_flag_)
+	{
+		return DF_NOT_CONNECT;
+	}
+
+	if(pixel_type_ == XemaPixelType::BayerRG8)
+	{
+
+		if (!bayer_to_rgb_flag_)
+		{
+			DfBayerToRgb(brightness_buf_, rgb_buf_);
+			bayer_to_rgb_flag_ = true;
+		}
+
+		switch (color)
+		{
+		case XemaColor::Rgb:
+		{
+			memcpy(brightness, rgb_buf_,3*brightness_bug_size_);
+		}
+			break;
+		case XemaColor::Bgr:
+		{
+			for (int i = 0; i < brightness_bug_size_; i++)
+			{
+				brightness[3 * i + 0] = rgb_buf_[3 * i + 2];
+				brightness[3 * i + 1] = rgb_buf_[3 * i + 1];
+				brightness[3 * i + 2] = rgb_buf_[3 * i + 0];
+			}
+		}
+			break;
+		case XemaColor::Bayer:
+		{
+			memcpy(brightness, brightness_buf_, brightness_bug_size_);
+		}
+			break;
+		default:
+			break;
+		}
+
+	}
+
+
+	return DF_SUCCESS;
+}
+
 //函数名： DfGetBrightnessData
 //功能： 采集点云数据并阻塞至返回结果
 //输入参数：无
@@ -1187,13 +1600,31 @@ DF_SDK_API int DfGetBrightnessData(unsigned char* brightness)
 
 	LOG(INFO) << "Trans Brightness:";
 
-	memcpy(brightness, brightness_buf_, brightness_bug_size_);
+	if (pixel_type_ == XemaPixelType::Mono)
+	{
+		memcpy(brightness, brightness_buf_, brightness_bug_size_); 
+	}
+	else if (pixel_type_ == XemaPixelType::BayerRG8)
+	{
+		if (!bayer_to_rgb_flag_)
+		{
+			DfBayerToRgb(brightness_buf_, rgb_buf_);
+			bayer_to_rgb_flag_ = true;
+		}
+
+		DfRgbToGray(rgb_buf_, brightness);
+	}
+	else
+	{
+		return DF_FAILED;
+	}
+
 
 	//brightness = brightness_buf_;
 
 	LOG(INFO) << "Get Brightness!";
 
-	return 0;
+	return DF_SUCCESS;
 }
 
 //函数名： DfGetUndistortBrightnessData
@@ -1441,7 +1872,7 @@ DF_SDK_API int DfGetPointcloudData(float* point_cloud)
 //返回值： 类型（int）:返回0表示断开成功;返回-1表示断开失败.
 DF_SDK_API int DfDisconnect(const char* camera_id)
 {
-
+  
 	LOG(INFO) << "DfDisconnect:";
 	if (!connected_flag_)
 	{
@@ -1464,6 +1895,7 @@ DF_SDK_API int DfDisconnect(const char* camera_id)
 	delete[] undistort_map_y_;
 	delete[] distorted_map_x_;
 	delete[] distorted_map_y_;
+	delete[] rgb_buf_;
 
 	depth_buf_ = NULL;
 	brightness_buf_ = NULL;
@@ -1473,6 +1905,7 @@ DF_SDK_API int DfDisconnect(const char* camera_id)
 	undistort_map_y_ = NULL;
 	distorted_map_x_ = NULL;
 	distorted_map_y_ = NULL;
+	rgb_buf_ = NULL;
 
 	connected_flag_ = false;
 
@@ -3767,6 +4200,67 @@ DF_SDK_API int DfGetProductInfo(char* info, int length)
 	}
 
 	close_socket(g_sock);
+	return DF_SUCCESS;
+}
+
+
+//函数名： DfGetCameraPixelType
+//功能： 获取相机像素类型
+//输入参数：无
+//输出参数： type（类型）
+//返回值： 类型（int）:返回0表示获取数据成功;否则表示获取数据失败.
+DF_SDK_API int DfGetCameraPixelType(int& type)
+{
+
+	//std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+	//while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+	//{
+	//	LOG(INFO) << "--";
+	//}
+
+	int get_type = 0;
+
+	int ret = setup_socket(camera_id_.c_str(), DF_PORT, g_sock);
+	if (ret == DF_FAILED)
+	{
+		close_socket(g_sock);
+		return DF_ERROR_NETWORK;
+	}
+	ret = send_command(DF_CMD_GET_CAMERA_PIXEL_TYPE, g_sock);
+	ret = send_buffer((char*)&token, sizeof(token), g_sock);
+	int command;
+	ret = recv_command(&command, g_sock);
+	if (ret == DF_FAILED)
+	{
+		LOG(ERROR) << "Failed to recv command";
+		close_socket(g_sock);
+		return DF_ERROR_NETWORK;
+	}
+
+	if (command == DF_CMD_OK)
+	{
+		ret = recv_buffer((char*)(&get_type), sizeof(int), g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_ERROR_NETWORK;
+		}
+
+		LOG(INFO) << "Frame Status: " << get_type;
+	}
+	else if (command == DF_CMD_REJECT)
+	{
+		close_socket(g_sock);
+		return DF_BUSY;
+	}
+	else if (command == DF_CMD_UNKNOWN)
+	{
+		close_socket(g_sock);
+		return DF_UNKNOWN;
+	}
+
+	close_socket(g_sock);
+	type = get_type;
 	return DF_SUCCESS;
 }
 

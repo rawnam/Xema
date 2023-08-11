@@ -90,6 +90,12 @@ public:
     
     int captureFrame06Black();
     
+    int captureFrame06Color();
+
+    int captureFrame06HdrColor();
+
+    int captureFrame06RepetitionColor(int repetition_count);
+    
     bool captureFrame03();
     
     bool captureFrame01();
@@ -118,6 +124,8 @@ public:
     int initCache();
 
     int reopenCamera();
+
+    void getCameraPixelType(XemaPixelType &type);
 
 
 private:

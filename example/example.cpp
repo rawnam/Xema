@@ -29,14 +29,17 @@ int main()
 	char* ip = pBaseinfo[0].ip; 
 	 
 	//连接相机 
-	ret_code = DfConnect(ip);
+	ret_code = DfConnect("192.168.100.36");
 
-	int width = 0, height = 0; 
+	int width = 0, height = 0,channels = 1; 
 	if (0 == ret_code)
 	{
 		//必须连接相机成功后，才可获取相机分辨率
 		ret_code = DfGetCameraResolution(&width, &height);
 		std::cout << "Width: " << width << "    Height: " << height << std::endl;
+
+		ret_code = DfGetCameraChannels(&channels);
+		std::cout << "channels: " << channels <<std::endl;
 	}
 	else
 	{
@@ -101,6 +104,9 @@ int main()
 
 	unsigned char* brightness_data = (unsigned char*)malloc(sizeof(unsigned char) * width * height);
 	memset(brightness_data, 0, sizeof(unsigned char) * width * height);
+
+	unsigned char* color_brightness_data = (unsigned char*)malloc(sizeof(unsigned char) * width * height * 3);
+	memset(color_brightness_data, 0, sizeof(unsigned char) * width * height * 3);
 
 	int capture_num = 0;
 
@@ -235,6 +241,11 @@ int main()
 				std::cout << "Get Brightness!" << std::endl;
 			}
 
+			if (3 == channels)
+			{
+				ret_code = DfGetColorBrightnessData(color_brightness_data,XemaColor::Rgb);
+			}
+
 			//获取深度图数据
 			ret_code = DfGetDepthDataFloat(depth_data);
 
@@ -283,6 +294,7 @@ int main()
 	}
 
 	free(brightness_data);
+	free(color_brightness_data);
 	free(depth_data);
 	free(point_cloud_data);
 	free(height_map_data);

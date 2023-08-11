@@ -4,7 +4,6 @@
 
 CameraBasler::CameraBasler()
 {
-
 }
 
 CameraBasler::~CameraBasler()
@@ -491,20 +490,44 @@ bool CameraBasler::openCamera()
         }
     }
 
+
     /* Set the pixel format to Mono8 if available, where gray values will be output as 8 bit values for each pixel. */
     isAvail = PylonDeviceFeatureIsAvailable( hDev_, "EnumEntry_PixelFormat_Mono8" );
     if (isAvail)
     {
-	std::cout<<"EnumEntry_PixelFormat_Mono8"<<std::endl;
+	    LOG(INFO)<<"EnumEntry_PixelFormat_Mono8"<<std::endl;
         res = PylonDeviceFeatureFromString( hDev_, "PixelFormat", "Mono8" );
         // CHECK( res );
+    }
+ 
+    /* Set the pixel format to BayerRG8 if available, where gray values will be output as 8 bit values for each pixel. */
+    isAvail = PylonDeviceFeatureIsAvailable(hDev_, "EnumEntry_PixelFormat_BayerRG8");
+    if (isAvail)
+    {
+        LOG(INFO) << "bayer_rg8" << std::endl;
+        pixel_type_ = XemaPixelType::BayerRG8;
+
+        LOG(INFO) << "BayerRG8" << std::endl;
+        res = PylonDeviceFeatureFromString(hDev_, "PixelFormat", "BayerRG8");
+
+        //     /* Enable Balance White Auto by setting the operating mode to Continuous */
+        res = PylonDeviceFeatureFromString(hDev_, "BalanceWhiteAuto", "Off");
+    }
+
+    isAvail = PylonDeviceFeatureIsAvailable(hDev_, "EnumEntry_PixelFormat_BayerBG8");
+    if (isAvail)
+    {
+        LOG(INFO) << "EnumEntry_PixelFormat_BayerBG8" << std::endl;
+        res = PylonDeviceFeatureFromString(hDev_, "PixelFormat", "BayerBG8");
+        //     /* Enable Balance White Auto by setting the operating mode to Continuous */
+        res = PylonDeviceFeatureFromString(hDev_, "BalanceWhiteAuto", "Off");
     }
 
     /* Disable acquisition start trigger if available. */
     isAvail = PylonDeviceFeatureIsAvailable( hDev_, "EnumEntry_TriggerSelector_AcquisitionStart" );
     if (isAvail)
     {
-	    std::cout<<"EnumEntry_TriggerSelector_AcquisitionStart"<<std::endl;
+	    LOG(INFO)<<"EnumEntry_TriggerSelector_AcquisitionStart"<<std::endl;
         res = PylonDeviceFeatureFromString( hDev_, "TriggerSelector", "AcquisitionStart" );
         // CHECK( res );
         res = PylonDeviceFeatureFromString( hDev_, "TriggerMode", "Off" );
@@ -515,7 +538,7 @@ bool CameraBasler::openCamera()
     isAvail = PylonDeviceFeatureIsAvailable( hDev_, "EnumEntry_TriggerSelector_FrameBurstStart" );
     if (isAvail)
     {
-        std::cout<<"EnumEntry_TriggerSelector_FrameBurstStart"<<std::endl;
+        LOG(INFO)<<"EnumEntry_TriggerSelector_FrameBurstStart"<<std::endl;
         res = PylonDeviceFeatureFromString( hDev_, "TriggerSelector", "FrameBurstStart" );
         // CHECK( res );
         res = PylonDeviceFeatureFromString( hDev_, "TriggerMode", "Off" );
@@ -526,18 +549,25 @@ bool CameraBasler::openCamera()
     isAvail = PylonDeviceFeatureIsAvailable( hDev_, "EnumEntry_TriggerSelector_FrameStart" );
     if (isAvail)
     {
-	std::cout<<"EnumEntry_TriggerSelector_FrameStart"<<std::endl;
+	    LOG(INFO)<<"EnumEntry_TriggerSelector_FrameStart"<<std::endl;
         res = PylonDeviceFeatureFromString( hDev_, "TriggerSelector", "FrameStart" );
         // CHECK( res );
         res = PylonDeviceFeatureFromString( hDev_, "TriggerMode", "On" );
         // CHECK( res );
-        res = PylonDeviceFeatureFromString( hDev_, "TriggerSource", "Line2" );
+        res = PylonDeviceFeatureFromString(hDev_, "TriggerSource", "Line2");
         // CHECK( res );
-        res = PylonDeviceFeatureFromString( hDev_, "ExposureMode", "Timed" );
+        res = PylonDeviceFeatureFromString(hDev_, "ExposureMode", "Timed");
         // CHECK( res );
-        res = PylonDeviceSetFloatFeature( hDev_, "ExposureTime", 12000.0 );
+        res = PylonDeviceSetFloatFeature(hDev_, "ExposureTime", 600.0);
+        double max_frame = 0;
+        res = PylonDeviceGetFloatFeature(hDev_, "ResultingFrameRate", &max_frame);
+        LOG(INFO) << "max frame: " << max_frame;
+        min_camera_exposure_ = 1000000 / ((int)max_frame);
+        LOG(INFO) << "min_camera_exposure_: " << min_camera_exposure_;
+
+        res = PylonDeviceSetFloatFeature(hDev_, "ExposureTime", 12000.0);
         // CHECK( res );
-        res = PylonDeviceSetFloatFeature( hDev_, "Gain", 0.0 );
+        res = PylonDeviceSetFloatFeature(hDev_, "Gain", 0.0);
         // CHECK( res );
     }
 
@@ -549,12 +579,16 @@ bool CameraBasler::openCamera()
         LOG(INFO)<<"image_width_: "<<image_width_;
         LOG(INFO)<<"image_height_: "<<image_height_;
 
+     
+
     /* We will use the Continuous frame acquisition mode, i.e., the camera delivers
     images continuously. */
     res = PylonDeviceFeatureFromString( hDev_, "AcquisitionMode", "Continuous" );
     // CHECK( res );
 
-    min_camera_exposure_ = 6250;
+
+
+    // min_camera_exposure_ = 6250*2;
 
     camera_opened_state_ = true;
     

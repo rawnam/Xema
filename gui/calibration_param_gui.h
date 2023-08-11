@@ -17,6 +17,7 @@ public:
 
 	bool setShowCalibrationMessage(struct SystemConfigParam config_param, struct CameraCalibParam calibration_param);
 	 
+	void updateLanguage();
 
 private:
 	Ui::CalibrationParamGui ui;

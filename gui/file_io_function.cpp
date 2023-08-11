@@ -1212,6 +1212,22 @@ bool FileIoFunction::SaveBinPointsToPly(cv::Mat deep_mat, QString path, cv::Mat 
 								points_list.push_back(point);
 								color_list.push_back(color);
 							}
+							else
+							{
+								cv::Vec3f point;
+								cv::Vec3b color;
+
+								point[0] = 0;
+								point[1] = 0;
+								point[2] = 0;
+
+								color[0] = 0;
+								color[1] = 0;
+								color[2] = 0;
+
+								points_list.push_back(point);
+								color_list.push_back(color);
+							}
 
 						}
 					}
@@ -1243,6 +1259,23 @@ bool FileIoFunction::SaveBinPointsToPly(cv::Mat deep_mat, QString path, cv::Mat 
 								points_list.push_back(point);
 								color_list.push_back(color);
 
+							}
+							else
+							{
+
+								cv::Vec3f point;
+								cv::Vec3b color;
+
+								point[0] = 0;
+								point[1] = 0;
+								point[2] = 0;
+
+								color[0] = 0;
+								color[1] = 0;
+								color[2] = 0;
+
+								points_list.push_back(point);
+								color_list.push_back(color);
 							}
 
 						}
@@ -1285,6 +1318,22 @@ bool FileIoFunction::SaveBinPointsToPly(cv::Mat deep_mat, QString path, cv::Mat 
 								color_list.push_back(color);
 
 							}
+							else
+							{
+								cv::Vec3f point;
+								cv::Vec3b color;
+
+								point[0] = 0;
+								point[1] = 0;
+								point[2] = 0;
+
+								color[0] = 0;
+								color[1] = 0;
+								color[2] = 0;
+
+								points_list.push_back(point);
+								color_list.push_back(color);
+							}
 
 						}
 					}
@@ -1314,6 +1363,22 @@ bool FileIoFunction::SaveBinPointsToPly(cv::Mat deep_mat, QString path, cv::Mat 
 								points_list.push_back(point);
 								color_list.push_back(color);
 
+							}
+							else
+							{
+								cv::Vec3f point;
+								cv::Vec3b color;
+
+								point[0] = 0;
+								point[1] = 0;
+								point[2] = 0;
+
+								color[0] = 0;
+								color[1] = 0;
+								color[2] = 0;
+
+								points_list.push_back(point);
+								color_list.push_back(color);
 							}
 
 						}

@@ -511,6 +511,55 @@ namespace XEMA {
 	}
 
 
+	int XemaCamera::getCameraPixelType(int& type)
+	{
+
+		int get_type = 0;
+
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_ERROR_NETWORK;
+		}
+		ret = send_command(DF_CMD_GET_CAMERA_PIXEL_TYPE, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_ERROR_NETWORK;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			ret = recv_buffer((char*)(&get_type), sizeof(int), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_ERROR_NETWORK;
+			}
+
+			LOG(INFO) << "Frame Status: " << get_type;
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+		type = get_type;
+		return DF_SUCCESS;
+	}
+
 	int XemaCamera::getFrameStatus(int& status)
 	{
 
@@ -658,6 +707,18 @@ namespace XEMA {
 			return DF_ERROR_2D_CAMERA;
 		}
 
+		int pixel_type = 0;
+
+		ret = getCameraPixelType(pixel_type);
+		if (ret == DF_SUCCESS)
+		{
+			pixel_type_ = XemaPixelType(pixel_type);
+		}
+		else if (ret == DF_UNKNOWN)
+		{
+			pixel_type_ = XemaPixelType::Mono;
+		}
+
 		camera_width_ = width;
 		camera_height_ = height;
 
@@ -678,6 +739,7 @@ namespace XEMA {
 		brightness_buf_ = new unsigned char[brightness_bug_size_];
 
 
+		rgb_buf_ = new unsigned char[3 * brightness_bug_size_];
 		/******************************************************************************************************/
 		//产生畸变校正表
 		undistort_map_x_ = (float*)(new char[depth_buf_size_]);
@@ -784,6 +846,7 @@ namespace XEMA {
 		delete[] undistort_map_y_;
 		delete[] distorted_map_x_;
 		delete[] distorted_map_y_;
+		delete[] rgb_buf_;
 
 		depth_buf_ = NULL;
 		brightness_buf_ = NULL;
@@ -793,11 +856,46 @@ namespace XEMA {
 		undistort_map_y_ = NULL;
 		distorted_map_x_ = NULL;
 		distorted_map_y_ = NULL;
+		rgb_buf_ = NULL;
 
 		connected_flag_ = false;
 
 		/// 注销回调函数
 		el::Helpers::uninstallPreRollOutCallback();
+
+		return DF_SUCCESS;
+	}
+	 
+	int XemaCamera::getCameraChannels(int* channels)
+	{
+		int type = 0;
+		int ret = getCameraPixelType(type);
+
+		if (ret != DF_SUCCESS)
+		{
+			return ret;
+		}
+
+		XemaPixelType pixel = (XemaPixelType)type;
+
+		switch (pixel)
+		{
+		case XemaPixelType::Mono:
+		{
+			*channels = 1;
+		}
+		break;
+		case XemaPixelType::BayerRG8:
+		{
+			*channels = 3;
+		}
+		break;
+
+		default:
+			*channels = 1;
+		}
+
+
 
 		return DF_SUCCESS;
 	}
@@ -991,7 +1089,7 @@ namespace XEMA {
 		}
 
 		transform_pointcloud_flag_ = false;
-
+		bayer_to_rgb_flag_ = false;
 
 
 		int status = DF_SUCCESS;
@@ -1102,6 +1200,141 @@ namespace XEMA {
 		return 0;
 	}
 
+	int XemaCamera::getColorBrightnessData(unsigned char* brightness, XemaColor color)
+	{
+		LOG(INFO) << "getColorBrightnessData:";
+		if (!connected_flag_)
+		{
+			return DF_NOT_CONNECT;
+		}
+
+		if (pixel_type_ == XemaPixelType::BayerRG8)
+		{
+
+			if (!bayer_to_rgb_flag_)
+			{
+				bayerToRgb(brightness_buf_, rgb_buf_);
+				bayer_to_rgb_flag_ = true;
+			}
+
+			switch (color)
+			{
+			case XemaColor::Rgb:
+			{
+				memcpy(brightness, rgb_buf_, 3 * brightness_bug_size_);
+			}
+			break;
+			case XemaColor::Bgr:
+			{
+				for (int i = 0; i < brightness_bug_size_; i++)
+				{
+					brightness[3 * i + 0] = rgb_buf_[3 * i + 2];
+					brightness[3 * i + 1] = rgb_buf_[3 * i + 1];
+					brightness[3 * i + 2] = rgb_buf_[3 * i + 0];
+				}
+			}
+			break;
+			case XemaColor::Bayer:
+			{
+				memcpy(brightness, brightness_buf_, brightness_bug_size_);
+			}
+			break;
+			default:
+				break;
+			}
+
+		}
+
+
+		return DF_SUCCESS;
+	}
+
+	int XemaCamera::getUndistortColorBrightnessData(unsigned char* brightness, XemaColor color)
+	{
+
+		std::unique_lock<std::timed_mutex> lck(undistort_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		LOG(INFO) << "getUndistortColorBrightnessData:"<< (int)pixel_type_;
+		if (!connected_flag_)
+		{
+			return DF_NOT_CONNECT;
+		}
+
+
+		if (pixel_type_ == XemaPixelType::BayerRG8)
+		{
+
+			if (!bayer_to_rgb_flag_)
+			{
+				bayerToRgb(brightness_buf_, rgb_buf_);
+				bayer_to_rgb_flag_ = true;
+			}
+			else
+			{
+
+				LOG(ERROR) << "bayer_to_rgb_flag_";
+				return DF_FAILED;
+			}
+
+			if (NULL == rgb_buf_)
+			{
+				return DF_FAILED;
+			}
+
+			switch (color)
+			{
+			case XemaColor::Rgb:
+			{ 
+				memcpy(brightness, rgb_buf_, 3 * brightness_bug_size_);
+				if (DF_SUCCESS != undistortColorBrightnessMap(brightness))
+				{
+					return DF_FAILED;
+				}
+
+			}
+			break;
+			case XemaColor::Bgr:
+			{ 
+
+				for (int i = 0; i < brightness_bug_size_; i++)
+				{
+					brightness[3 * i + 0] = rgb_buf_[3 * i + 2];
+					brightness[3 * i + 1] = rgb_buf_[3 * i + 1];
+					brightness[3 * i + 2] = rgb_buf_[3 * i + 0];
+				}
+
+				if (DF_SUCCESS != undistortColorBrightnessMap(brightness))
+				{
+					LOG(ERROR) << "undistortColorBrightnessMap";
+					return DF_FAILED;
+				}
+			}
+			break;
+			case XemaColor::Bayer:
+			{ 
+				memcpy(brightness, brightness_buf_, brightness_bug_size_);
+
+				if (DF_SUCCESS != undistortBrightnessMap(brightness))
+				{
+					LOG(ERROR) << "undistortColorBrightnessMap";
+					return DF_FAILED;
+				}
+			}
+			break;
+			default:
+				break;
+			}
+
+		}
+
+
+		return DF_SUCCESS;
+	}
+
 	int XemaCamera::getUndistortBrightnessData(unsigned char* undistort_brightness)
 	{
 
@@ -1136,7 +1369,26 @@ namespace XEMA {
 
 		LOG(INFO) << "Trans Brightness:";
 
-		memcpy(brightness, brightness_buf_, brightness_bug_size_);
+		//memcpy(brightness, brightness_buf_, brightness_bug_size_);
+
+		if (pixel_type_ == XemaPixelType::Mono)
+		{
+			memcpy(brightness, brightness_buf_, brightness_bug_size_);
+		}
+		else if (pixel_type_ == XemaPixelType::BayerRG8)
+		{
+			if (!bayer_to_rgb_flag_)
+			{
+				bayerToRgb(brightness_buf_, rgb_buf_);
+				bayer_to_rgb_flag_ = true;
+			}
+
+			rgbToGray(rgb_buf_, brightness);
+		}
+		else
+		{
+			return DF_FAILED;
+		}
 
 		//brightness = brightness_buf_;
 
@@ -3702,7 +3954,212 @@ namespace XEMA {
 
 		close_socket(g_sock);
 		return DF_SUCCESS;
+	} 
+
+	int XemaCamera::rgbToGray(unsigned char* src, unsigned char* dst)
+	{
+		int height = camera_height_;
+		int width = camera_width_;
+
+		for (int r = 0; r < height; r++)
+		{
+
+			for (int c = 0; c < width; c++)
+			{
+				//0.299 R  + 0.587 G + B
+				dst[r * width + c] = src[3 * (r * width + c) + 0] * 0.299 +
+					0.587 * src[3 * (r * width + c) + 1] + 0.114 * src[3 * (r * width + c) + 2];
+			}
+
+		}
+
+
+		return 0;
 	}
+
+	int XemaCamera::bayerToRgb(unsigned char* src, unsigned char* dst)
+	{
+
+		int height = camera_height_;
+		int width = camera_width_;
+
+		//按3×3的邻域处理，边缘需填充至少1个像素的宽度
+		int nBorder = 1;
+		unsigned char* bayer = (unsigned char*)malloc(sizeof(unsigned char) * (width + 2 * nBorder) * (height + 2 * nBorder));
+		memset(bayer, 0, sizeof(unsigned char) * (width + 2 * nBorder) * (height + 2 * nBorder));
+
+		for (int r = 0; r < height; r++)
+		{
+			for (int c = 0; c < width; c++)
+			{
+				bayer[(r + nBorder) * (width + 2 * nBorder) + (c + nBorder)] = src[r * width + c];
+			}
+		}
+
+		for (int b = 0; b < nBorder; b++)
+		{
+			for (int r = 0; r < height; r++)
+			{
+				bayer[(r + nBorder) * (width + 2 * nBorder) + b] = src[r * width];
+				bayer[(r + nBorder) * (width + 2 * nBorder) + b + 2 * nBorder + width - 1] = src[r * width + width - 1];
+			}
+		}
+
+		for (int b = 0; b < nBorder; b++)
+		{
+			for (int c = 0; c < width + 2 * nBorder; c++)
+			{
+				bayer[b * (width + 2 * nBorder) + c] = bayer[nBorder * (width + 2 * nBorder) + c];
+				bayer[(nBorder + height + b) * (width + 2 * nBorder) + c] = bayer[(nBorder + height - 1) * (width + 2 * nBorder) + c];
+			}
+		}
+
+		unsigned char* p_rgb = (unsigned char*)malloc(sizeof(unsigned char) * 3 * (width + 2 * nBorder) * (height + 2 * nBorder));
+		memset(p_rgb, 0, sizeof(unsigned char) * 3 * (width + 2 * nBorder) * (height + 2 * nBorder));
+
+
+		unsigned char* pBayer = bayer;
+		unsigned char* pRGB = p_rgb;
+		int nW = width + 2 * nBorder;
+		int nH = height + 2 * nBorder;
+
+
+		for (int i = nBorder; i < nH - nBorder; i++)
+		{
+			for (int j = nBorder; j < nW - nBorder; j++)
+			{
+				//3×3邻域像素定义
+				/*
+				 * |M00 M01 M02|
+				 * |M10 M11 M12|
+				 * |M20 M21 M22|
+				*/
+				int nM00 = (i - 1) * nW + (j - 1); int nM01 = (i - 1) * nW + (j + 0);  int nM02 = (i - 1) * nW + (j + 1);
+				int nM10 = (i - 0) * nW + (j - 1); int nM11 = (i - 0) * nW + (j + 0);  int nM12 = (i - 0) * nW + (j + 1);
+				int nM20 = (i + 1) * nW + (j - 1); int nM21 = (i + 1) * nW + (j + 0);  int nM22 = (i + 1) * nW + (j + 1);
+
+				if (i % 2 == 0)
+				{
+					if (j % 2 == 0)     //偶数行偶数列
+					{
+						pRGB[i * nW * 3 + j * 3 + 0] = pBayer[nM11];//b
+						pRGB[i * nW * 3 + j * 3 + 2] = ((pBayer[nM00] + pBayer[nM02] + pBayer[nM20] + pBayer[nM22]) >> 2);//r
+						pRGB[i * nW * 3 + j * 3 + 1] = ((pBayer[nM01] + pBayer[nM10] + pBayer[nM12] + pBayer[nM21]) >> 2);//g
+					}
+					else             //偶数行奇数列
+					{
+						pRGB[i * nW * 3 + j * 3 + 1] = pBayer[nM11];//g
+						pRGB[i * nW * 3 + j * 3 + 2] = (pBayer[nM01] + pBayer[nM21]) >> 1;//r
+						pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM10] + pBayer[nM12]) >> 1;//b
+					}
+				}
+				else
+				{
+					if (j % 2 == 0)     //奇数行偶数列
+					{
+						pRGB[i * nW * 3 + j * 3 + 1] = pBayer[nM11];//g
+						pRGB[i * nW * 3 + j * 3 + 2] = (pBayer[nM10] + pBayer[nM12]) >> 1;//r
+						pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM01] + pBayer[nM21]) >> 1;//b
+					}
+					else             //奇数行奇数列
+					{
+						pRGB[i * nW * 3 + j * 3 + 2] = pBayer[nM11];//r
+						pRGB[i * nW * 3 + j * 3 + 1] = (pBayer[nM01] + pBayer[nM21] + pBayer[nM10] + pBayer[nM12]) >> 2;//g
+						pRGB[i * nW * 3 + j * 3 + 0] = (pBayer[nM00] + pBayer[nM02] + pBayer[nM20] + pBayer[nM22]) >> 2;//b
+					}
+				}
+			}
+		}
+
+
+		for (int r = 0; r < height; r++)
+		{
+			for (int c = 0; c < width; c++)
+			{
+				dst[3 * (r * width + c) + 0] = pRGB[3 * ((r + nBorder) * (width + 2 * nBorder) + c + nBorder) + 0];
+				dst[3 * (r * width + c) + 1] = pRGB[3 * ((r + nBorder) * (width + 2 * nBorder) + c + nBorder) + 1];
+				dst[3 * (r * width + c) + 2] = pRGB[3 * ((r + nBorder) * (width + 2 * nBorder) + c + nBorder) + 2];
+			}
+		}
+
+
+		free(bayer);
+		free(p_rgb);
+
+		return 0;
+	}
+
+
+	int XemaCamera::undistortColorBrightnessMap(unsigned char* brightness_map)  
+	{
+
+
+		int nr = camera_height_;
+		int nc = camera_width_;
+
+		unsigned char* b_map = new unsigned char[nr * nc];
+		memset(b_map, 0, sizeof(unsigned char) * nr * nc);
+
+		unsigned char* g_map = new unsigned char[nr * nc];
+		memset(g_map, 0, sizeof(unsigned char) * nr * nc);
+
+		unsigned char* r_map = new unsigned char[nr * nc];
+		memset(r_map, 0, sizeof(unsigned char) * nr * nc);
+
+		for (int r = 0; r < nr; r++)
+		{
+			for (int c = 0; c < nc; c++)
+			{
+				b_map[r * nc + c] = brightness_map[3 * (r * nc + c) + 0];
+				g_map[r * nc + c] = brightness_map[3 * (r * nc + c) + 1];
+				r_map[r * nc + c] = brightness_map[3 * (r * nc + c) + 2];
+
+			}
+
+		}
+
+		if (DF_SUCCESS != undistortBrightnessMap(b_map))
+		{
+			delete[] b_map;
+			delete[] g_map;
+			delete[] r_map;
+			return DF_FAILED;
+		}
+
+		if (DF_SUCCESS != undistortBrightnessMap(g_map))
+		{
+			delete[] b_map;
+			delete[] g_map;
+			delete[] r_map;
+			return DF_FAILED;
+		}
+
+		if (DF_SUCCESS != undistortBrightnessMap(r_map))
+		{
+			delete[] b_map;
+			delete[] g_map;
+			delete[] r_map;
+			return DF_FAILED;
+		}
+
+
+		for (int r = 0; r < nr; r++)
+		{
+			for (int c = 0; c < nc; c++)
+			{
+				brightness_map[3 * (r * nc + c) + 0] = b_map[r * nc + c];
+				brightness_map[3 * (r * nc + c) + 1] = g_map[r * nc + c];
+				brightness_map[3 * (r * nc + c) + 2] = r_map[r * nc + c];
+			}
+
+		}
+
+		delete[] b_map;
+		delete[] g_map;
+		delete[] r_map;
+		return DF_SUCCESS;
+	}
+
 
 
 	int XemaCamera::undistortBrightnessMap(unsigned char* brightness_map) //最近邻

@@ -38,6 +38,13 @@ camera_gui::camera_gui(QWidget* parent)
 
 	connect(ui.action_update_firmware, SIGNAL(triggered()), this, SLOT(do_action_update_firmware()));
 	connect(ui.actionAbout, SIGNAL(triggered()), this, SLOT(do_action_about()));
+
+	connect(ui.action_language_chinese, SIGNAL(triggered()), this, SLOT(do_action_language_chinese()));
+	connect(ui.action_language_english, SIGNAL(triggered()), this, SLOT(do_action_language_english()));
+	//connect(ui.tab_capture, SIGNAL(send_update_language(QString)), this, SLOT(do_update_language(QString)));
+
+	ui.tab_capture->getGuiConfigParam(processing_gui_settings_data_); 
+	do_update_language(processing_gui_settings_data_.Instance().language);
 }
 
 camera_gui::~camera_gui()
@@ -47,9 +54,9 @@ camera_gui::~camera_gui()
 
 void  camera_gui::do_slot_handle_network()
 {
-	ui.tab_capture->addLogMessage(u8"心跳停止");
+	ui.tab_capture->addLogMessage(tr("心跳停止"));
 	ui.tab_capture->do_pushButton_disconnect();
-	ui.tab_capture->addLogMessage(u8"重新连接...");
+	ui.tab_capture->addLogMessage(tr("重新连接..."));
 	ui.tab_capture->do_pushButton_connect();
 }
 
@@ -69,7 +76,7 @@ void camera_gui::setOnDrop(int (*p_function)(void*))
 
 void camera_gui::do_action_load_camera_config()
 {
-	QString path = QFileDialog::getOpenFileName(this, u8"加载配置文件", last_config_path_, "*.json");
+	QString path = QFileDialog::getOpenFileName(this, tr("加载配置文件"), last_config_path_, "*.json");
 
 	if (path.isEmpty())
 	{
@@ -83,12 +90,12 @@ void camera_gui::do_action_load_camera_config()
 
 	if (ret)
 	{
-		QString log = u8"成功加载配置文件： " + path;
+		QString log = tr("成功加载配置文件： ") + path;
 		ui.tab_capture->addLogMessage(log);
 	}
 	else
 	{
-		QString log = u8"加载配置文件失败： " + path;
+		QString log = tr("加载配置文件失败： ") + path;
 		ui.tab_capture->addLogMessage(log);
 	}
 
@@ -97,7 +104,7 @@ void camera_gui::do_action_load_camera_config()
 void camera_gui::do_action_save_camera_config()
 {
 
-	QString path = QFileDialog::getSaveFileName(this, u8"保存配置文件", "../example_config.json", "*.json");
+	QString path = QFileDialog::getSaveFileName(this, tr("保存配置文件"), "../example_config.json", "*.json");
 
 	if (path.isEmpty())
 	{
@@ -112,12 +119,12 @@ void camera_gui::do_action_save_camera_config()
 
 	if (ret)
 	{
-		QString log = u8"保存配置文件： " + path;
+		QString log = tr("保存配置文件： ") + path;
 		ui.tab_capture->addLogMessage(log);
 	}
 	else
 	{
-		QString log = u8"保存配置文件失败： " + path;
+		QString log = tr("保存配置文件失败： ") + path;
 		ui.tab_capture->addLogMessage(log);
 	}
 }
@@ -164,12 +171,13 @@ void camera_gui::do_action_show_calibration_param()
 
 	if (ret)
 	{
+		show_calib_param_gui_.updateLanguage();
 		show_calib_param_gui_.setShowCalibrationMessage(config_param, calibration_param);
 		show_calib_param_gui_.exec();
 	}
 	else
 	{
-		ui.tab_capture->addLogMessage(u8"请连接相机");
+		ui.tab_capture->addLogMessage(tr("请连接相机"));
 	}
 }
 
@@ -179,6 +187,7 @@ void camera_gui::do_action_update_firmware()
 	QString ip;
 	ui.tab_capture->getCameraIp(ip);
 	update_firmware_gui.setCameraIp(ip);
+	update_firmware_gui.updateLanguage();
 
 	if (QDialog::Accepted == update_firmware_gui.exec())
 	{
@@ -219,8 +228,8 @@ void camera_gui::do_update_temperature(float val)
 void camera_gui::closeEvent(QCloseEvent* e)
 {
 	if (QMessageBox::question(this,
-		u8"提示",
-		u8"确定退出软件？",
+		tr("提示"),
+		tr("确定退出软件？"),
 		QMessageBox::Yes, QMessageBox::No)
 		== QMessageBox::Yes) {
 		e->accept();//不会将事件传递给组件的父组件
@@ -276,4 +285,89 @@ bool camera_gui::setUiData()
 	return true;
 
 }
+
+
+void camera_gui::do_action_language_chinese()
+{
+	static QTranslator* trans;
+
+	//qm文件的删除：
+	if (trans != NULL)
+	{
+		qApp->removeTranslator(trans);
+		delete trans;
+		trans = NULL;
+	}
+	trans = new QTranslator;
+
+	if (trans->load("xema_translation_ch.qm"))
+	{
+		qApp->installTranslator(trans);
+		processing_gui_settings_data_.Instance().language = "ch";
+		ui.tab_capture->setGuiConfigParam(processing_gui_settings_data_);
+	}
+	else
+	{
+		ui.tab_capture->addLogMessage(tr("load translation file failed!"));
+	}
+
+	ui.retranslateUi(this);
+	ui.tab_capture->updateLanguage();
+
+}
+
+void camera_gui::do_action_language_english()
+{
+	static QTranslator* trans;
+
+	//qm文件的删除：
+	if (trans != NULL)
+	{
+		qApp->removeTranslator(trans);
+		delete trans;
+		trans = NULL;
+	}
+	trans = new QTranslator;
+
+	if (trans->load("xema_translation_en.qm"))
+	{
+		qApp->installTranslator(trans);
+		processing_gui_settings_data_.Instance().language = "en";
+		ui.tab_capture->setGuiConfigParam(processing_gui_settings_data_);
+	}
+	else
+	{
+		ui.tab_capture->addLogMessage(tr("load translation file failed!"));
+	}
+
+	ui.retranslateUi(this);
+	ui.tab_capture->updateLanguage();
+
+
+	////qm文件的删除：
+	//if (trans != NULL)
+	//{
+	//	//qApp->removeTranslator(trans);
+	//	delete trans;
+	//	trans = NULL;
+	//}
+
+	//ui.retranslateUi(this);
+}
+
+
+void camera_gui::do_update_language(QString val)
+{
+	qDebug() << "test update language!";
+	if (val == "en")
+	{
+		do_action_language_english();
+	}
+	else
+	{
+		do_action_language_chinese();
+	}
+
+}
+
 
