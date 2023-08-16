@@ -6094,7 +6094,7 @@ DF_SDK_API int DfGetParamCameraGain(float& gain)
 //返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 DF_SDK_API int DfGetSdkVersion(char version[64])
 {
-	std::strcpy(version, "v1.4.0"); 
+	std::strcpy(version, "v1.4.1"); 
 
 	return DF_SUCCESS;
 }
