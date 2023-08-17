@@ -281,3 +281,16 @@ __global__ void cuda_count_sum_pixel(const unsigned char* brightness,uint32_t im
 			*sum_pixels +=  brightness[offset];  
 		}
 }
+
+
+__global__ void cuda_count_sum_pixel_16(const unsigned short* brightness,uint32_t img_height, uint32_t img_width, float* sum_pixels)
+{
+		const unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+		const unsigned int idy = blockIdx.y * blockDim.y + threadIdx.y;
+		const unsigned int offset = idy * img_width + idx;
+	
+		if (idx < img_width && idy < img_height)
+		{ 
+			*sum_pixels +=  brightness[offset];  
+		}
+}
