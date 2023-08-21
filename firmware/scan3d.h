@@ -91,6 +91,8 @@ public:
     int captureFrame06Mono12();
 
     int captureFrame06HdrMono12();
+
+    int captureFrame06RepetitionMono12(int repetition_count); 
     
     int captureFrame06Color();
 

@@ -1841,10 +1841,109 @@ int Scan3D::captureFrame06Hdr()
  
 }
 
+int Scan3D::captureFrame06RepetitionMono12(int repetition_count)
+{
+    LOG(INFO) << "cuda_clear_reconstruct_cache:";
+    cuda_clear_reconstruct_cache();
+    initCache();
+
+    int frame_status = DF_SUCCESS;
+    cuda_clear_repetition_02_patterns();
+
+    if (patterns_sets_num_ < 9)
+    {
+        return DF_ERROR_LOST_PATTERN_SETS;
+    }
+
+    camera_->setPixelFormat(12);
+
+    if (!camera_->streamOn())
+    {
+        LOG(INFO) << "Stream On Error";
+        frame_status = DF_ERROR_CAMERA_STREAM;
+        return DF_ERROR_CAMERA_STREAM;
+    }
+
+    unsigned short *img_ptr = new unsigned short[image_width_ * image_height_];
+
+    for (int r = 0; r < repetition_count; r++)
+    {
+        int n = 0;
+
+        LOG(INFO) << "pattern_mode06";
+        int ret = lc3010_.pattern_mode06();
+        if (DF_SUCCESS != ret)
+        {
+            frame_status = ret;
+            camera_->streamOff();
+            return ret;
+        }
+
+        lc3010_.start_pattern_sequence();
+        LOG(INFO) << "start_pattern_sequence";
+
+        for (int g_i = 0; g_i < 16; g_i++)
+        {
+            LOG(INFO) << "receiving " << g_i << "th image";
+            bool status = camera_->grap(img_ptr);
+            LOG(INFO) << "status=" << status;
+
+            if (status)
+            {
+
+                cuda_merge_repetition_02_patterns_16(img_ptr, g_i);
+            }
+            else
+            {
+                LOG(INFO) << "grad failed!";
+                camera_->streamOff();
+                delete[] img_ptr;
+
+                if (g_i == 0)
+                {
+                        return DF_ERROR_LOST_TRIGGER;
+                }
+
+                frame_status = DF_ERROR_CAMERA_GRAP;
+                return DF_ERROR_CAMERA_GRAP;
+            }
+        }
+
+        /*********************************************************************************************/
+
+        /***********************************************************************************************/
+    }
+
+    camera_->streamOff();
+    lc3010_.stop_pattern_sequence();
+    LOG(INFO) << "GXStreamOff";
+
+    delete[] img_ptr;
+
+    camera_->setPixelFormat(8);
+
+    cuda_handle_repetition_model06_16(repetition_count);
+
+    cuda_normalize_phase(0);
+    LOG(INFO) << "parallel_cuda_unwrap_phase";
+    cuda_generate_pointcloud_base_table(); 
+    LOG(INFO) << "generate_pointcloud_base_table";
+
+    cuda_copy_depth_from_memory(buff_depth_);
+    cuda_copy_pointcloud_from_memory(buff_pointcloud_);
+
+    if (1 == generate_brightness_model_)
+    {
+        cuda_copy_brightness_from_memory(buff_brightness_);
+    }
+ 
+    return frame_status;
+}
 
 int Scan3D::captureFrame06HdrMono12()
 {
 
+    LOG(INFO) << "captureFrame06HdrMono12";
     LOG(INFO) << "cuda_clear_reconstruct_cache:";
     cuda_clear_reconstruct_cache();
     initCache();
@@ -1852,8 +1951,7 @@ int Scan3D::captureFrame06HdrMono12()
     LOG(INFO)<<"Mixed HDR Exposure Base Confidence:";  
     int frame_status = DF_SUCCESS;
 
-    
-
+     
 
     if (patterns_sets_num_ < 9)
     {
@@ -1870,8 +1968,7 @@ int Scan3D::captureFrame06HdrMono12()
         return DF_ERROR_CAMERA_STREAM;
     }
  
-
-    // unsigned char *img_ptr = new unsigned char[image_width_ * image_height_];
+ 
     unsigned short *img_ptr= new unsigned short[image_width_*image_height_];
 
     for(int hdr_i= 0;hdr_i< hdr_num_;hdr_i++)
@@ -1931,18 +2028,11 @@ int Scan3D::captureFrame06HdrMono12()
             }
             LOG(INFO) << "finished!";
 
-            if (0 == g_i)
-            {
-                cuda_copy_brightness_16_to_memory(img_ptr);
-            }
-
-            cuda_copy_minsw8_pattern_to_memory_16(img_ptr, g_i);
-            // cuda_copy_minsw8_pattern_to_memory(img_ptr, g_i);
-
-            // cuda_handle_minsw8(g_i);
+  
+            cuda_copy_minsw8_pattern_to_memory_16(img_ptr, g_i); 
+ 
             cuda_handle_minsw8_16(g_i);
-
-            // cuda_handle_model06_16();
+ 
             // copy to gpu
 
             if (15 == g_i)
@@ -1954,8 +2044,8 @@ int Scan3D::captureFrame06HdrMono12()
         }
 
         /****************************************************************************************************/
-
-        cuda_copy_result_to_hdr_16(hdr_i,0);
+ 
+        cuda_copy_result_to_hdr(hdr_i,0);
     }
 
     delete[] img_ptr;
@@ -1963,12 +2053,8 @@ int Scan3D::captureFrame06HdrMono12()
     lc3010_.stop_pattern_sequence(); 
     cuda_merge_hdr_data_16(hdr_num_, buff_depth_, buff_brightness_);  
 
-    camera_->setPixelFormat(8);
-    
-    // if (1 != generate_brightness_model_)
-    // { 
-    //     captureTextureImage(generate_brightness_model_, generate_brightness_exposure_, buff_brightness_);
-    // }
+    camera_->setPixelFormat(8); 
+ 
     /******************************************************************************************************/
     LOG(INFO) << "led_current_: " << led_current_;
     lc3010_.init();
@@ -1992,7 +2078,7 @@ int Scan3D::captureFrame06HdrMono12()
 int Scan3D::captureFrame06Mono12()
 {
 
-    LOG(INFO) << "captureFrame06Black";
+    LOG(INFO) << "captureFrame06Mono12";
     LOG(INFO) << "cuda_clear_reconstruct_cache:";
     cuda_clear_reconstruct_cache();
     initCache();
@@ -2014,40 +2100,31 @@ int Scan3D::captureFrame06Mono12()
         return DF_ERROR_CAMERA_STREAM;
     }
 
-    unsigned short *img_ptr= new unsigned short[image_width_*image_height_];
+    unsigned short *img_ptr = new unsigned short[image_width_ * image_height_];
 
-  
-        LOG(INFO) << "pattern_mode06";
-        int ret = lc3010_.pattern_mode06();
-        if(DF_SUCCESS != ret)
+    LOG(INFO) << "pattern_mode06";
+    int ret = lc3010_.pattern_mode06();
+    if (DF_SUCCESS != ret)
+    {
+        frame_status = ret;
+        camera_->streamOff();
+        return ret;
+    }
+
+    lc3010_.start_pattern_sequence();
+    LOG(INFO) << "start_pattern_sequence";
+
+    for (int g_i = 0; g_i < 16; g_i++)
+    {
+        LOG(INFO) << "receiving " << g_i << "th image";
+        bool status = camera_->grap(img_ptr);
+        LOG(INFO) << "status=" << status;
+
+        if (status)
         {
-            frame_status = ret;
-            camera_->streamOff();
-            return ret;
-        }
 
-        lc3010_.start_pattern_sequence();
-        LOG(INFO) << "start_pattern_sequence";
+            cuda_copy_minsw8_pattern_to_memory_16(img_ptr, g_i);
 
-        for (int g_i = 0; g_i < 16; g_i++)
-        {
-            LOG(INFO) << "receiving " << g_i << "th image";
-            bool status = camera_->grap(img_ptr);
-            LOG(INFO) << "status=" << status;
-
-            if (status)
-            {
-
-                // cuda_copy_minsw8_pattern_to_memory_16(img_ptr, g_i);
-
-                
-            if (0 == g_i)
-            {
-                cuda_copy_brightness_16_to_memory(img_ptr);
-            }
-
-            cuda_copy_minsw8_pattern_to_memory_16(img_ptr, g_i); 
- 
             cuda_handle_minsw8_16(g_i);
 
             // cuda_handle_model06_16();
@@ -2059,19 +2136,17 @@ int Scan3D::captureFrame06Mono12()
                 cuda_generate_pointcloud_base_table();
                 LOG(INFO) << "cuda_generate_pointcloud_base_table";
             }
-    
-            }
-            else
-            {
-                LOG(INFO) << "grad failed!";
-                camera_->streamOff();
-                delete[] img_ptr;
-
-                frame_status = DF_ERROR_CAMERA_GRAP;
-                return DF_ERROR_CAMERA_GRAP;
-            }
-  
         }
+        else
+        {
+            LOG(INFO) << "grad failed!";
+            camera_->streamOff();
+            delete[] img_ptr;
+
+            frame_status = DF_ERROR_CAMERA_GRAP;
+            return DF_ERROR_CAMERA_GRAP;
+        }
+    }
 
         /*********************************************************************************************/
 
@@ -2080,13 +2155,7 @@ int Scan3D::captureFrame06Mono12()
         LOG(INFO) << "GXStreamOff";
 
         delete[] img_ptr;
-
-        // cuda_handle_model06_16();
-
-        // cuda_normalize_phase(0);
-        LOG(INFO) << "parallel_cuda_unwrap_phase";
-        // cuda_generate_pointcloud_base_table();
-        // depth_filter(system_config_settings_machine_.Instance().firwmare_param_.radius_filter_r / 1000.);
+ 
         LOG(INFO) << "generate_pointcloud_base_table";
 
         camera_->setPixelFormat(8);

@@ -91,8 +91,7 @@ __device__ float* d_undistort_map_y_ = NULL;
 //hdr memory
 
 __device__ float* d_hdr_depth_map_list_[D_HDR_MAX_NUM];
-__device__ unsigned char* d_hdr_brightness_list_[D_HDR_MAX_NUM];
-__device__ unsigned short* d_hdr_brightness_short_list_[D_HDR_MAX_NUM];
+__device__ unsigned char* d_hdr_brightness_list_[D_HDR_MAX_NUM]; 
 __device__ float* d_hdr_bright_pixel_sum_list_[D_HDR_MAX_NUM];
    
 /**********************************************************************/
@@ -179,6 +178,8 @@ int cuda_handle_minsw8(int flag);
 
 int cuda_handle_repetition_model06(int repetition_count);
 
+int cuda_handle_repetition_model06_16(int repetition_count);
+
 
 /*********************************************************************************/
 //mono
@@ -191,7 +192,7 @@ int cuda_handle_minsw8_16(int flag);
 
 int cuda_copy_minsw8_pattern_to_memory_16(unsigned short* pattern_ptr,int serial_flag);
 
-bool cuda_copy_result_to_hdr_16(int serial_flag,int brigntness_serial);
+// bool cuda_copy_result_to_hdr_16(int serial_flag,int brigntness_serial);
 
 bool cuda_merge_hdr_data_16(int hdr_num,float* depth_map, unsigned char* brightness);
 /***********************************************************************************/
@@ -229,6 +230,8 @@ bool cuda_compute_merge_phase(int repetition_count);
 bool cuda_clear_repetition_02_patterns();
 
 bool cuda_merge_repetition_02_patterns(int repetition_serial);
+
+bool cuda_merge_repetition_02_patterns_16(unsigned short * const d_in_pattern,int repetition_serial);
 
 bool cuda_compute_merge_repetition_02_phase(int repetition_count,int phase_num);
 /***********************************************************************************/
