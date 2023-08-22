@@ -17,7 +17,7 @@ Scan3D::Scan3D()
     min_camera_exposure_ = 1000;
 
     led_current_ = 1023;
-    camera_exposure_ = 12000;
+    camera_exposure_ = 12000; 
     camera_gain_ = 0;
 
     generate_brightness_model_ = 1;
@@ -102,6 +102,9 @@ int Scan3D::init()
     camera_->getMinExposure(min_exposure);
     LOG(INFO)<<"scan3d min_exposure: "<<min_exposure; 
     lc3010_.set_camera_min_exposure(min_exposure);
+
+    min_camera_exposure_mono8_ = min_exposure;
+    min_camera_exposure_mono12_ = min_exposure*2;
 
     buff_brightness_ = new unsigned char[image_width_*image_height_];
     buff_depth_ = new float[image_width_*image_height_];
@@ -232,8 +235,8 @@ bool Scan3D::setParamHdr(int num,std::vector<int> led_list,std::vector<int> expo
 }
 
 bool Scan3D::setParamExposure(float exposure)
-{
-
+{ 
+ 
     if(exposure > max_camera_exposure_ || exposure < min_camera_exposure_)
     {
         return false;
@@ -1855,7 +1858,7 @@ int Scan3D::captureFrame06RepetitionMono12(int repetition_count)
         return DF_ERROR_LOST_PATTERN_SETS;
     }
 
-    camera_->setPixelFormat(12);
+    setPixelFormat(12);
 
     if (!camera_->streamOn())
     {
@@ -1920,7 +1923,7 @@ int Scan3D::captureFrame06RepetitionMono12(int repetition_count)
 
     delete[] img_ptr;
 
-    camera_->setPixelFormat(8);
+    setPixelFormat(8);
 
     cuda_handle_repetition_model06_16(repetition_count);
 
@@ -1959,7 +1962,7 @@ int Scan3D::captureFrame06HdrMono12()
     }
 
     
-    camera_->setPixelFormat(12);
+    setPixelFormat(12);
 
     LOG(INFO) << "Stream On:";
     if (!camera_->streamOn())
@@ -2053,7 +2056,7 @@ int Scan3D::captureFrame06HdrMono12()
     lc3010_.stop_pattern_sequence(); 
     cuda_merge_hdr_data_16(hdr_num_, buff_depth_, buff_brightness_);  
 
-    camera_->setPixelFormat(8); 
+    setPixelFormat(8); 
  
     /******************************************************************************************************/
     LOG(INFO) << "led_current_: " << led_current_;
@@ -2091,7 +2094,7 @@ int Scan3D::captureFrame06Mono12()
         return DF_ERROR_LOST_PATTERN_SETS;
     }
 
-    camera_->setPixelFormat(12);
+    setPixelFormat(12);
 
     if (!camera_->streamOn())
     {
@@ -2158,7 +2161,7 @@ int Scan3D::captureFrame06Mono12()
  
         LOG(INFO) << "generate_pointcloud_base_table";
 
-        camera_->setPixelFormat(8);
+        setPixelFormat(8);
 
         cuda_copy_depth_from_memory(buff_depth_);
         cuda_copy_pointcloud_from_memory(buff_pointcloud_);
@@ -3243,6 +3246,50 @@ void Scan3D::getCameraResolution(int &width, int &height)
     height = image_height_;
 }
 
+
+int Scan3D::setPixelFormat(int bit)
+{
+    int ret = DF_SUCCESS;
+
+    switch (bit)
+    {
+    case 8:
+    {
+        // min_camera_exposure_ = min_camera_exposure_mono8_;
+        LOG(INFO) << "min_camera_exposure_mono8_: " << min_camera_exposure_mono8_;
+        lc3010_.set_camera_min_exposure(min_camera_exposure_mono8_);
+        camera_->setPixelFormat(8);
+
+        if (!camera_->setExposure(camera_exposure_))
+        {
+            return false;
+        }
+        lc3010_.set_camera_exposure(camera_exposure_);
+    }
+    break;
+
+    case 12:
+    {
+        // min_camera_exposure_ = min_camera_exposure_mono12_;
+        LOG(INFO) << "min_camera_exposure_mono12_: " << min_camera_exposure_mono12_;
+        lc3010_.set_camera_min_exposure(min_camera_exposure_mono12_);
+        camera_->setPixelFormat(12);
+
+        if (!camera_->setExposure(camera_exposure_))
+        {
+            return false;
+        }
+        lc3010_.set_camera_exposure(camera_exposure_);
+    }
+    break;
+
+    default:
+        ret = DF_FAILED;
+        break;
+    }
+
+    return ret;
+}
 
 void Scan3D::getCameraPixelType(XemaPixelType &type) 
 { 

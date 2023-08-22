@@ -131,6 +131,7 @@ public:
 
     void getCameraPixelType(XemaPixelType &type);
 
+    int setPixelFormat(int bit);
 
 private:
  
@@ -151,6 +152,9 @@ private:
 
     int max_camera_exposure_;
     int min_camera_exposure_;
+
+    int min_camera_exposure_mono8_;
+    int min_camera_exposure_mono12_; 
 
     int led_current_;
     int camera_exposure_;
