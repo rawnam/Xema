@@ -65,6 +65,8 @@ struct FirmwareConfigParam
 	float brightness_hdr_gain_param_list[10];
 	int brightness_hdr_exposure_num;
 	float brightness_gain;
+
+	int engine;
 };
 
 

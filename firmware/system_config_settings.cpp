@@ -91,6 +91,8 @@ SystemConfigDataStruct::SystemConfigDataStruct()
 
 	instance_.firwmare_param_.brightness_gain = 0;
 
+	instance_.firwmare_param_.engine = 1;
+
 }
 
 bool SystemConfigDataStruct::loadFromSettings(const std::string& f)

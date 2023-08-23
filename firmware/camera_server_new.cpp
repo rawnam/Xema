@@ -4965,6 +4965,49 @@ int handle_cmd_get_param_hdr(int client_sock)
        
 }
 
+//设置采集引擎
+int handle_cmd_set_param_capture_engine(int client_sock)
+{
+    if(check_token(client_sock) == DF_FAILED)
+    {
+	    return DF_FAILED;
+    }
+	  
+
+    int engine= -1;
+
+    int ret = recv_buffer(client_sock, (char*)(&engine), sizeof(engine));
+    if(ret == DF_FAILED)
+    {
+        LOG(INFO) << "send error, close this connection!\n";
+        return DF_FAILED;
+    }
+
+    // set led current
+
+    if (0 <= engine && engine < 3)
+    {  
+        system_config_settings_machine_.Instance().firwmare_param_.engine = engine;
+
+        if(2 == engine)
+        {
+            scan3d_.setPixelFormat(12);
+        }
+        else
+        {
+            scan3d_.setPixelFormat(8);
+        }
+
+        return DF_SUCCESS;
+    }
+    else
+    {
+        LOG(ERROR)<<"engine param error!";
+    }
+
+        return DF_FAILED; 
+}
+
 //设置光机投影亮度
 int handle_cmd_set_param_led_current(int client_sock)
 {
@@ -5003,6 +5046,7 @@ int handle_cmd_set_param_led_current(int client_sock)
 
         return DF_FAILED; 
 }
+
 
 //获取光机投影亮度
 int handle_cmd_get_param_led_current(int client_sock)
@@ -6020,6 +6064,59 @@ int handle_commands(int client_sock)
         LOG(INFO) << "DF_CMD_GET_FRAME_05";
         ret = handle_cmd_get_frame_05_parallel(client_sock);
         break;
+    case DF_CMD_GET_FRAME_06_MONO12:
+        {
+            LOG(INFO) << "DF_CMD_GET_FRAME_06_MONO12";
+            XemaPixelType type;
+            scan3d_.getCameraPixelType(type);
+
+            if (type == XemaPixelType::Mono)
+            {
+                ret = handle_cmd_get_frame_06_black(client_sock);
+            }
+            else if (type == XemaPixelType::BayerRG8)
+            {
+                ret = handle_cmd_get_frame_06_color(client_sock);
+            }
+        } 
+    break;
+        case DF_CMD_GET_FRAME_06_HDR_MONO12:
+    { 
+        LOG(INFO) << "DF_CMD_GET_FRAME_06_MONO12";
+
+            XemaPixelType type;
+            scan3d_.getCameraPixelType(type);
+
+            if (type == XemaPixelType::Mono)
+            {
+                ret = handle_cmd_get_frame_06_hdr_black(client_sock);
+            }
+            else if (type == XemaPixelType::BayerRG8)
+            {
+                ret = handle_cmd_get_frame_06_hdr_color(client_sock);
+            }
+    }
+
+    break;
+    case DF_CMD_GET_REPETITION_FRAME_06_MONO12:
+    {
+            LOG(INFO) << "DF_CMD_GET_REPETITION_FRAME_06_MONO12";
+
+            XemaPixelType type;
+            scan3d_.getCameraPixelType(type);
+
+            if (type == XemaPixelType::Mono)
+            { 
+                ret = handle_cmd_get_frame_06_repetition_black(client_sock); 
+                
+            }
+            else if (type == XemaPixelType::BayerRG8)
+            {
+                ret = handle_cmd_get_frame_06_repetition_color(client_sock);
+            }
+    }
+
+        break;  
     case DF_CMD_GET_FRAME_06:
         {
             LOG(INFO) << "DF_CMD_GET_FRAME_06";
@@ -6028,7 +6125,7 @@ int handle_commands(int client_sock)
 
             if (type == XemaPixelType::Mono)
             {
-                ret = handle_cmd_get_frame_06_black(client_sock);
+                ret = handle_cmd_get_frame_06(client_sock);
             }
             else if (type == XemaPixelType::BayerRG8)
             {
@@ -6045,7 +6142,7 @@ int handle_commands(int client_sock)
 
             if (type == XemaPixelType::Mono)
             {
-                ret = handle_cmd_get_frame_06_hdr_black(client_sock);
+                ret = handle_cmd_get_frame_06_hdr(client_sock);
             }
             else if (type == XemaPixelType::BayerRG8)
             {
@@ -6063,9 +6160,7 @@ int handle_commands(int client_sock)
 
             if (type == XemaPixelType::Mono)
             {
-                // ret = handle_cmd_get_frame_06_repetition(client_sock);
-                ret = handle_cmd_get_frame_06_repetition_black(client_sock); 
-                
+                ret = handle_cmd_get_frame_06_repetition(client_sock);  
             }
             else if (type == XemaPixelType::BayerRG8)
             {
@@ -6343,6 +6438,10 @@ int handle_commands(int client_sock)
     case DF_CMD_GET_CAMERA_PIXEL_TYPE:
         LOG(INFO)<<"DF_CMD_GET_CAMERA_PIXEL_TYPE"; 
         ret = handle_cmd_get_camera_pixel_type(client_sock);
+        break;
+    case DF_CMD_SET_PARAM_CAPTURE_ENGINE:
+        LOG(INFO)<<"DF_CMD_SET_PARAM_CAPTURE_ENGINE"; 
+        ret = handle_cmd_set_param_capture_engine(client_sock);
         break;
 	default:
 	    LOG(INFO)<<"DF_CMD_UNKNOWN";

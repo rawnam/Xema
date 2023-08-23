@@ -6,6 +6,7 @@
 #include "protocol.h"
 #include "management.cuh"   
 #include <opencv2/photo.hpp>
+#include <unistd.h>
  
 #include "management.cuh"  
 #include "../test/triangulation.h"
@@ -1858,7 +1859,7 @@ int Scan3D::captureFrame06RepetitionMono12(int repetition_count)
         return DF_ERROR_LOST_PATTERN_SETS;
     }
 
-    setPixelFormat(12);
+    // setPixelFormat(12);
 
     if (!camera_->streamOn())
     {
@@ -1923,7 +1924,7 @@ int Scan3D::captureFrame06RepetitionMono12(int repetition_count)
 
     delete[] img_ptr;
 
-    setPixelFormat(8);
+    // setPixelFormat(8);
 
     cuda_handle_repetition_model06_16(repetition_count);
 
@@ -1962,7 +1963,7 @@ int Scan3D::captureFrame06HdrMono12()
     }
 
     
-    setPixelFormat(12);
+    // setPixelFormat(12);
 
     LOG(INFO) << "Stream On:";
     if (!camera_->streamOn())
@@ -2056,7 +2057,7 @@ int Scan3D::captureFrame06HdrMono12()
     lc3010_.stop_pattern_sequence(); 
     cuda_merge_hdr_data_16(hdr_num_, buff_depth_, buff_brightness_);  
 
-    setPixelFormat(8); 
+    // setPixelFormat(8); 
  
     /******************************************************************************************************/
     LOG(INFO) << "led_current_: " << led_current_;
@@ -2094,7 +2095,7 @@ int Scan3D::captureFrame06Mono12()
         return DF_ERROR_LOST_PATTERN_SETS;
     }
 
-    setPixelFormat(12);
+    // setPixelFormat(12);
 
     if (!camera_->streamOn())
     {
@@ -2161,7 +2162,7 @@ int Scan3D::captureFrame06Mono12()
  
         LOG(INFO) << "generate_pointcloud_base_table";
 
-        setPixelFormat(8);
+        // setPixelFormat(8);
 
         cuda_copy_depth_from_memory(buff_depth_);
         cuda_copy_pointcloud_from_memory(buff_pointcloud_);
@@ -3255,10 +3256,43 @@ int Scan3D::setPixelFormat(int bit)
     {
     case 8:
     {
+        
+        camera_->setPixelFormat(8);
+
+ 
+/**************************************************************/
+        camera_->switchToInternalTriggerMode();
+ 
+        camera_->streamOn();
+        LOG(INFO) << "Stream On";
+
+        cv::Mat img(image_height_,image_width_,CV_8U,cv::Scalar(0));
+
+        int num = 6;
+
+        while(num-->0)
+        {
+        camera_->trigger_software();
+        if (!camera_->grap(img.data))
+        {
+            LOG(INFO) << "grap generate brightness failed!";
+        }
+        else
+        {
+            LOG(INFO) << "grap generate brightness!";
+        }
+        }
+
+        camera_->streamOff();
+        LOG(INFO) << "Stream Off";
+
+        camera_->switchToExternalTriggerMode();
+            
+/**************************************************************/
+
         // min_camera_exposure_ = min_camera_exposure_mono8_;
         LOG(INFO) << "min_camera_exposure_mono8_: " << min_camera_exposure_mono8_;
         lc3010_.set_camera_min_exposure(min_camera_exposure_mono8_);
-        camera_->setPixelFormat(8);
 
         if (!camera_->setExposure(camera_exposure_))
         {
@@ -3270,10 +3304,44 @@ int Scan3D::setPixelFormat(int bit)
 
     case 12:
     {
+        
+        camera_->setPixelFormat(12);
+
+        
+ 
+/**************************************************************/
+        camera_->switchToInternalTriggerMode();
+ 
+        camera_->streamOn();
+        LOG(INFO) << "Stream On";
+
+        cv::Mat img(image_height_,image_width_,CV_16U,cv::Scalar(0));
+
+        int num = 6;
+
+        while(num-->0)
+        {
+        camera_->trigger_software();
+        if (!camera_->grap(img.data))
+        {
+            LOG(INFO) << "grap generate brightness failed!";
+        }
+        else
+        {
+            LOG(INFO) << "grap generate brightness!";
+        }
+        }
+ 
+        camera_->streamOff();
+        LOG(INFO) << "Stream Off";
+
+        camera_->switchToExternalTriggerMode();
+            
+/**************************************************************/
+ 
         // min_camera_exposure_ = min_camera_exposure_mono12_;
         LOG(INFO) << "min_camera_exposure_mono12_: " << min_camera_exposure_mono12_;
         lc3010_.set_camera_min_exposure(min_camera_exposure_mono12_);
-        camera_->setPixelFormat(12);
 
         if (!camera_->setExposure(camera_exposure_))
         {
