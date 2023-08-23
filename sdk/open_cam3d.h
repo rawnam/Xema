@@ -33,6 +33,7 @@ extern "C"
 	{
 		Normal = 0,
 		Reflect = 1,
+		Black = 2,
 	};
 	
 	enum class XemaColor
@@ -624,6 +625,31 @@ DF_SDK_API int DfGetFrame06Hdr(float* depth, int depth_buf_size,
 //输出参数：depth（深度图）、brightness（亮度图）
 //返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
 DF_SDK_API int DfGetRepetitionFrame06(int count, float* depth, int depth_buf_size,
+	unsigned char* brightness, int brightness_buf_size);
+
+
+//函数名： DfGetFrame06Mono12
+//功能： 获取一帧数据（亮度图+深度图），基于Raw06相位图
+//输入参数：depth_buf_size（深度图尺寸）、brightness_buf_size（亮度图尺寸）
+//输出参数：depth（深度图）、brightness（亮度图）
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetFrame06Mono12(float* depth, int depth_buf_size,
+	unsigned char* brightness, int brightness_buf_size);
+
+//函数名： DfGetFrame06HdrMono12
+//功能： 获取一帧数据（亮度图+深度图），基于Raw06相位图
+//输入参数：depth_buf_size（深度图尺寸）、brightness_buf_size（亮度图尺寸）
+//输出参数：depth（深度图）、brightness（亮度图）
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetFrame06HdrMono12(float* depth, int depth_buf_size,
+	unsigned char* brightness, int brightness_buf_size);
+
+//函数名： DfGetRepetitionFrame06Mono12
+//功能： 获取一帧数据（亮度图+深度图），基于Raw06图重复count次
+//输入参数：count（重复次数）、depth_buf_size（深度图尺寸）、brightness_buf_size（亮度图尺寸）
+//输出参数：depth（深度图）、brightness（亮度图）
+//返回值： 类型（int）:返回0表示连接成功;返回-1表示连接失败.
+DF_SDK_API int DfGetRepetitionFrame06Mono12(int count, float* depth, int depth_buf_size,
 	unsigned char* brightness, int brightness_buf_size);
 
 //函数名： DfGetRepetitionFrame04

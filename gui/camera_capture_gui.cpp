@@ -863,6 +863,11 @@ void CameraCaptureGui::setUiData()
 		ui.comboBox_engine->setCurrentIndex((int)XemaEngine::Reflect); 
 	}
 	break;
+	case (int)XemaEngine::Black:
+	{
+		ui.comboBox_engine->setCurrentIndex((int)XemaEngine::Black);
+	}
+	break;
 	default:
 		break;
 	}
@@ -3807,8 +3812,13 @@ void CameraCaptureGui::do_comboBox_activated_engine(int index)
 	{
 		DfSetCaptureEngine(XemaEngine::Reflect);
 		processing_gui_settings_data_.Instance().engine = index;
+	} 
+	break;
+	case 2:
+	{
+		DfSetCaptureEngine(XemaEngine::Black);
+		processing_gui_settings_data_.Instance().engine = index;
 	}
-
 	break;
 
 	default:
