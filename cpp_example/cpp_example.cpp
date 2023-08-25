@@ -163,6 +163,8 @@ int main()
 		{
 			std::cout << "Set Param Brightness Exposure Model Error!" << std::endl;
 		}
+		
+		ret_code = p_camera->captureBrightnessData(brightness_data, XemaColor::Gray); 
 
 		//采集单曝光数据
 		if (true)
