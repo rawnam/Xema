@@ -894,9 +894,9 @@ bool cuda_merge_brigntness(int hdr_num, unsigned char* brightness)
 
 bool cuda_generate_pointcloud_base_table()
 {
-	cv::Mat phase(d_image_height_,d_image_width_,CV_32FC1,cv::Scalar(0));
-	CHECK(cudaMemcpy(phase.data, d_unwrap_map_list_[0], 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
-	cv::imwrite("phase.tiff", phase);
+	// cv::Mat phase(d_image_height_,d_image_width_,CV_32FC1,cv::Scalar(0));
+	// CHECK(cudaMemcpy(phase.data, d_unwrap_map_list_[0], 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+	// cv::imwrite("phase.tiff", phase);
 	
 	// if(1 == cuda_system_config_settings_machine_.Instance().firwmare_param_.use_reflect_filter)
 	// { 
@@ -910,9 +910,9 @@ bool cuda_generate_pointcloud_base_table()
 	kernel_reconstruct_pointcloud_base_table << <blocksPerGrid, threadsPerBlock>> > (d_image_width_,d_image_height_,d_xL_rotate_x_,d_xL_rotate_y_,d_single_pattern_mapping_,d_R_1_,d_baseline_,
 	d_confidence_map_list_[3],d_unwrap_map_list_[0],d_point_cloud_map_,d_depth_map_);
 
-	cv::Mat depth(d_image_height_,d_image_width_,CV_32FC1,cv::Scalar(0));
-	CHECK(cudaMemcpy(depth.data, d_depth_map_, 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
-	cv::imwrite("depth.tiff", depth);
+	// cv::Mat depth(d_image_height_,d_image_width_,CV_32FC1,cv::Scalar(0));
+	// CHECK(cudaMemcpy(depth.data, d_depth_map_, 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+	// cv::imwrite("depth.tiff", depth);
 }
 
 /********************************************************************************************************************************************/
@@ -1617,9 +1617,9 @@ int cuda_handle_repetition_model06_16(int repetition_count)
 																			  d_repetition_02_merge_patterns_list_[4], d_repetition_02_merge_patterns_list_[5], d_repetition_02_merge_patterns_list_[6], d_repetition_02_merge_patterns_list_[7],
 																			  repetition_count, h_image_height_, h_image_width_, d_wrap_map_list_[3], d_confidence_map_list_[3]);
 
-	cv::Mat wrap_map(d_image_height_,d_image_width_,CV_32FC1,cv::Scalar(0));
-	CHECK(cudaMemcpy(wrap_map.data, d_wrap_map_list_[3], 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
-	cv::imwrite("wrap_map.tiff", wrap_map);
+	// cv::Mat wrap_map(d_image_height_,d_image_width_,CV_32FC1,cv::Scalar(0));
+	// CHECK(cudaMemcpy(wrap_map.data, d_wrap_map_list_[3], 1 * d_image_height_ * d_image_width_ * sizeof(float), cudaMemcpyDeviceToHost));
+	// cv::imwrite("wrap_map.tiff", wrap_map);
 
 	//相位校正
 				//相位校正

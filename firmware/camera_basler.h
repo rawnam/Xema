@@ -41,6 +41,8 @@ public:
 
 	
 	bool setPixelFormat(int val);
+	
+	bool getPixelFormat(int &val);
 private:
 	void streamOffThread();
 private:

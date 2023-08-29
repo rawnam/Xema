@@ -4986,16 +4986,28 @@ int handle_cmd_set_param_capture_engine(int client_sock)
     // set led current
 
     if (0 <= engine && engine < 3)
-    {  
+    {
         system_config_settings_machine_.Instance().firwmare_param_.engine = engine;
 
-        if(2 == engine)
+        XemaPixelType type;
+        scan3d_.getCameraPixelType(type);
+
+        if (type == XemaPixelType::Mono)
         {
-            scan3d_.setPixelFormat(12);
+            if (2 == engine)
+            {
+                scan3d_.setPixelFormat(12);
+            }
+            else
+            {
+                scan3d_.setPixelFormat(8);
+            }
         }
-        else
+        else if (type == XemaPixelType::BayerRG8)
         {
-            scan3d_.setPixelFormat(8);
+                /*****************************************************************/
+
+                /******************************************************************/
         }
 
         return DF_SUCCESS;

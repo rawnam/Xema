@@ -34,6 +34,8 @@ public:
 
 	virtual bool setPixelFormat(int val){};
 
+	virtual bool getPixelFormat(int &val){};
+
 
 	bool getImageSize(int &width,int &height);
 	

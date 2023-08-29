@@ -769,6 +769,51 @@ bool CameraBasler::setGain(double val)
 } 
 
 
+bool CameraBasler::getPixelFormat(int &val)
+{
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+
+    val = 0;
+    char buf[256];
+    size_t siz = sizeof( buf );
+
+    GENAPIC_RESULT              res;                      /* Return value of pylon methods. */
+    res = PylonDeviceFeatureToString( hDev_, "PixelFormat", buf,&siz);
+    if(GENAPI_E_OK != res)
+    {
+        LOG(INFO)<<"Get PixelFormat Failed!";
+        return false;
+    } 
+
+
+
+    LOG(INFO)<<"PixelFormat: "<<buf;
+
+    std::string format_str(buf);
+
+    if("Mono8" == format_str)
+    {
+        val = 8;
+    }
+    else if("Mono10" == format_str)
+    {
+        val = 10;
+    }
+    else if("Mono12" == format_str)
+    {
+        val = 12;
+    }
+    else
+    {
+        val = 0;
+        return false;
+    }
+
+
+    return true;
+
+}
+
 bool CameraBasler::setPixelFormat(int val)
 {
     std::lock_guard<std::mutex> my_guard(operate_mutex_);

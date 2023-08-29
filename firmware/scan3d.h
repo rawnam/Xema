@@ -133,6 +133,8 @@ public:
 
     int setPixelFormat(int bit);
 
+    int getPixelFormat(int &bit);
+
 private:
  
     Camera* camera_;

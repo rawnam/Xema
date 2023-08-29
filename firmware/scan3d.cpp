@@ -144,7 +144,10 @@ int Scan3D::init()
     }
 
 
+    int formate = 0;
+    bool ok= camera_->getPixelFormat(formate);
 
+    LOG(INFO)<<"getPixelFormat: "<<ok;
 
     return ret;
  
@@ -353,6 +356,19 @@ void Scan3D::setParamFisherConfidence(float confidence)
 
 bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
 {
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
 
     switch (model)
     {
@@ -704,6 +720,19 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
 bool Scan3D::captureRaw01(unsigned char* buff)
 {
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
     lc3010_.pattern_mode01();
     if (!camera_->streamOn())
     {
@@ -745,6 +774,19 @@ bool Scan3D::captureRaw01(unsigned char* buff)
 bool Scan3D::captureRaw02(unsigned char* buff)
 {
  
+     int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
     lc3010_.pattern_mode02();
     if (!camera_->streamOn())
     {
@@ -789,6 +831,19 @@ bool Scan3D::captureRaw02(unsigned char* buff)
 bool Scan3D::captureRaw03(unsigned char* buff)
 {
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
     lc3010_.pattern_mode03();
     if (!camera_->streamOn())
     {
@@ -829,6 +884,19 @@ bool Scan3D::captureRaw03(unsigned char* buff)
 
 bool Scan3D::captureRaw04(unsigned char* buff)
 {
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
 
     lc3010_.pattern_mode04();
     if (!camera_->streamOn())
@@ -872,6 +940,19 @@ bool Scan3D::captureRaw04(unsigned char* buff)
 int Scan3D::captureRaw05(unsigned char *buff)
 {
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
     int patterns_num = 16;
 
     lc3010_.pattern_mode05();
@@ -909,6 +990,20 @@ int Scan3D::captureRaw05(unsigned char *buff)
 
 int Scan3D::captureRaw06(unsigned char *buff)
 {
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
    int patterns_num = 16;
 
     lc3010_.pattern_mode06();
@@ -946,6 +1041,19 @@ int Scan3D::captureRaw06(unsigned char *buff)
 
 int Scan3D::captureRaw08(unsigned char *buff)
 {
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
 
     lc3010_.pattern_mode08();
     if (!camera_->streamOn())
@@ -1028,6 +1136,19 @@ bool Scan3D::captureRaw04Repetition01(int repetition_count,unsigned char* buff)
 bool Scan3D::capturePhase02Repetition02(int repetition_count,float* phase_x,float* phase_y,unsigned char* brightness)
 {
     cuda_clear_repetition_02_patterns();
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
 
     unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
 
@@ -1217,6 +1338,19 @@ int Scan3D::captureFrame04BaseConfidence()
     cuda_clear_reconstruct_cache();
     initCache();
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
 
     int ret = DF_SUCCESS;
 
@@ -1360,6 +1494,20 @@ int Scan3D::captureFrame06Repetition(int repetition_count)
         return DF_ERROR_LOST_PATTERN_SETS;
     }
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
+
     if (!camera_->streamOn())
     {
         LOG(INFO) << "Stream On Error";
@@ -1464,6 +1612,18 @@ int Scan3D::captureFrame06RepetitionColor(int repetition_count)
     int frame_status = DF_SUCCESS;
     cuda_clear_repetition_02_patterns();
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
 
 
     if (patterns_sets_num_ < 9)
@@ -1575,7 +1735,19 @@ int Scan3D::captureFrame06HdrColor()
     LOG(INFO)<<"Mixed HDR Exposure Base Confidence:";  
     int frame_status = DF_SUCCESS;
 
-    
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
 
 
     if (patterns_sets_num_ < 9)
@@ -1712,6 +1884,21 @@ int Scan3D::captureFrame06Hdr()
     LOG(INFO) << "cuda_clear_reconstruct_cache:";
     cuda_clear_reconstruct_cache();
     initCache();
+
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
 
     LOG(INFO)<<"Mixed HDR Exposure Base Confidence:";  
     int frame_status = DF_SUCCESS;
@@ -1859,6 +2046,18 @@ int Scan3D::captureFrame06RepetitionMono12(int repetition_count)
         return DF_ERROR_LOST_PATTERN_SETS;
     }
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(12 != bits)
+        {
+            if(setPixelFormat(12))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
     // setPixelFormat(12);
 
     if (!camera_->streamOn())
@@ -1962,6 +2161,18 @@ int Scan3D::captureFrame06HdrMono12()
         return DF_ERROR_LOST_PATTERN_SETS;
     }
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(12 != bits)
+        {
+            if(setPixelFormat(12))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
     
     // setPixelFormat(12);
 
@@ -2095,6 +2306,19 @@ int Scan3D::captureFrame06Mono12()
         return DF_ERROR_LOST_PATTERN_SETS;
     }
 
+    int bits = 0;
+
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(12 != bits)
+        {
+            if(setPixelFormat(12))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
     // setPixelFormat(12);
 
     if (!camera_->streamOn())
@@ -2186,8 +2410,21 @@ int Scan3D::captureFrame06()
     cuda_clear_reconstruct_cache();
     initCache();
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
 
     int ret = DF_SUCCESS;
+
 
  
     
@@ -2283,9 +2520,22 @@ int Scan3D::captureFrame06Color()
     cuda_clear_reconstruct_cache();
     initCache();
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
+
 
     int ret = DF_SUCCESS;
-
  
     
     if(patterns_sets_num_ < 9)
@@ -2390,6 +2640,20 @@ int Scan3D::captureFrame04HdrBaseConfidence()
 {
     cuda_clear_reconstruct_cache();
     initCache();
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
 
     LOG(INFO)<<"Mixed HDR Exposure Base Confidence:";  
     int frame_status = DF_SUCCESS;
@@ -2663,6 +2927,19 @@ int Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
     cuda_clear_repetition_02_patterns();
     cuda_clear_reconstruct_cache();
     initCache();
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
 
 
     int frame_status = DF_SUCCESS;
@@ -3247,6 +3524,27 @@ void Scan3D::getCameraResolution(int &width, int &height)
     height = image_height_;
 }
 
+
+
+int Scan3D::getPixelFormat(int &bit)
+{
+    int ret = DF_SUCCESS;
+
+    int val = 0;
+
+    bool ok = camera_->getPixelFormat(val);
+
+    if(!ok)
+    {
+        bit = 0;
+        return DF_FAILED;
+    }
+
+    bit = val;
+
+    return DF_SUCCESS;
+    
+}
 
 int Scan3D::setPixelFormat(int bit)
 {
