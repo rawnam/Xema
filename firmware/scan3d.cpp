@@ -356,17 +356,13 @@ void Scan3D::setParamFisherConfidence(float confidence)
 
 bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
 {
+    // unsigned short* p_data= new unsigned short[image_width_*image_height_];
+    cv::Mat short_data(image_height_, image_width_, CV_16UC1, cv::Scalar(0));
+
     int bits = 0;
-    if(DF_SUCCESS == getPixelFormat(bits))
+    if(DF_SUCCESS != getPixelFormat(bits))
     {
-        if(8 != bits)
-        {
-            if(setPixelFormat(8))
-            {
-                LOG(INFO)<<"set camera pixel format error!";
-                return DF_FAILED;
-            }
-        }
+        bits = 8;
     }
 
 
@@ -381,14 +377,39 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
         LOG(INFO) << "Stream On";
         lc3010_.start_pattern_sequence();
 
-        if (!camera_->grap(buff))
+        if(8 == bits)
         {
-            LOG(INFO) << "grap brightness failed!";
+            if (!camera_->grap(buff))
+            {
+                LOG(INFO) << "grap brightness failed!";
+            }
+            else
+            {
+                LOG(INFO) << "grap brightness!";
+            }
         }
         else
         {
-            LOG(INFO) << "grap brightness!";
+            if (!camera_->grap((ushort*)short_data.data))
+            {
+                LOG(INFO) << "grap brightness failed!";
+            }
+            else
+            {
+                LOG(INFO) << "grap brightness!";
+            }
+
+            for (int r = 0; r < image_height_; r++)
+            {
+
+                for (int c = 0; c < image_width_; c++)
+                {
+                    buff[r * image_width_ + c] = short_data.at<ushort>(r, c) / 16 + 0.5;
+                }
+            }
         }
+
+
         camera_->streamOff();
         LOG(INFO) << "Stream Off";
     }
@@ -413,15 +434,40 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
             LOG(INFO) << "Stream On";
 
             camera_->trigger_software();
-            if (!camera_->grap(buff))
+            if(8 == bits)
             {
-                LOG(INFO) << "grap brightness failed!";
+                if (!camera_->grap(buff))
+                {
+                    LOG(INFO) << "grap brightness failed!";
+                }
+                else
+                {
+                    LOG(INFO) << "grap brightness!";
+                }
             }
             else
             {
-                LOG(INFO) << "grap brightness!";
-            }
+                if (!camera_->grap((ushort*)short_data.data))
+                {
+                    LOG(INFO) << "grap brightness failed!";
+                }
+                else
+                {
+                    LOG(INFO) << "grap brightness!";
+                }
 
+                for(int r = 0;r< image_height_;r++)
+                {
+                    
+                    for(int c = 0;c < image_width_;c++)
+                    {
+                        buff[r*image_width_+ c] = short_data.at<ushort>(r,c)/16 + 0.5;
+
+                    }
+
+                }
+
+            }
             camera_->streamOff();
             LOG(INFO) << "Stream Off";
         }
@@ -448,18 +494,34 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
                 camera_->setExposure(exposure_val);
 
                 camera_->trigger_software();
-                // 清理buffer
-                if (!camera_->grap(img.data))
+
+                if (8 == bits)
                 {
-                    LOG(INFO) << "grap brightness failed!";
-                    return false;
+                    if (!camera_->grap(img.data))
+                    {
+                        LOG(INFO) << "grap brightness failed!";
+                    }
+                    else
+                    {
+                        LOG(INFO) << "grap brightness!";
+                    }
+                    img_list.push_back(img.clone());
                 }
                 else
                 {
-                    LOG(INFO) << "grap brightness!";
-                }
+                     cv::Mat img_16(image_height_, image_width_, CV_16UC1, cv::Scalar(0));
+                    if (!camera_->grap(( unsigned short*)img_16.data))
+                    {
+                        LOG(INFO) << "grap brightness failed!";
+                    }
+                    else
+                    {
+                        LOG(INFO) << "grap brightness!";
+                    }
 
-                img_list.push_back(img.clone());
+                    img = img_16/16;
+                    img_list.push_back(img.clone());
+                }
 
                 //  LOG(INFO) << "pixels: " << cv::sum(img);
 
@@ -529,13 +591,39 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
             LOG(INFO) << "Stream On";
 
             camera_->trigger_software();
-            if (!camera_->grap(buff))
+
+            if(8 == bits)
             {
-                LOG(INFO) << "grap generate brightness failed!";
+                if (!camera_->grap(buff))
+                {
+                    LOG(INFO) << "grap brightness failed!";
+                }
+                else
+                {
+                    LOG(INFO) << "grap brightness!";
+                }
             }
             else
             {
-                LOG(INFO) << "grap generate brightness!";
+                if (!camera_->grap((ushort *)short_data.data))
+                {
+                    LOG(INFO) << "grap brightness failed!";
+                }
+                else
+                {
+                    LOG(INFO) << "grap brightness!";
+                }
+
+                for(int r = 0;r< image_height_;r++)
+                {
+                    
+                    for(int c = 0;c < image_width_;c++)
+                    {
+                        buff[r*image_width_+ c] = short_data.at<ushort>(r,c)/16 + 0.5;
+
+                    }
+
+                }
             }
 
             camera_->streamOff();
@@ -565,18 +653,35 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
                 camera_->setExposure(exposure_val);
 
                 camera_->trigger_software();
-                // 清理buffer
-                if (!camera_->grap(img.data))
+
+                if (8 == bits)
                 {
-                    LOG(INFO) << "grap brightness failed!";
-                    return false;
+                    if (!camera_->grap(img.data))
+                    {
+                        LOG(INFO) << "grap brightness failed!";
+                    }
+                    else
+                    {
+                        LOG(INFO) << "grap brightness!";
+                    }
+                    img_list.push_back(img.clone());
                 }
                 else
                 {
-                    LOG(INFO) << "grap brightness!";
+                     cv::Mat img_16(image_height_, image_width_, CV_16UC1, cv::Scalar(0));
+                    if (!camera_->grap(( unsigned short*)img_16.data))
+                    {
+                        LOG(INFO) << "grap brightness failed!";
+                    }
+                    else
+                    {
+                        LOG(INFO) << "grap brightness!";
+                    }
+
+                    img = img_16/16;
+                    img_list.push_back(img.clone());
                 }
 
-                img_list.push_back(img.clone());
 
                 //  LOG(INFO) << "pixels: " << cv::sum(img);
 
@@ -654,19 +759,35 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
 
 
             camera_->trigger_software();
-            // 清理buffer
-            if (!camera_->grap(img.data))
-            {
-                LOG(INFO) << "grap brightness failed!";
-                return false;
-            }
-            else
-            {
-                LOG(INFO) << "grap brightness!";
-            }
- 
 
-            img_list.push_back(img.clone());
+                if (8 == bits)
+                {
+                    if (!camera_->grap(img.data))
+                    {
+                        LOG(INFO) << "grap brightness failed!";
+                    }
+                    else
+                    {
+                        LOG(INFO) << "grap brightness!";
+                    }
+                    img_list.push_back(img.clone());
+                }
+                else
+                {
+                     cv::Mat img_16(image_height_, image_width_, CV_16UC1, cv::Scalar(0));
+                    if (!camera_->grap(( unsigned short*)img_16.data))
+                    {
+                        LOG(INFO) << "grap brightness failed!";
+                    }
+                    else
+                    {
+                        LOG(INFO) << "grap brightness!";
+                    }
+
+                    img = img_16/16;
+                    img_list.push_back(img.clone());
+                }
+
 
             //  LOG(INFO) << "pixels: " << cv::sum(img);
 
