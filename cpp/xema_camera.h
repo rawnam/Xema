@@ -349,6 +349,13 @@ extern "C" {
 			//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 			int getSdkVersion(char version[64])override;
 
+			//函数名： DfCaptureBrightnessData
+			//功能： 获取亮度图
+			//输入参数： color(图像颜色类型)
+			//输出参数： brightness(亮度图)
+			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+			int captureBrightnessData(unsigned char* brightness, XemaColor color)override;
+
 		public:
 
 			int rgbToGray(unsigned char* src, unsigned char* dst);
@@ -364,7 +371,9 @@ extern "C" {
 			bool transformPointcloud(float* org_point_cloud_map, float* transform_point_cloud_map, float* rotate, float* translation);
 
 			int depthTransformPointcloud(float* depth_map, float* point_cloud_map);
-			  
+
+			int getBrightness(unsigned char* brightness, int brightness_buf_size);
+
 			int getFrame04(float* depth, int depth_buf_size,unsigned char* brightness, int brightness_buf_size);
 
 			int getRepetitionFrame04(int count, float* depth, int depth_buf_size, unsigned char* brightness, int brightness_buf_size);

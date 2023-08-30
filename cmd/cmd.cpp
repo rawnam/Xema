@@ -1025,7 +1025,7 @@ int get_brightness(const char* ip, const char* image_path)
 {
 	DfRegisterOnDropped(on_dropped);
 
-	int ret = DfConnectNet(ip);
+	int ret = DfConnect(ip);
 	if (ret == DF_FAILED)
 	{
 		return 0;
@@ -1033,16 +1033,54 @@ int get_brightness(const char* ip, const char* image_path)
 
 	int width, height;
 	DfGetCameraResolution(&width, &height);
-
 	int image_size = width * height;
 
-	cv::Mat brightness(cv::Size(width, height), CV_8U);
+
+	cv::Mat brightness;
+
+	XemaColor color;
+	int pixel_type;
+	ret = DfGetCameraPixelType(pixel_type);
+	if (ret == DF_SUCCESS)
+	{
+		if (pixel_type == (int)XemaPixelType::Mono)
+		{
+			color = XemaColor::Gray;
+			std::cout << "gray" << std::endl;
+
+			brightness = cv::Mat(cv::Size(width, height), CV_8U, cv::Scalar(0));
+		}
+		else
+		{
+			color = XemaColor::Rgb;
+			std::cout << "rgb" << std::endl;
+			brightness = cv::Mat(cv::Size(width, height), CV_8UC3, cv::Scalar(0,0,0));
+		} 
+	}
+	else if (ret == DF_UNKNOWN)
+	{
+		color = XemaColor::Gray;
+		std::cout << "gray" << std::endl;
+		brightness = cv::Mat(cv::Size(width, height), CV_8U, cv::Scalar(0));
+	}
+
+	 
+
 	unsigned char* brightness_buf = (unsigned char*)brightness.data;
-	ret = DfGetCameraData(0, 0,
-		brightness_buf, image_size,
-		0, 0,
-		0, 0);
+	 
+	//ret = DfGetCameraData(0, 0,
+	//	brightness_buf, image_size,
+	//	0, 0,
+	//	0, 0);
+	ret = DfCaptureBrightnessData(brightness_buf, color);
+	if (ret != DF_SUCCESS)
+	{
+		std::cout << "capture brightness failed!"<<std::endl;
+	}
+
 	cv::imwrite(image_path, brightness);
+	std::cout << "save brightness: " << image_path << std::endl;
+
 
 	DfDisconnectNet();
 	return 1;

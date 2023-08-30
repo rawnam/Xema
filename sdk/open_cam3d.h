@@ -41,6 +41,7 @@ extern "C"
 		Rgb = 0,
 		Bgr = 1,
 		Bayer = 2,
+		Gray = 3,
 	};
 	 
 	//函数名： DfConnect
@@ -431,7 +432,12 @@ extern "C"
 	//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 	DF_SDK_API int DfGetSdkVersion(char version[64]);
 
-
+	//函数名： DfCaptureBrightnessData
+	//功能： 获取亮度图
+	//输入参数：color(图像颜色类型)
+	//输出参数： brightness(亮度图)
+	//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	DF_SDK_API int DfCaptureBrightnessData(unsigned char* brightness, XemaColor color);
 }
 
 

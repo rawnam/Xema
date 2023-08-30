@@ -833,7 +833,6 @@ void rolloutHandler(const char* filename, std::size_t size)
 DF_SDK_API int DfConnect(const char* camera_id)
 {
 
-	LOG(INFO) << "DfConnect: ";
 	/*******************************************************************************************************************/
 	//关闭log输出
 	el::Configurations conf;
@@ -855,6 +854,7 @@ DF_SDK_API int DfConnect(const char* camera_id)
 
 	/*******************************************************************************************************************/
 
+	LOG(INFO) << "DfConnect: ";
 	DfRegisterOnDropped(on_dropped);
 
 
@@ -6410,6 +6410,104 @@ DF_SDK_API int DfGetSdkVersion(char version[64])
 	std::strcpy(version, "v1.4.1"); 
 
 	return DF_SUCCESS;
+}
+
+//函数名： DfCaptureBrightnessData
+//功能： 获取亮度图
+//输入参数：无
+//输出参数： brightness(亮度图)
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+DF_SDK_API int DfCaptureBrightnessData(unsigned char* brightness, XemaColor color)
+{
+	LOG(INFO) << "brightness_bug_size: " << brightness_bug_size_;
+	int ret = DF_SUCCESS;
+	ret = GetBrightness(brightness_buf_, brightness_bug_size_);
+
+	if (DF_SUCCESS != ret)
+	{
+		return ret;
+	}
+
+
+	if (pixel_type_ == XemaPixelType::BayerRG8)
+	{ 
+		DfBayerToRgb(brightness_buf_, rgb_buf_);
+	 
+		switch (color)
+		{
+		case XemaColor::Rgb:
+		{
+			memcpy(brightness, rgb_buf_, 3 * brightness_bug_size_);
+		}
+		break;
+		case XemaColor::Bgr:
+		{
+			for (int i = 0; i < brightness_bug_size_; i++)
+			{
+				brightness[3 * i + 0] = rgb_buf_[3 * i + 2];
+				brightness[3 * i + 1] = rgb_buf_[3 * i + 1];
+				brightness[3 * i + 2] = rgb_buf_[3 * i + 0];
+			}
+		}
+		break;
+		case XemaColor::Bayer:
+		{
+			memcpy(brightness, brightness_buf_, brightness_bug_size_);
+		}
+		break;
+		case XemaColor::Gray:
+		{  
+			DfRgbToGray(rgb_buf_, brightness);
+		}
+		break;
+		default:
+			break;
+		}
+
+	}
+	else
+	{ 
+
+		switch (color)
+		{
+		case XemaColor::Rgb:
+		{
+			for (int i = 0; i < brightness_bug_size_; i++)
+			{
+				brightness[3 * i + 0] = brightness_buf_[i];
+				brightness[3 * i + 1] = brightness_buf_[i];
+				brightness[3 * i + 2] = brightness_buf_[i];
+			}
+		}
+		break;
+		case XemaColor::Bgr:
+		{
+			for (int i = 0; i < brightness_bug_size_; i++)
+			{
+				brightness[3 * i + 0] = brightness_buf_[i];
+				brightness[3 * i + 1] = brightness_buf_[i];
+				brightness[3 * i + 2] = brightness_buf_[i];
+			}
+		}
+		break;
+		case XemaColor::Bayer:
+		{
+			memcpy(brightness, brightness_buf_, brightness_bug_size_);
+		}
+		break;
+		case XemaColor::Gray:
+		{
+			memcpy(brightness, brightness_buf_, brightness_bug_size_);
+		}
+		break;
+		default:
+			break;
+		}
+		 
+	}
+
+
+	return ret;
 }
 
 //函数名： DfGetParamBrightnessGain

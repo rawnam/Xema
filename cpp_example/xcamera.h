@@ -40,6 +40,7 @@ extern "C" {
 			Rgb = 0,
 			Bgr = 1,
 			Bayer = 2,
+			Gray= 3,
 		};
 
         class XCamera
@@ -376,6 +377,13 @@ extern "C" {
 			//输出参数：version(版本)
 			//返回值： 类型（int）:返回0表示设置参数成功;否则失败。
 			virtual int getSdkVersion(char version[64]) = 0;
+
+			//函数名： DfCaptureBrightnessData
+			//功能： 获取亮度图
+			//输入参数： color(图像颜色类型)
+			//输出参数： brightness(亮度图)
+			//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+			virtual int captureBrightnessData(unsigned char* brightness, XemaColor color) = 0;
         };
 
         XEMA_API void* createXCamera();

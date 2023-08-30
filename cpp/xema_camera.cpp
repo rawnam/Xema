@@ -821,6 +821,104 @@ namespace XEMA {
 
 		return 0;
 	}
+
+	//函数名： DfCaptureBrightnessData
+//功能： 获取亮度图
+//输入参数： color(图像颜色类型)
+//输出参数： brightness(亮度图)
+//返回值： 类型（int）:返回0表示获取数据成功;返回-1表示采集数据失败.
+	int XemaCamera::captureBrightnessData(unsigned char* brightness, XemaColor color)
+	{
+		LOG(INFO) << "brightness_bug_size: " << brightness_bug_size_;
+		int ret = DF_SUCCESS;
+
+		ret = getBrightness(brightness_buf_, brightness_bug_size_);
+
+		if (DF_SUCCESS != ret)
+		{
+			return ret;
+		}
+		 
+		if (pixel_type_ == XemaPixelType::BayerRG8)
+		{
+			bayerToRgb(brightness_buf_, rgb_buf_);
+
+			switch (color)
+			{
+			case XemaColor::Rgb:
+			{
+				memcpy(brightness, rgb_buf_, 3 * brightness_bug_size_);
+			}
+			break;
+			case XemaColor::Bgr:
+			{
+				for (int i = 0; i < brightness_bug_size_; i++)
+				{
+					brightness[3 * i + 0] = rgb_buf_[3 * i + 2];
+					brightness[3 * i + 1] = rgb_buf_[3 * i + 1];
+					brightness[3 * i + 2] = rgb_buf_[3 * i + 0];
+				}
+			}
+			break;
+			case XemaColor::Bayer:
+			{
+				memcpy(brightness, brightness_buf_, brightness_bug_size_);
+			}
+			break;
+			case XemaColor::Gray:
+			{
+				rgbToGray(rgb_buf_, brightness);
+			}
+			break;
+			default:
+				break;
+			}
+
+		}
+		else
+		{
+			switch (color)
+			{
+			case XemaColor::Rgb:
+			{
+				for (int i = 0; i < brightness_bug_size_; i++)
+				{
+					brightness[3 * i + 0] = brightness_buf_[i];
+					brightness[3 * i + 1] = brightness_buf_[i];
+					brightness[3 * i + 2] = brightness_buf_[i];
+				}
+			}
+			break;
+			case XemaColor::Bgr:
+			{
+				for (int i = 0; i < brightness_bug_size_; i++)
+				{
+					brightness[3 * i + 0] = brightness_buf_[i];
+					brightness[3 * i + 1] = brightness_buf_[i];
+					brightness[3 * i + 2] = brightness_buf_[i];
+				}
+			}
+			break;
+			case XemaColor::Bayer:
+			{
+				memcpy(brightness, brightness_buf_, brightness_bug_size_);
+			}
+			break;
+			case XemaColor::Gray:
+			{
+				memcpy(brightness, brightness_buf_, brightness_bug_size_);
+			}
+			break;
+			default:
+				break;
+			}
+
+		}
+
+
+		return ret;
+
+	}
 	 
 	int XemaCamera::disconnect(const char* camera_id)
 	{ 
@@ -3441,6 +3539,55 @@ namespace XEMA {
 	}
 
 
+	int XemaCamera::getBrightness(unsigned char* brightness, int brightness_buf_size)
+	{
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		LOG(INFO) << "GetBrightness";
+		assert(brightness_buf_size >= image_size_ * sizeof(unsigned char));
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		//std::cout << "1" << std::endl;
+		ret = send_command(DF_CMD_GET_BRIGHTNESS, g_sock);
+		//std::cout << "send token " << token<< std::endl;
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		if (command == DF_CMD_OK)
+		{
+			LOG(INFO) << "token checked ok";
+			ret = recv_buffer((char*)brightness, brightness_buf_size, g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			LOG(INFO) << "Get brightness rejected";
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+
+		LOG(INFO) << "Get brightness success";
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
 
 	int XemaCamera::getFrame04(float* depth, int depth_buf_size,unsigned char* brightness, int brightness_buf_size)
 	{
