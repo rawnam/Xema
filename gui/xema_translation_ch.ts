@@ -494,6 +494,14 @@
         <source>请先连接相机</source>
         <translation>请先连接相机</translation>
     </message>
+    <message>
+        <source>黑色模式</source>
+        <translation type="unfinished">黑色模式</translation>
+    </message>
+    <message>
+        <source>强度: </source>
+        <translation type="unfinished">强度： </translation>
+    </message>
 </context>
 <context>
     <name>OutlierRemovalSettingGuiClass</name>
