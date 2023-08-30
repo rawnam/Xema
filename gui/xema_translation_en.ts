@@ -493,6 +493,14 @@
         <source>条纹版本低，不支持高反模式！</source>
         <translation>Stripe version is low and does not support high anti mode!</translation>
     </message>
+    <message>
+        <source>黑色模式</source>
+        <translation type="unfinished">Black Mode</translation>
+    </message>
+    <message>
+        <source>强度: </source>
+        <translation type="unfinished">Intensity: </translation>
+    </message>
 </context>
 <context>
     <name>OutlierRemovalSettingGuiClass</name>

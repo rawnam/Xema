@@ -86,7 +86,13 @@ public:
 
     int captureFrame06Hdr();
 
-    int captureFrame06Repetition(int repetition_count);
+    int captureFrame06Repetition(int repetition_count); 
+    
+    int captureFrame06Mono12();
+
+    int captureFrame06HdrMono12();
+
+    int captureFrame06RepetitionMono12(int repetition_count); 
     
     int captureFrame06Color();
 
@@ -125,6 +131,9 @@ public:
 
     void getCameraPixelType(XemaPixelType &type);
 
+    int setPixelFormat(int bit);
+
+    int getPixelFormat(int &bit);
 
 private:
  
@@ -145,6 +154,9 @@ private:
 
     int max_camera_exposure_;
     int min_camera_exposure_;
+
+    int min_camera_exposure_mono8_;
+    int min_camera_exposure_mono12_; 
 
     int led_current_;
     int camera_exposure_;

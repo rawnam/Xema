@@ -12,6 +12,81 @@ CameraBasler::~CameraBasler()
 }
 
 
+bool CameraBasler::grap(unsigned short* buf)
+{
+     std::lock_guard<std::mutex> my_guard(operate_mutex_);
+ 
+
+        PylonGrabResult_t           grabResult;               /* Stores the result of a grab operation. */ 
+        _Bool                       isReady;                  /* Used as an output parameter. */
+        GENAPIC_RESULT              res;   
+        size_t bufferIndex;              /* Index of the buffer */
+        unsigned char min, max;
+        /* Wait for the next buffer to be filled. Wait up to 1000 ms. */
+        res = PylonWaitObjectWait( hWait_, 10000, &isReady );
+        // CHECK( res );
+        if (!isReady)
+        {
+            /* Timeout occurred. */
+            LOG(INFO)<<"Grab timeout occurred\n";
+            // fprintf( stderr, "Grab timeout occurred\n" );
+            return false; /* Stop grabbing. */
+        }
+
+        /* Since the wait operation was successful, the result of at least one grab
+           operation is available. Retrieve it. */
+        res = PylonStreamGrabberRetrieveResult( hGrabber_, &grabResult, &isReady );
+        // CHECK( res );
+        if (!isReady)
+        {
+            /* Oops. No grab result available? We should never have reached this point.
+               Since the wait operation above returned without a timeout, a grab result
+               should be available. */
+               LOG(INFO)<<"Failed to retrieve a grab result\n" ;
+            // fprintf( stderr, "Failed to retrieve a grab result\n" );
+            return false;
+        }
+ 
+
+        /* Get the buffer index from the context information. */
+        bufferIndex = (size_t) grabResult.Context;
+
+        /* Check to see if the image was grabbed successfully. */
+        if (grabResult.Status == Grabbed)
+        {
+            /*  Success. Perform image processing. Since we passed more than one buffer
+            to the stream grabber, the remaining buffers are filled while
+            we do the image processing. The processed buffer won't be touched by
+            the stream grabber until we pass it back to the stream grabber. */
+
+            unsigned char* buffer;        /* Pointer to the buffer attached to the grab result. */
+
+            /* Get the buffer pointer from the result structure. Since we also got the buffer index,
+               we could alternatively use buffers[bufferIndex]. */
+            // buffer = (unsigned char*) grabResult.pBuffer;
+
+             int copy_size = payloadSize_;
+            std::cout<<"copy_size: "<<copy_size<<std::endl; 
+	        memcpy(buf, grabResult.pBuffer, copy_size);
+   
+   
+        }
+        else if (grabResult.Status == Failed)
+        {
+            // fprintf( stderr, "Frame %d wasn't grabbed successfully.  Error code = 0x%08X\n",
+            //          nGrabs, grabResult.ErrorCode );
+            LOG(INFO)<<"Failed to grabbe,Error code = "<< grabResult.ErrorCode;
+        }
+
+        /* Once finished with the processing, requeue the buffer to be filled again. */
+        res = PylonStreamGrabberQueueBuffer( hGrabber_, grabResult.hBuffer, (void*) bufferIndex );
+        // CHECK( res );
+     
+
+ 
+    return true;
+}
+
 bool CameraBasler::grap(unsigned char* buf)
 {
     std::lock_guard<std::mutex> my_guard(operate_mutex_);
@@ -64,11 +139,11 @@ bool CameraBasler::grap(unsigned char* buf)
             /* Get the buffer pointer from the result structure. Since we also got the buffer index,
                we could alternatively use buffers[bufferIndex]. */
             // buffer = (unsigned char*) grabResult.pBuffer;
- 
- 
-	        memcpy(buf, grabResult.pBuffer, image_height_*image_width_);
-            //cv::imshow("img", img);
-	    //cv::waitKey(1);
+
+             int copy_size = payloadSize_;
+            std::cout<<"copy_size: "<<copy_size<<std::endl; 
+	        memcpy(buf, grabResult.pBuffer, copy_size);
+   
    
         }
         else if (grabResult.Status == Failed)
@@ -158,6 +233,8 @@ bool CameraBasler::streamOn()
             LOG(INFO) << "PylonStreamGrabberGetPayloadSize!";
             return false;
         }
+
+        payloadSize_ = payloadSize;
 
         LOG(INFO)<<"payloadSize: "<<payloadSize;
         /* Allocate memory for grabbing.  */
@@ -690,3 +767,128 @@ bool CameraBasler::setGain(double val)
  
 	return true;
 } 
+
+
+bool CameraBasler::getPixelFormat(int &val)
+{
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+
+    val = 0;
+    char buf[256];
+    size_t siz = sizeof( buf );
+
+    GENAPIC_RESULT              res;                      /* Return value of pylon methods. */
+    res = PylonDeviceFeatureToString( hDev_, "PixelFormat", buf,&siz);
+    if(GENAPI_E_OK != res)
+    {
+        LOG(INFO)<<"Get PixelFormat Failed!";
+        return false;
+    } 
+
+
+
+    LOG(INFO)<<"PixelFormat: "<<buf;
+
+    std::string format_str(buf);
+
+    if("Mono8" == format_str)
+    {
+        val = 8;
+    }
+    else if("Mono10" == format_str)
+    {
+        val = 10;
+    }
+    else if("Mono12" == format_str)
+    {
+        val = 12;
+    }
+    else
+    {
+        val = 0;
+        return false;
+    }
+
+
+    return true;
+
+}
+
+bool CameraBasler::setPixelFormat(int val)
+{
+    std::lock_guard<std::mutex> my_guard(operate_mutex_);
+
+
+    bool ret = false;
+    switch (val)
+    {
+    case 8:
+    {
+        GENAPIC_RESULT errRes = GENAPI_E_OK; /* Return value of pylon methods */
+        /* Set the pixel format to Mono 8 */
+        bool isAvail = PylonDeviceFeatureIsAvailable(hDev_, "EnumEntry_PixelFormat_Mono8");
+        if (isAvail)
+        {
+            errRes = PylonDeviceFeatureFromString(hDev_, "PixelFormat", "Mono8");
+            if (GENAPI_E_OK != errRes)
+            {
+                LOG(INFO) << "Set Gain Failed!";
+                ret = false;
+            }
+
+            ret = true;
+            pixel_bit_ = 8;
+            LOG(INFO)<<"Mono8"<<std::endl;
+        }
+    }
+    break;
+
+    case 10:
+    {
+        GENAPIC_RESULT errRes = GENAPI_E_OK; /* Return value of pylon methods */
+        /* Set the pixel format to Mono 8 */
+        bool isAvail = PylonDeviceFeatureIsAvailable(hDev_, "EnumEntry_PixelFormat_Mono10");
+        if (isAvail)
+        {
+            errRes = PylonDeviceFeatureFromString(hDev_, "PixelFormat", "Mono10");
+            if (GENAPI_E_OK != errRes)
+            {
+                LOG(INFO) << "Set Gain Failed!";
+                ret = false;
+            }
+
+            ret = true;
+            pixel_bit_ = 10;
+            LOG(INFO)<<"Mono10"<<std::endl;
+        }
+    }
+    break;
+
+    case 12:
+    {    
+        GENAPIC_RESULT errRes = GENAPI_E_OK; /* Return value of pylon methods */
+        /* Set the pixel format to Mono 12 */
+        bool isAvail = PylonDeviceFeatureIsAvailable(hDev_, "EnumEntry_PixelFormat_Mono12");
+        if (isAvail)
+        {
+            errRes = PylonDeviceFeatureFromString(hDev_, "PixelFormat", "Mono12");
+            if (GENAPI_E_OK != errRes)
+            {
+                LOG(INFO) << "Set Gain Failed!";
+                ret = false;
+            }
+
+            ret = true;
+            pixel_bit_ = 12;
+            LOG(INFO)<<"Mono12"<<std::endl;
+        }
+
+    }
+    break;
+
+    default:
+        break;
+    }
+
+    return ret;
+}

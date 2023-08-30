@@ -376,6 +376,15 @@ extern "C" {
 			int getFrame06Hdr(float* depth, int depth_buf_size,unsigned char* brightness, int brightness_buf_size);
 
 			int getRepetitionFrame06(int count, float* depth, int depth_buf_size,unsigned char* brightness, int brightness_buf_size);
+ 
+			int getFrame06Mono12(float* depth, int depth_buf_size,
+				unsigned char* brightness, int brightness_buf_size);
+
+			int getFrame06HdrMono12(float* depth, int depth_buf_size,
+				unsigned char* brightness, int brightness_buf_size);
+
+			int getRepetitionFrame06Mono12(int count, float* depth, int depth_buf_size,
+				unsigned char* brightness, int brightness_buf_size); 
 
 			int getSystemConfigParam(struct SystemConfigParam& config_param);
  

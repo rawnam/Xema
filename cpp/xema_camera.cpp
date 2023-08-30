@@ -969,7 +969,56 @@ namespace XEMA {
 	int XemaCamera::setCaptureEngine(XemaEngine engine)
 	{
 		engine_ = engine;
-		return 0;
+		
+
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		int val = (int)engine;
+
+		LOG(INFO) << "DfSetCaptureEngine: " << val;
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+		ret = send_command(DF_CMD_SET_PARAM_CAPTURE_ENGINE, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			ret = send_buffer((char*)(&val), sizeof(val), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+		return DF_SUCCESS;
 	}
 	 
 	int XemaCamera::getCaptureEngine(XemaEngine& engine)
@@ -1012,6 +1061,15 @@ namespace XEMA {
 					}
 				}
 				break;
+				case XemaEngine::Black:
+				{
+					ret = getFrame06HdrMono12(depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
+					if (DF_SUCCESS != ret)
+					{
+						return ret;
+					}
+				}
+				break;
 				default:
 					break;
 				}
@@ -1035,6 +1093,15 @@ namespace XEMA {
 				case XemaEngine::Reflect:
 				{
 					ret = getRepetitionFrame06(repetition_exposure_model_, depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
+					if (DF_SUCCESS != ret)
+					{
+						return ret;
+					}
+				}
+				break;
+				case XemaEngine::Black:
+				{
+					ret = getRepetitionFrame06Mono12(repetition_exposure_model_, depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
 					if (DF_SUCCESS != ret)
 					{
 						return ret;
@@ -1068,6 +1135,15 @@ namespace XEMA {
 			case XemaEngine::Reflect:
 			{
 				ret = getFrame06(depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
+				if (DF_SUCCESS != ret)
+				{
+					return ret;
+				}
+			}
+			break;
+			case XemaEngine::Black:
+			{
+				ret = getFrame06Mono12(depth_buf_, depth_buf_size_, brightness_buf_, brightness_bug_size_);
 				if (DF_SUCCESS != ret)
 				{
 					return ret;
@@ -3736,6 +3812,233 @@ namespace XEMA {
 
 
 		ret = send_command(DF_CMD_GET_REPETITION_FRAME_06, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			ret = send_buffer((char*)(&count), sizeof(int), g_sock);
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+			LOG(INFO) << "token checked ok";
+			LOG(INFO) << "receiving buffer, depth_buf_size=" << depth_buf_size;
+			ret = recv_buffer((char*)depth, depth_buf_size, g_sock);
+			LOG(INFO) << "depth received";
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+			LOG(INFO) << "receiving buffer, brightness_buf_size=" << brightness_buf_size;
+			ret = recv_buffer((char*)brightness, brightness_buf_size, g_sock);
+			LOG(INFO) << "brightness received";
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+
+			//brightness = (unsigned char*)depth + depth_buf_size;
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			LOG(INFO) << "Get frame rejected";
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			return DF_UNKNOWN;
+		}
+
+		LOG(INFO) << "Get frame success";
+		close_socket(g_sock);
+		return DF_SUCCESS;
+	}
+
+	int XemaCamera::getFrame06Mono12(float* depth, int depth_buf_size,
+		unsigned char* brightness, int brightness_buf_size)
+	{
+
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+		LOG(INFO) << "GetFrame06";
+		assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+		assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		ret = send_command(DF_CMD_GET_FRAME_06_MONO12, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			LOG(INFO) << "token checked ok";
+			LOG(INFO) << "receiving buffer, depth_buf_size=" << depth_buf_size;
+			ret = recv_buffer((char*)depth, depth_buf_size, g_sock);
+			LOG(INFO) << "depth received";
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+			LOG(INFO) << "receiving buffer, brightness_buf_size=" << brightness_buf_size;
+			ret = recv_buffer((char*)brightness, brightness_buf_size, g_sock);
+			LOG(INFO) << "brightness received";
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+			//brightness = (unsigned char*)depth + depth_buf_size;
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			LOG(INFO) << "Get frame rejected";
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			LOG(INFO) << "Get frame DF_CMD_UNKNOWN";
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+
+
+
+		LOG(INFO) << "Get frame06 success";
+		return DF_SUCCESS;
+	}
+
+	int XemaCamera::getFrame06HdrMono12(float* depth, int depth_buf_size,
+		unsigned char* brightness, int brightness_buf_size)
+	{
+
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+		LOG(INFO) << "DfGetFrame06HdrMono12";
+		assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+		assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		ret = send_command(DF_CMD_GET_FRAME_06_HDR_MONO12, g_sock);
+		ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		int command;
+		ret = recv_command(&command, g_sock);
+		if (ret == DF_FAILED)
+		{
+			LOG(ERROR) << "Failed to recv command";
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+		if (command == DF_CMD_OK)
+		{
+			LOG(INFO) << "token checked ok";
+			LOG(INFO) << "receiving buffer, depth_buf_size=" << depth_buf_size;
+			ret = recv_buffer((char*)depth, depth_buf_size, g_sock);
+			LOG(INFO) << "depth received";
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+			LOG(INFO) << "receiving buffer, brightness_buf_size=" << brightness_buf_size;
+			ret = recv_buffer((char*)brightness, brightness_buf_size, g_sock);
+			LOG(INFO) << "brightness received";
+			if (ret == DF_FAILED)
+			{
+				close_socket(g_sock);
+				return DF_FAILED;
+			}
+
+			//brightness = (unsigned char*)depth + depth_buf_size;
+		}
+		else if (command == DF_CMD_REJECT)
+		{
+			LOG(INFO) << "Get frame rejected";
+			close_socket(g_sock);
+			return DF_BUSY;
+		}
+		else if (command == DF_CMD_UNKNOWN)
+		{
+			close_socket(g_sock);
+			LOG(INFO) << "Get frame DF_CMD_UNKNOWN";
+			return DF_UNKNOWN;
+		}
+
+		close_socket(g_sock);
+
+
+
+		LOG(INFO) << "Get frame06 success";
+		return DF_SUCCESS;
+	}
+
+	int XemaCamera::getRepetitionFrame06Mono12(int count, float* depth, int depth_buf_size,
+		unsigned char* brightness, int brightness_buf_size)
+	{
+		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		{
+			LOG(INFO) << "--";
+		}
+
+		LOG(INFO) << "DfGetRepetitionFrame06Mono12";
+		assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+		assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
+		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		if (ret == DF_FAILED)
+		{
+			close_socket(g_sock);
+			return DF_FAILED;
+		}
+
+
+		ret = send_command(DF_CMD_GET_REPETITION_FRAME_06_MONO12, g_sock);
 		ret = send_buffer((char*)&token, sizeof(token), g_sock);
 		int command;
 		ret = recv_command(&command, g_sock);

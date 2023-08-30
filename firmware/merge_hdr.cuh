@@ -32,4 +32,6 @@ __global__ void cuda_merge_hdr_2(const float*  depth_map_0,const float*  depth_m
 
 
 __global__ void cuda_count_sum_pixel(const unsigned char* brightness,uint32_t img_height, uint32_t img_width, float* sum_pixels);
+
+__global__ void cuda_count_sum_pixel_16(const unsigned short* brightness,uint32_t img_height, uint32_t img_width, float* sum_pixels);
 #endif

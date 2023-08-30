@@ -32,6 +32,7 @@ extern "C" {
 		{
 			Normal = 0,
 			Reflect = 1,
+			Black = 2,
 		};
 
 		enum class XemaColor

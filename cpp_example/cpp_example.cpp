@@ -42,7 +42,7 @@ int main()
 
 	//连接相机 
 	//ret_code = p_camera->connect(pBaseinfo[0].ip);
-	ret_code = p_camera->connect("192.168.100.36");
+	ret_code = p_camera->connect("192.168.100.25");
 
 	int width = 0, height = 0;
 	int channels = 1;
@@ -146,7 +146,7 @@ int main()
 		{
 			std::cout << "Set Pointcloud Smoothing Error!" << std::endl;
 		}
-		ret_code = p_camera->setParamGenerateBrightness(2,36000);
+		ret_code = p_camera->setParamGenerateBrightness(1,36000);
 		if (0 != ret_code)
 		{
 			std::cout << "Set Param Generate Brightness Error!" << std::endl;
@@ -164,8 +164,14 @@ int main()
 			std::cout << "Set Param Brightness Exposure Model Error!" << std::endl;
 		}
 
+		ret_code = p_camera->setCaptureEngine(XemaEngine::Black);
+		if (0 != ret_code)
+		{
+			std::cout << "Set Capture Engine Error!" << std::endl;
+		}
+
 		//采集单曝光数据
-		if (true)
+		if (false)
 		{
 			//设置投影亮度参数
 			ret_code = p_camera->setParamLedCurrent(1023);
@@ -181,11 +187,7 @@ int main()
 				std::cout << "Set Camera Exposure Error!" << std::endl;
 			}
 
-			ret_code = p_camera->setCaptureEngine(XemaEngine::Reflect);
-			if (0 != ret_code)
-			{
-				std::cout << "Set Capture Engine Error!" << std::endl;
-			}
+
 
 			//采集一帧单次曝光的数据
 			ret_code = p_camera->captureData(1, timestamp_data);
@@ -199,6 +201,9 @@ int main()
 
 			if (false)
 			{
+
+
+
 				//采集HDR模式数据 
 				int num = 2;
 				int led_param[6] = { 100,1023,1023,1023,1023,1023 };

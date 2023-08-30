@@ -6,6 +6,7 @@
 #include "protocol.h"
 #include "management.cuh"   
 #include <opencv2/photo.hpp>
+#include <unistd.h>
  
 #include "management.cuh"  
 #include "../test/triangulation.h"
@@ -17,7 +18,7 @@ Scan3D::Scan3D()
     min_camera_exposure_ = 1000;
 
     led_current_ = 1023;
-    camera_exposure_ = 12000;
+    camera_exposure_ = 12000; 
     camera_gain_ = 0;
 
     generate_brightness_model_ = 1;
@@ -103,6 +104,9 @@ int Scan3D::init()
     LOG(INFO)<<"scan3d min_exposure: "<<min_exposure; 
     lc3010_.set_camera_min_exposure(min_exposure);
 
+    min_camera_exposure_mono8_ = min_exposure;
+    min_camera_exposure_mono12_ = min_exposure*2;
+
     buff_brightness_ = new unsigned char[image_width_*image_height_];
     buff_depth_ = new float[image_width_*image_height_];
     buff_pointcloud_ = new float[3*image_width_*image_height_];
@@ -140,7 +144,10 @@ int Scan3D::init()
     }
 
 
+    int formate = 0;
+    bool ok= camera_->getPixelFormat(formate);
 
+    LOG(INFO)<<"getPixelFormat: "<<ok;
 
     return ret;
  
@@ -232,8 +239,8 @@ bool Scan3D::setParamHdr(int num,std::vector<int> led_list,std::vector<int> expo
 }
 
 bool Scan3D::setParamExposure(float exposure)
-{
-
+{ 
+ 
     if(exposure > max_camera_exposure_ || exposure < min_camera_exposure_)
     {
         return false;
@@ -349,6 +356,15 @@ void Scan3D::setParamFisherConfidence(float confidence)
 
 bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
 {
+    // unsigned short* p_data= new unsigned short[image_width_*image_height_];
+    cv::Mat short_data(image_height_, image_width_, CV_16UC1, cv::Scalar(0));
+
+    int bits = 0;
+    if(DF_SUCCESS != getPixelFormat(bits))
+    {
+        bits = 8;
+    }
+
 
     switch (model)
     {
@@ -361,14 +377,39 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
         LOG(INFO) << "Stream On";
         lc3010_.start_pattern_sequence();
 
-        if (!camera_->grap(buff))
+        if(8 == bits)
         {
-            LOG(INFO) << "grap brightness failed!";
+            if (!camera_->grap(buff))
+            {
+                LOG(INFO) << "grap brightness failed!";
+            }
+            else
+            {
+                LOG(INFO) << "grap brightness!";
+            }
         }
         else
         {
-            LOG(INFO) << "grap brightness!";
+            if (!camera_->grap((ushort*)short_data.data))
+            {
+                LOG(INFO) << "grap brightness failed!";
+            }
+            else
+            {
+                LOG(INFO) << "grap brightness!";
+            }
+
+            for (int r = 0; r < image_height_; r++)
+            {
+
+                for (int c = 0; c < image_width_; c++)
+                {
+                    buff[r * image_width_ + c] = short_data.at<ushort>(r, c) / 16 + 0.5;
+                }
+            }
         }
+
+
         camera_->streamOff();
         LOG(INFO) << "Stream Off";
     }
@@ -393,15 +434,40 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
             LOG(INFO) << "Stream On";
 
             camera_->trigger_software();
-            if (!camera_->grap(buff))
+            if(8 == bits)
             {
-                LOG(INFO) << "grap brightness failed!";
+                if (!camera_->grap(buff))
+                {
+                    LOG(INFO) << "grap brightness failed!";
+                }
+                else
+                {
+                    LOG(INFO) << "grap brightness!";
+                }
             }
             else
             {
-                LOG(INFO) << "grap brightness!";
-            }
+                if (!camera_->grap((ushort*)short_data.data))
+                {
+                    LOG(INFO) << "grap brightness failed!";
+                }
+                else
+                {
+                    LOG(INFO) << "grap brightness!";
+                }
 
+                for(int r = 0;r< image_height_;r++)
+                {
+                    
+                    for(int c = 0;c < image_width_;c++)
+                    {
+                        buff[r*image_width_+ c] = short_data.at<ushort>(r,c)/16 + 0.5;
+
+                    }
+
+                }
+
+            }
             camera_->streamOff();
             LOG(INFO) << "Stream Off";
         }
@@ -428,18 +494,34 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
                 camera_->setExposure(exposure_val);
 
                 camera_->trigger_software();
-                // 清理buffer
-                if (!camera_->grap(img.data))
+
+                if (8 == bits)
                 {
-                    LOG(INFO) << "grap brightness failed!";
-                    return false;
+                    if (!camera_->grap(img.data))
+                    {
+                        LOG(INFO) << "grap brightness failed!";
+                    }
+                    else
+                    {
+                        LOG(INFO) << "grap brightness!";
+                    }
+                    img_list.push_back(img.clone());
                 }
                 else
                 {
-                    LOG(INFO) << "grap brightness!";
-                }
+                     cv::Mat img_16(image_height_, image_width_, CV_16UC1, cv::Scalar(0));
+                    if (!camera_->grap(( unsigned short*)img_16.data))
+                    {
+                        LOG(INFO) << "grap brightness failed!";
+                    }
+                    else
+                    {
+                        LOG(INFO) << "grap brightness!";
+                    }
 
-                img_list.push_back(img.clone());
+                    img = img_16/16;
+                    img_list.push_back(img.clone());
+                }
 
                 //  LOG(INFO) << "pixels: " << cv::sum(img);
 
@@ -509,13 +591,39 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
             LOG(INFO) << "Stream On";
 
             camera_->trigger_software();
-            if (!camera_->grap(buff))
+
+            if(8 == bits)
             {
-                LOG(INFO) << "grap generate brightness failed!";
+                if (!camera_->grap(buff))
+                {
+                    LOG(INFO) << "grap brightness failed!";
+                }
+                else
+                {
+                    LOG(INFO) << "grap brightness!";
+                }
             }
             else
             {
-                LOG(INFO) << "grap generate brightness!";
+                if (!camera_->grap((ushort *)short_data.data))
+                {
+                    LOG(INFO) << "grap brightness failed!";
+                }
+                else
+                {
+                    LOG(INFO) << "grap brightness!";
+                }
+
+                for(int r = 0;r< image_height_;r++)
+                {
+                    
+                    for(int c = 0;c < image_width_;c++)
+                    {
+                        buff[r*image_width_+ c] = short_data.at<ushort>(r,c)/16 + 0.5;
+
+                    }
+
+                }
             }
 
             camera_->streamOff();
@@ -545,18 +653,35 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
                 camera_->setExposure(exposure_val);
 
                 camera_->trigger_software();
-                // 清理buffer
-                if (!camera_->grap(img.data))
+
+                if (8 == bits)
                 {
-                    LOG(INFO) << "grap brightness failed!";
-                    return false;
+                    if (!camera_->grap(img.data))
+                    {
+                        LOG(INFO) << "grap brightness failed!";
+                    }
+                    else
+                    {
+                        LOG(INFO) << "grap brightness!";
+                    }
+                    img_list.push_back(img.clone());
                 }
                 else
                 {
-                    LOG(INFO) << "grap brightness!";
+                     cv::Mat img_16(image_height_, image_width_, CV_16UC1, cv::Scalar(0));
+                    if (!camera_->grap(( unsigned short*)img_16.data))
+                    {
+                        LOG(INFO) << "grap brightness failed!";
+                    }
+                    else
+                    {
+                        LOG(INFO) << "grap brightness!";
+                    }
+
+                    img = img_16/16;
+                    img_list.push_back(img.clone());
                 }
 
-                img_list.push_back(img.clone());
 
                 //  LOG(INFO) << "pixels: " << cv::sum(img);
 
@@ -634,19 +759,35 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
 
 
             camera_->trigger_software();
-            // 清理buffer
-            if (!camera_->grap(img.data))
-            {
-                LOG(INFO) << "grap brightness failed!";
-                return false;
-            }
-            else
-            {
-                LOG(INFO) << "grap brightness!";
-            }
- 
 
-            img_list.push_back(img.clone());
+                if (8 == bits)
+                {
+                    if (!camera_->grap(img.data))
+                    {
+                        LOG(INFO) << "grap brightness failed!";
+                    }
+                    else
+                    {
+                        LOG(INFO) << "grap brightness!";
+                    }
+                    img_list.push_back(img.clone());
+                }
+                else
+                {
+                     cv::Mat img_16(image_height_, image_width_, CV_16UC1, cv::Scalar(0));
+                    if (!camera_->grap(( unsigned short*)img_16.data))
+                    {
+                        LOG(INFO) << "grap brightness failed!";
+                    }
+                    else
+                    {
+                        LOG(INFO) << "grap brightness!";
+                    }
+
+                    img = img_16/16;
+                    img_list.push_back(img.clone());
+                }
+
 
             //  LOG(INFO) << "pixels: " << cv::sum(img);
 
@@ -700,6 +841,19 @@ bool Scan3D::captureTextureImage(int model,float exposure,unsigned char* buff)
 bool Scan3D::captureRaw01(unsigned char* buff)
 {
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
     lc3010_.pattern_mode01();
     if (!camera_->streamOn())
     {
@@ -741,6 +895,19 @@ bool Scan3D::captureRaw01(unsigned char* buff)
 bool Scan3D::captureRaw02(unsigned char* buff)
 {
  
+     int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
     lc3010_.pattern_mode02();
     if (!camera_->streamOn())
     {
@@ -785,6 +952,19 @@ bool Scan3D::captureRaw02(unsigned char* buff)
 bool Scan3D::captureRaw03(unsigned char* buff)
 {
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
     lc3010_.pattern_mode03();
     if (!camera_->streamOn())
     {
@@ -825,6 +1005,19 @@ bool Scan3D::captureRaw03(unsigned char* buff)
 
 bool Scan3D::captureRaw04(unsigned char* buff)
 {
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
 
     lc3010_.pattern_mode04();
     if (!camera_->streamOn())
@@ -868,6 +1061,19 @@ bool Scan3D::captureRaw04(unsigned char* buff)
 int Scan3D::captureRaw05(unsigned char *buff)
 {
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
     int patterns_num = 16;
 
     lc3010_.pattern_mode05();
@@ -905,6 +1111,20 @@ int Scan3D::captureRaw05(unsigned char *buff)
 
 int Scan3D::captureRaw06(unsigned char *buff)
 {
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
    int patterns_num = 16;
 
     lc3010_.pattern_mode06();
@@ -942,6 +1162,19 @@ int Scan3D::captureRaw06(unsigned char *buff)
 
 int Scan3D::captureRaw08(unsigned char *buff)
 {
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
 
     lc3010_.pattern_mode08();
     if (!camera_->streamOn())
@@ -1024,6 +1257,19 @@ bool Scan3D::captureRaw04Repetition01(int repetition_count,unsigned char* buff)
 bool Scan3D::capturePhase02Repetition02(int repetition_count,float* phase_x,float* phase_y,unsigned char* brightness)
 {
     cuda_clear_repetition_02_patterns();
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
 
     unsigned char *img_ptr= new unsigned char[image_width_*image_height_];
 
@@ -1213,6 +1459,19 @@ int Scan3D::captureFrame04BaseConfidence()
     cuda_clear_reconstruct_cache();
     initCache();
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
 
     int ret = DF_SUCCESS;
 
@@ -1356,6 +1615,20 @@ int Scan3D::captureFrame06Repetition(int repetition_count)
         return DF_ERROR_LOST_PATTERN_SETS;
     }
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
+
     if (!camera_->streamOn())
     {
         LOG(INFO) << "Stream On Error";
@@ -1460,6 +1733,18 @@ int Scan3D::captureFrame06RepetitionColor(int repetition_count)
     int frame_status = DF_SUCCESS;
     cuda_clear_repetition_02_patterns();
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
 
 
     if (patterns_sets_num_ < 9)
@@ -1571,7 +1856,19 @@ int Scan3D::captureFrame06HdrColor()
     LOG(INFO)<<"Mixed HDR Exposure Base Confidence:";  
     int frame_status = DF_SUCCESS;
 
-    
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
 
 
     if (patterns_sets_num_ < 9)
@@ -1709,6 +2006,21 @@ int Scan3D::captureFrame06Hdr()
     cuda_clear_reconstruct_cache();
     initCache();
 
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
+
     LOG(INFO)<<"Mixed HDR Exposure Base Confidence:";  
     int frame_status = DF_SUCCESS;
 
@@ -1841,14 +2153,399 @@ int Scan3D::captureFrame06Hdr()
  
 }
 
+int Scan3D::captureFrame06RepetitionMono12(int repetition_count)
+{
+    LOG(INFO) << "cuda_clear_reconstruct_cache:";
+    cuda_clear_reconstruct_cache();
+    initCache();
+
+    int frame_status = DF_SUCCESS;
+    cuda_clear_repetition_02_patterns();
+
+    if (patterns_sets_num_ < 9)
+    {
+        return DF_ERROR_LOST_PATTERN_SETS;
+    }
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(12 != bits)
+        {
+            if(setPixelFormat(12))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+    // setPixelFormat(12);
+
+    if (!camera_->streamOn())
+    {
+        LOG(INFO) << "Stream On Error";
+        frame_status = DF_ERROR_CAMERA_STREAM;
+        return DF_ERROR_CAMERA_STREAM;
+    }
+
+    unsigned short *img_ptr = new unsigned short[image_width_ * image_height_];
+
+    for (int r = 0; r < repetition_count; r++)
+    {
+        int n = 0;
+
+        LOG(INFO) << "pattern_mode06";
+        int ret = lc3010_.pattern_mode06();
+        if (DF_SUCCESS != ret)
+        {
+            frame_status = ret;
+            camera_->streamOff();
+            return ret;
+        }
+
+        lc3010_.start_pattern_sequence();
+        LOG(INFO) << "start_pattern_sequence";
+
+        for (int g_i = 0; g_i < 16; g_i++)
+        {
+            LOG(INFO) << "receiving " << g_i << "th image";
+            bool status = camera_->grap(img_ptr);
+            LOG(INFO) << "status=" << status;
+
+            if (status)
+            {
+
+                cuda_merge_repetition_02_patterns_16(img_ptr, g_i);
+            }
+            else
+            {
+                LOG(INFO) << "grad failed!";
+                camera_->streamOff();
+                delete[] img_ptr;
+
+                if (g_i == 0)
+                {
+                        return DF_ERROR_LOST_TRIGGER;
+                }
+
+                frame_status = DF_ERROR_CAMERA_GRAP;
+                return DF_ERROR_CAMERA_GRAP;
+            }
+        }
+
+        /*********************************************************************************************/
+
+        /***********************************************************************************************/
+    }
+
+    camera_->streamOff();
+    lc3010_.stop_pattern_sequence();
+    LOG(INFO) << "GXStreamOff";
+
+    delete[] img_ptr;
+
+    // setPixelFormat(8);
+
+    cuda_handle_repetition_model06_16(repetition_count);
+
+    cuda_normalize_phase(0);
+    LOG(INFO) << "parallel_cuda_unwrap_phase";
+    cuda_generate_pointcloud_base_table(); 
+    LOG(INFO) << "generate_pointcloud_base_table";
+
+    cuda_copy_depth_from_memory(buff_depth_);
+    cuda_copy_pointcloud_from_memory(buff_pointcloud_);
+
+    if (1 == generate_brightness_model_)
+    {
+        cuda_copy_brightness_from_memory(buff_brightness_);
+    }
+ 
+    return frame_status;
+}
+
+int Scan3D::captureFrame06HdrMono12()
+{
+
+    LOG(INFO) << "captureFrame06HdrMono12";
+    LOG(INFO) << "cuda_clear_reconstruct_cache:";
+    cuda_clear_reconstruct_cache();
+    initCache();
+
+    LOG(INFO)<<"Mixed HDR Exposure Base Confidence:";  
+    int frame_status = DF_SUCCESS;
+
+     
+
+    if (patterns_sets_num_ < 9)
+    {
+        return DF_ERROR_LOST_PATTERN_SETS;
+    }
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(12 != bits)
+        {
+            if(setPixelFormat(12))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+    
+    // setPixelFormat(12);
+
+    LOG(INFO) << "Stream On:";
+    if (!camera_->streamOn())
+    {
+        LOG(INFO) << "Stream On Error";
+        return DF_ERROR_CAMERA_STREAM;
+    }
+ 
+ 
+    unsigned short *img_ptr= new unsigned short[image_width_*image_height_];
+
+    for(int hdr_i= 0;hdr_i< hdr_num_;hdr_i++)
+    {
+        int led_current = led_current_list_[hdr_i];
+        int ret = lc3010_.SetLedCurrent(led_current, led_current, led_current);
+        if (DF_SUCCESS != ret)
+        {
+            LOG(ERROR) << "set led error: " << ret;
+            frame_status = DF_ERROR_LIGHTCRAFTER_SET_CURRENT;
+        }
+
+        LOG(INFO)<<"Set LED: "<<led_current;
+ 
+        float exposure = camera_exposure_list_[hdr_i];
+
+        if (exposure > max_camera_exposure_)
+        {
+            exposure = max_camera_exposure_;
+        }
+        else if (exposure < min_camera_exposure_)
+        {
+            exposure = min_camera_exposure_;
+        }
+
+        LOG(INFO) << "Set Camera Exposure Time: " << exposure;
+
+        if(camera_->setExposure(exposure))
+        {
+            lc3010_.set_camera_exposure(exposure);
+        } 
+
+        /***************************************************************************************************/
+
+        ret = lc3010_.pattern_mode06();
+        if (DF_SUCCESS != ret)
+        {
+            camera_->streamOff();
+            return ret;
+        }
+
+        lc3010_.start_pattern_sequence();
+
+        for (int g_i = 0; g_i< 16; g_i++)
+        {
+            LOG(INFO) << "grap " << g_i << " image:";
+            if (!camera_->grap(img_ptr))
+            {
+
+                delete[] img_ptr;
+                camera_->streamOff();
+                if (g_i == 0)
+                {
+                        return DF_ERROR_LOST_TRIGGER;
+                }
+                return DF_ERROR_CAMERA_GRAP;
+            }
+            LOG(INFO) << "finished!";
+
+  
+            cuda_copy_minsw8_pattern_to_memory_16(img_ptr, g_i); 
+ 
+            cuda_handle_minsw8_16(g_i);
+ 
+            // copy to gpu
+
+            if (15 == g_i)
+            {
+                cuda_normalize_phase(0);
+                cuda_generate_pointcloud_base_table();
+                LOG(INFO) << "cuda_generate_pointcloud_base_table";
+            }
+        }
+
+        /****************************************************************************************************/
+ 
+        cuda_copy_result_to_hdr(hdr_i,0);
+    }
+
+    delete[] img_ptr;
+    camera_->streamOff();
+    lc3010_.stop_pattern_sequence(); 
+    cuda_merge_hdr_data_16(hdr_num_, buff_depth_, buff_brightness_);  
+
+    // setPixelFormat(8); 
+ 
+    /******************************************************************************************************/
+    LOG(INFO) << "led_current_: " << led_current_;
+    lc3010_.init();
+    int ret = lc3010_.SetLedCurrent(led_current_, led_current_, led_current_); 
+    if(DF_SUCCESS != ret)
+    {
+        LOG(ERROR)<<"set led error: "<<ret; 
+        frame_status = DF_ERROR_LIGHTCRAFTER_SET_CURRENT;
+    }
+    
+    LOG(INFO) << "Set Led: " << led_current_ << "\n"; 
+    LOG(INFO) << "Set Camera Exposure Time: " << camera_exposure_ << "\n"; 
+    if (camera_->setExposure(camera_exposure_))
+    {
+        lc3010_.set_camera_exposure(camera_exposure_);
+    }
+
+    return frame_status;
+}
+
+int Scan3D::captureFrame06Mono12()
+{
+
+    LOG(INFO) << "captureFrame06Mono12";
+    LOG(INFO) << "cuda_clear_reconstruct_cache:";
+    cuda_clear_reconstruct_cache();
+    initCache();
+
+    int frame_status = DF_SUCCESS;
+    cuda_clear_repetition_02_patterns();
+
+    if (patterns_sets_num_ < 9)
+    {
+        return DF_ERROR_LOST_PATTERN_SETS;
+    }
+
+    int bits = 0;
+
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(12 != bits)
+        {
+            if(setPixelFormat(12))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+    // setPixelFormat(12);
+
+    if (!camera_->streamOn())
+    {
+        LOG(INFO) << "Stream On Error";
+        frame_status = DF_ERROR_CAMERA_STREAM;
+        return DF_ERROR_CAMERA_STREAM;
+    }
+
+    unsigned short *img_ptr = new unsigned short[image_width_ * image_height_];
+
+    LOG(INFO) << "pattern_mode06";
+    int ret = lc3010_.pattern_mode06();
+    if (DF_SUCCESS != ret)
+    {
+        frame_status = ret;
+        camera_->streamOff();
+        return ret;
+    }
+
+    lc3010_.start_pattern_sequence();
+    LOG(INFO) << "start_pattern_sequence";
+
+    for (int g_i = 0; g_i < 16; g_i++)
+    {
+        LOG(INFO) << "receiving " << g_i << "th image";
+        bool status = camera_->grap(img_ptr);
+        LOG(INFO) << "status=" << status;
+
+        if (status)
+        {
+
+            cuda_copy_minsw8_pattern_to_memory_16(img_ptr, g_i);
+
+            cuda_handle_minsw8_16(g_i);
+
+            // cuda_handle_model06_16();
+            // copy to gpu
+
+            if (15 == g_i)
+            {
+                cuda_normalize_phase(0);
+                cuda_generate_pointcloud_base_table();
+                LOG(INFO) << "cuda_generate_pointcloud_base_table";
+            }
+        }
+        else
+        {
+            LOG(INFO) << "grad failed!";
+            camera_->streamOff();
+            delete[] img_ptr;
+
+            frame_status = DF_ERROR_CAMERA_GRAP;
+            return DF_ERROR_CAMERA_GRAP;
+        }
+    }
+
+        /*********************************************************************************************/
+
+        camera_->streamOff();
+        lc3010_.stop_pattern_sequence();
+        LOG(INFO) << "GXStreamOff";
+
+        delete[] img_ptr;
+ 
+        LOG(INFO) << "generate_pointcloud_base_table";
+
+        // setPixelFormat(8);
+
+        cuda_copy_depth_from_memory(buff_depth_);
+        cuda_copy_pointcloud_from_memory(buff_pointcloud_);
+
+        if (1 == generate_brightness_model_)
+        {
+            cuda_copy_brightness_from_memory(buff_brightness_);
+        }
+        // else
+        // {
+
+        //     captureTextureImage(generate_brightness_model_, generate_brightness_exposure_,buff_brightness_);
+        // }
+
+        return frame_status;
+}
+
 int Scan3D::captureFrame06()
 {
     LOG(INFO) << "cuda_clear_reconstruct_cache:";
     cuda_clear_reconstruct_cache();
     initCache();
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
 
     int ret = DF_SUCCESS;
+
 
  
     
@@ -1944,9 +2641,22 @@ int Scan3D::captureFrame06Color()
     cuda_clear_reconstruct_cache();
     initCache();
 
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
+
 
     int ret = DF_SUCCESS;
-
  
     
     if(patterns_sets_num_ < 9)
@@ -2051,6 +2761,20 @@ int Scan3D::captureFrame04HdrBaseConfidence()
 {
     cuda_clear_reconstruct_cache();
     initCache();
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
+
 
     LOG(INFO)<<"Mixed HDR Exposure Base Confidence:";  
     int frame_status = DF_SUCCESS;
@@ -2324,6 +3048,19 @@ int Scan3D::captureFrame04Repetition02BaseConfidence(int repetition_count)
     cuda_clear_repetition_02_patterns();
     cuda_clear_reconstruct_cache();
     initCache();
+
+    int bits = 0;
+    if(DF_SUCCESS == getPixelFormat(bits))
+    {
+        if(8 != bits)
+        {
+            if(setPixelFormat(8))
+            {
+                LOG(INFO)<<"set camera pixel format error!";
+                return DF_FAILED;
+            }
+        }
+    }
 
 
     int frame_status = DF_SUCCESS;
@@ -2908,6 +3645,138 @@ void Scan3D::getCameraResolution(int &width, int &height)
     height = image_height_;
 }
 
+
+
+int Scan3D::getPixelFormat(int &bit)
+{
+    int ret = DF_SUCCESS;
+
+    int val = 0;
+
+    bool ok = camera_->getPixelFormat(val);
+
+    if(!ok)
+    {
+        bit = 0;
+        return DF_FAILED;
+    }
+
+    bit = val;
+
+    return DF_SUCCESS;
+    
+}
+
+int Scan3D::setPixelFormat(int bit)
+{
+    int ret = DF_SUCCESS;
+
+    switch (bit)
+    {
+    case 8:
+    {
+        
+        camera_->setPixelFormat(8);
+
+ 
+/**************************************************************/
+        camera_->switchToInternalTriggerMode();
+ 
+        camera_->streamOn();
+        LOG(INFO) << "Stream On";
+
+        cv::Mat img(image_height_,image_width_,CV_8U,cv::Scalar(0));
+
+        int num = 6;
+
+        while(num-->0)
+        {
+        camera_->trigger_software();
+        if (!camera_->grap(img.data))
+        {
+            LOG(INFO) << "grap generate brightness failed!";
+        }
+        else
+        {
+            LOG(INFO) << "grap generate brightness!";
+        }
+        }
+
+        camera_->streamOff();
+        LOG(INFO) << "Stream Off";
+
+        camera_->switchToExternalTriggerMode();
+            
+/**************************************************************/
+
+        // min_camera_exposure_ = min_camera_exposure_mono8_;
+        LOG(INFO) << "min_camera_exposure_mono8_: " << min_camera_exposure_mono8_;
+        lc3010_.set_camera_min_exposure(min_camera_exposure_mono8_);
+
+        if (!camera_->setExposure(camera_exposure_))
+        {
+            return false;
+        }
+        lc3010_.set_camera_exposure(camera_exposure_);
+    }
+    break;
+
+    case 12:
+    {
+        
+        camera_->setPixelFormat(12);
+
+        
+ 
+/**************************************************************/
+        camera_->switchToInternalTriggerMode();
+ 
+        camera_->streamOn();
+        LOG(INFO) << "Stream On";
+
+        cv::Mat img(image_height_,image_width_,CV_16U,cv::Scalar(0));
+
+        int num = 6;
+
+        while(num-->0)
+        {
+        camera_->trigger_software();
+        if (!camera_->grap(img.data))
+        {
+            LOG(INFO) << "grap generate brightness failed!";
+        }
+        else
+        {
+            LOG(INFO) << "grap generate brightness!";
+        }
+        }
+ 
+        camera_->streamOff();
+        LOG(INFO) << "Stream Off";
+
+        camera_->switchToExternalTriggerMode();
+            
+/**************************************************************/
+ 
+        // min_camera_exposure_ = min_camera_exposure_mono12_;
+        LOG(INFO) << "min_camera_exposure_mono12_: " << min_camera_exposure_mono12_;
+        lc3010_.set_camera_min_exposure(min_camera_exposure_mono12_);
+
+        if (!camera_->setExposure(camera_exposure_))
+        {
+            return false;
+        }
+        lc3010_.set_camera_exposure(camera_exposure_);
+    }
+    break;
+
+    default:
+        ret = DF_FAILED;
+        break;
+    }
+
+    return ret;
+}
 
 void Scan3D::getCameraPixelType(XemaPixelType &type) 
 { 

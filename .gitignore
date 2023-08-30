@@ -17,3 +17,5 @@ camera_config.json
 3rdparty
 mcu/Project/LST
 mcu/Project/Output
+version
+cpp_example/xemacpp.dll
