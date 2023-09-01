@@ -4253,6 +4253,8 @@ bool CameraCaptureGui::bilinearInterpolationFeaturePoints(std::vector<cv::Point2
 void CameraCaptureGui::updateLanguage()
 {
 	ui.retranslateUi(this);
+
+	ui.comboBox_engine->setCurrentIndex(processing_gui_settings_data_.Instance().engine);
 }
  
 /*********************************************************************************************************************/
