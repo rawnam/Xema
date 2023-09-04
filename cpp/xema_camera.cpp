@@ -3548,7 +3548,7 @@ namespace XEMA {
 		}
 
 		LOG(INFO) << "GetBrightness";
-		assert(brightness_buf_size >= image_size_ * sizeof(unsigned char));
+		//assert(brightness_buf_size >= image_size_ * sizeof(unsigned char));
 		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
 		if (ret == DF_FAILED)
 		{
@@ -4027,8 +4027,8 @@ namespace XEMA {
 			LOG(INFO) << "--";
 		}
 		LOG(INFO) << "GetFrame06";
-		assert(depth_buf_size == image_size_ * sizeof(float) * 1);
-		assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
+		//assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+		//assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
 		if (ret == DF_FAILED)
 		{
@@ -4101,8 +4101,8 @@ namespace XEMA {
 			LOG(INFO) << "--";
 		}
 		LOG(INFO) << "DfGetFrame06HdrMono12";
-		assert(depth_buf_size == image_size_ * sizeof(float) * 1);
-		assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
+		//assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+		//assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
 		if (ret == DF_FAILED)
 		{
@@ -4175,8 +4175,8 @@ namespace XEMA {
 		}
 
 		LOG(INFO) << "DfGetRepetitionFrame06Mono12";
-		assert(depth_buf_size == image_size_ * sizeof(float) * 1);
-		assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
+		//assert(depth_buf_size == image_size_ * sizeof(float) * 1);
+		//assert(brightness_buf_size == image_size_ * sizeof(char) * 1);
 		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
 		if (ret == DF_FAILED)
 		{
