@@ -1630,7 +1630,7 @@ int cuda_handle_repetition_model06_16(int repetition_count)
 		convolution_kernal = convolution_kernal * convolution_kernal.t();
 		cuda_copy_convolution_kernal_to_memory((float *)convolution_kernal.data,
 											   cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
-		cuda_rectify_six_step_pattern_phase(2, cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
+		cuda_rectify_six_step_pattern_phase(3, cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
 	}
  
 	for(int i= 8;i<16;i++)
@@ -1737,7 +1737,7 @@ int cuda_handle_minsw8_16(int flag)
 	            convolution_kernal = convolution_kernal * convolution_kernal.t();
                 cuda_copy_convolution_kernal_to_memory((float*)convolution_kernal.data, 
 				cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
-                cuda_rectify_six_step_pattern_phase(2, cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
+                cuda_rectify_six_step_pattern_phase(3, cuda_system_config_settings_machine_.Instance().firwmare_param_.gray_rectify_r);
  
 				/*********************************************************************************************************/
             }
