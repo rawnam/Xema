@@ -3412,7 +3412,7 @@ namespace XEMA {
 	int XemaCamera::getSdkVersion(char version[64])
 	{
 
-		std::strcpy(version, "v1.4.1");
+		std::strcpy(version, "v1.5.0");
 		return DF_SUCCESS;
 	}
  
