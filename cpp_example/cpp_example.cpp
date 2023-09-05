@@ -41,8 +41,8 @@ int main()
 
 
 	//连接相机 
-	//ret_code = p_camera->connect(pBaseinfo[0].ip);
-	ret_code = p_camera->connect("192.168.100.25");
+	ret_code = p_camera->connect(pBaseinfo[0].ip);
+	//ret_code = p_camera->connect("192.168.100.25");
 
 	int width = 0, height = 0;
 	int channels = 1;
