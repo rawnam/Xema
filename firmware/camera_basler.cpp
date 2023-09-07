@@ -1,7 +1,7 @@
 #include "camera_basler.h"
 #include "easylogging++.h"
  
-
+#define CHECK(errc) if (GENAPI_E_OK != errc) std::cout<<(errc)<<std::endl
 CameraBasler::CameraBasler()
 {
 }
@@ -545,17 +545,26 @@ bool CameraBasler::openCamera()
         // CHECK( res );
     }
 
+    res = PylonDeviceFeatureFromString(hDev_, "LineSelector", "Line2");
+    CHECK(res);
+
+    res = PylonDeviceFeatureFromString(hDev_, "LineMode", "Input");
+    CHECK(res);
+
     /* Disable frame start trigger if available. */
     isAvail = PylonDeviceFeatureIsAvailable( hDev_, "EnumEntry_TriggerSelector_FrameStart" );
     if (isAvail)
     {
+  
 	    LOG(INFO)<<"EnumEntry_TriggerSelector_FrameStart"<<std::endl;
         res = PylonDeviceFeatureFromString( hDev_, "TriggerSelector", "FrameStart" );
         // CHECK( res );
         res = PylonDeviceFeatureFromString( hDev_, "TriggerMode", "On" );
         // CHECK( res );
+        
         res = PylonDeviceFeatureFromString(hDev_, "TriggerSource", "Line2");
         // CHECK( res );
+
         res = PylonDeviceFeatureFromString(hDev_, "ExposureMode", "Timed");
         // CHECK( res );
         res = PylonDeviceSetFloatFeature(hDev_, "ExposureTime", 600.0);
