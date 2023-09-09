@@ -3,7 +3,7 @@
 #elif __linux 
 #include <cstring>
 #endif 
-#include "calibrate_function.h" 
+#include "calibrate_function.h"  
 #include <assert.h>
 #include <fstream> 
 #include <iomanip>
@@ -282,6 +282,159 @@ cv::Vec3f Calibrate_Function::rotationMatrixToEulerAngles(cv::Mat& R)
 	return cv::Vec3f(x, y, z);
 }
 
+
+int Calibrate_Function::readCalibParam(std::string path, struct CameraCalibParam& param)
+{
+	std::ifstream myfile(path);
+
+	if (!myfile.is_open())
+	{
+		std::cout << "can not open this file" << std::endl;
+		return -1;
+	}
+
+	float I[40] = { 0 };
+
+
+	for (int i = 0; i < 40; i++)
+	{
+
+		myfile >> I[i];
+		//std::cout << I[i] << std::endl;
+
+	}
+	myfile.close();
+
+
+	param.camera_intrinsic[0] = I[0];
+	param.camera_intrinsic[1] = I[1];
+	param.camera_intrinsic[2] = I[2];
+	param.camera_intrinsic[3] = I[3];
+	param.camera_intrinsic[4] = I[4];
+	param.camera_intrinsic[5] = I[5];
+	param.camera_intrinsic[6] = I[6];
+	param.camera_intrinsic[7] = I[7];
+	param.camera_intrinsic[8] = I[8];
+
+	param.camera_distortion[0] = I[9];
+	param.camera_distortion[1] = I[10];
+	param.camera_distortion[2] = I[11];
+	param.camera_distortion[3] = I[12];
+	param.camera_distortion[4] = I[13];
+
+
+	param.projector_intrinsic[0] = I[14];
+	param.projector_intrinsic[1] = I[15];
+	param.projector_intrinsic[2] = I[16];
+	param.projector_intrinsic[3] = I[17];
+	param.projector_intrinsic[4] = I[18];
+	param.projector_intrinsic[5] = I[19];
+	param.projector_intrinsic[6] = I[20];
+	param.projector_intrinsic[7] = I[21];
+	param.projector_intrinsic[8] = I[22];
+
+
+	param.projector_distortion[0] = I[23];
+	param.projector_distortion[1] = I[24];
+	param.projector_distortion[2] = I[25];
+	param.projector_distortion[3] = I[26];
+	param.projector_distortion[4] = I[27];
+
+
+	param.rotation_matrix[0] = I[28];
+	param.rotation_matrix[1] = I[29];
+	param.rotation_matrix[2] = I[30];
+	param.rotation_matrix[3] = I[31];
+	param.rotation_matrix[4] = I[32];
+	param.rotation_matrix[5] = I[33];
+	param.rotation_matrix[6] = I[34];
+	param.rotation_matrix[7] = I[35];
+	param.rotation_matrix[8] = I[36];
+
+
+	param.translation_matrix[0] = I[37];
+	param.translation_matrix[1] = I[38];
+	param.translation_matrix[2] = I[39];
+
+	 
+	return 0;
+}
+
+double Calibrate_Function::correctExtrinsics(std::vector<std::vector<cv::Point2f>> camera_points_list,
+	std::vector<std::vector<cv::Point2f>> dlp_points_list, std::string in_path, std::string out_path)
+{ 
+	struct CameraCalibParam calibration_param;
+	 
+	if (0 != readCalibParam(in_path, calibration_param))
+	{ 
+		std::cout << "read Calib Param Error: " << in_path << std::endl;
+		return -1;
+	}
+   
+
+	std::vector<std::vector<cv::Point3f>> world_feature_points; 
+	for (int g_i = 0; g_i < camera_points_list.size(); g_i++)
+	{
+		std::vector<cv::Point3f> objectCorners = generateAsymmetricWorldFeature(board_message_);
+		world_feature_points.push_back(objectCorners);
+	}
+
+
+	cv::Mat _R, _T, _E, _F;
+	 
+	cv::Mat ci(3, 3, CV_32F, calibration_param.camera_intrinsic);
+	 
+	cv::Mat pi(3, 3, CV_32F, calibration_param.projector_intrinsic);
+	 
+	cv::Mat cd(1, 5, CV_32F, calibration_param.camera_distortion);
+	 
+	cv::Mat pd(1, 5, CV_32F, calibration_param.projector_distortion);
+
+	cv::Mat s_camera_intrinsic = ci.clone(), s_project_intrinsic = pi.clone();
+	cv::Mat s_camera_distortion = cd.clone(), s_projector_distortion = pd.clone();
+	  
+	cv::TermCriteria term_criteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 500, DBL_EPSILON);
+	cv::Size board_size;
+	board_size.width = board_message_.cols;
+	board_size.height = board_message_.rows;
+	double stereoError = cv::stereoCalibrate(world_feature_points, camera_points_list, dlp_points_list, s_camera_intrinsic, s_camera_distortion,
+		s_project_intrinsic, s_projector_distortion, board_size, _R, _T, _E, _F,
+		/*cv::CALIB_FIX_INTRINSIC*/ cv::CALIB_FIX_INTRINSIC /*+ cal_flags*/, term_criteria);
+
+ 
+	/***********************************************************************************************************/
+
+
+
+	std::cout << "camera intrinsic: " << "\n" << s_camera_intrinsic << "\n";
+	std::cout << "camera distortion: " << "\n" << s_camera_distortion << "\n";
+	std::cout << "project intrinsic: " << "\n" << s_project_intrinsic << "\n";
+	std::cout << "projector distortion: " << "\n" << s_projector_distortion << "\n";
+
+
+	std::cout << "R: " << "\n" << _R << "\n";
+	std::cout << "T: " << "\n" << _T << "\n";
+
+	std::cout.flush();
+
+	/******************************************************************************************************************/
+
+	bool ret = writeCalibTxt(s_camera_intrinsic, s_camera_distortion, s_project_intrinsic, s_projector_distortion, _R, _T, out_path);
+	//writeCalibXml(s_camera_intrinsic, s_camera_distortion, s_project_intrinsic, s_projector_distortion, _R, _T);
+
+	if (ret)
+	{
+		std::cout << "Save Calib: " << out_path << std::endl;
+	}
+	else
+	{
+		std::cout << "Save Calib Error: " << out_path << std::endl;
+	}
+
+
+	return stereoError;
+
+}
 
 double Calibrate_Function::calibrateStereo(std::vector<std::vector<cv::Point2f>> camera_points_list, std::vector<std::vector<cv::Point2f>> dlp_points_list, std::string path)
 {

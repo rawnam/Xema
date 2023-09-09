@@ -6,6 +6,7 @@
 #include <iostream>  
 #include <fstream>
 #include <map>
+#include "../firmware/camera_param.h"
 
 struct BoardMessage
 {
@@ -24,8 +25,7 @@ public:
 	~Calibrate_Function();
 
 	bool bilinearInterpolationFeaturePoints(std::vector<cv::Point2f> feature_points, std::vector<cv::Point3f>& point_3d, cv::Mat point_cloud);
-
-
+	 
 	double Bilinear_interpolation(double x, double y, cv::Mat& mapping);
 
 	double computeLineError(std::vector<cv::Point2f> points, double max_err = 0.0);
@@ -38,6 +38,10 @@ public:
 
 	bool writeCalibXml(cv::Mat camera_intrinsic, cv::Mat camera_distortion, cv::Mat projector_instrinsic, cv::Mat projector_distortion, cv::Mat s_r, cv::Mat s_t);
 
+	int readCalibParam(std::string path, struct CameraCalibParam& param);
+
+	double correctExtrinsics(std::vector<std::vector<cv::Point2f>> camera_points_list,
+		std::vector<std::vector<cv::Point2f>> dlp_points_list, std::string in_path, std::string out_path);
 
 	double calibrateStereo(std::vector<std::vector<cv::Point2f>> camera_points_list, std::vector<std::vector<cv::Point2f>> dlp_points_list, std::string path);
 
