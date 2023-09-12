@@ -1067,55 +1067,56 @@ namespace XEMA {
 	int XemaCamera::setCaptureEngine(XemaEngine engine)
 	{
 		engine_ = engine;
-		
+		 
+		//std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
+		//while (!lck.try_lock_for(std::chrono::milliseconds(1)))
+		//{
+		//	LOG(INFO) << "--";
+		//}
 
-		std::unique_lock<std::timed_mutex> lck(command_mutex_, std::defer_lock);
-		while (!lck.try_lock_for(std::chrono::milliseconds(1)))
-		{
-			LOG(INFO) << "--";
-		}
+		//int val = (int)engine;
 
-		int val = (int)engine;
+		//LOG(INFO) << "DfSetCaptureEngine: " << val;
+		//int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
+		//if (ret == DF_FAILED)
+		//{
+		//	close_socket(g_sock);
+		//	return DF_FAILED;
+		//}
+		//ret = send_command(DF_CMD_SET_PARAM_CAPTURE_ENGINE, g_sock);
+		//ret = send_buffer((char*)&token, sizeof(token), g_sock);
+		//int command;
+		//ret = recv_command(&command, g_sock);
+		//if (ret == DF_FAILED)
+		//{
+		//	LOG(ERROR) << "Failed to recv command";
+		//	close_socket(g_sock);
+		//	return DF_FAILED;
+		//}
 
-		LOG(INFO) << "DfSetCaptureEngine: " << val;
-		int ret = setup_socket(camera_ip_.c_str(), DF_PORT, g_sock);
-		if (ret == DF_FAILED)
-		{
-			close_socket(g_sock);
-			return DF_FAILED;
-		}
-		ret = send_command(DF_CMD_SET_PARAM_CAPTURE_ENGINE, g_sock);
-		ret = send_buffer((char*)&token, sizeof(token), g_sock);
-		int command;
-		ret = recv_command(&command, g_sock);
-		if (ret == DF_FAILED)
-		{
-			LOG(ERROR) << "Failed to recv command";
-			close_socket(g_sock);
-			return DF_FAILED;
-		}
+		//if (command == DF_CMD_OK)
+		//{
+		//	ret = send_buffer((char*)(&val), sizeof(val), g_sock);
+		//	if (ret == DF_FAILED)
+		//	{
+		//		close_socket(g_sock);
+		//		return DF_FAILED;
+		//	}
+		//}
+		//else if (command == DF_CMD_REJECT)
+		//{
+		//	close_socket(g_sock);
+		//	return DF_BUSY;
+		//}
+		//else if (command == DF_CMD_UNKNOWN)
+		//{
+		//	close_socket(g_sock);
+		//	return DF_UNKNOWN;
+		//}
 
-		if (command == DF_CMD_OK)
-		{
-			ret = send_buffer((char*)(&val), sizeof(val), g_sock);
-			if (ret == DF_FAILED)
-			{
-				close_socket(g_sock);
-				return DF_FAILED;
-			}
-		}
-		else if (command == DF_CMD_REJECT)
-		{
-			close_socket(g_sock);
-			return DF_BUSY;
-		}
-		else if (command == DF_CMD_UNKNOWN)
-		{
-			close_socket(g_sock);
-			return DF_UNKNOWN;
-		}
+		//close_socket(g_sock);
 
-		close_socket(g_sock);
+
 		return DF_SUCCESS;
 	}
 	 
