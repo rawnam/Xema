@@ -3657,7 +3657,7 @@ int Scan3D::getPixelFormat(int &bit)
 
     if(!ok)
     {
-        bit = 0;
+        bit = 8;
         return DF_FAILED;
     }
 

@@ -4858,7 +4858,32 @@ int handle_cmd_set_param_confidence(int client_sock)
     system_config_settings_machine_.Instance().firwmare_param_.confidence = val;
     // cuda_set_config(system_config_settings_machine_);
 
-    if(!scan3d_.setParamConfidence(val))
+    int rate = 1;
+    int bits = 8;
+
+    if(DF_SUCCESS == scan3d_.getPixelFormat(bits))
+    {
+        switch (bits)
+        {
+        case 8:
+            rate = 1;
+            break;
+
+        case 10:
+            rate = 4;
+            break;
+
+        case 12:
+            rate = 16;
+            break;
+
+        default:
+            break;
+        }
+    }
+
+
+    if(!scan3d_.setParamConfidence(val*rate))
     { 
         LOG(INFO)<<"Set Param Confidence Failed!";
     }
