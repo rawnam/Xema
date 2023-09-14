@@ -3497,7 +3497,7 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 void CameraCaptureGui::do_pushButton_open_folder()
 {
 
-	QFileInfo fileInfo(last_path_);
+	QFileInfo fileInfo(last_path_.toLocal8Bit());
 	QDir dir(fileInfo.absoluteFilePath());
 
 	if (!dir.exists())
