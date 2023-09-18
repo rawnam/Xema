@@ -99,7 +99,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 	// 2. Transform the local update camera_server file to camera
 	print_log(tr("2. Write the update file into device..."));
 
-	std::string str = fileName.toStdString();
+	std::string str = fileName.toLocal8Bit().toStdString();
 	const char* file_name = str.c_str();
 
 	FILE* fw;
