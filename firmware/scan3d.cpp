@@ -3657,7 +3657,7 @@ int Scan3D::getPixelFormat(int &bit)
 
     if(!ok)
     {
-        bit = 0;
+        bit = 8;
         return DF_FAILED;
     }
 
@@ -3675,9 +3675,11 @@ int Scan3D::setPixelFormat(int bit)
     {
     case 8:
     {
-        
-        camera_->setPixelFormat(8);
 
+        
+        setParamConfidence(system_config_settings_machine_.Instance().firwmare_param_.confidence);
+        
+        camera_->setPixelFormat(8); 
  
 /**************************************************************/
         camera_->switchToInternalTriggerMode();
@@ -3718,15 +3720,17 @@ int Scan3D::setPixelFormat(int bit)
             return false;
         }
         lc3010_.set_camera_exposure(camera_exposure_);
+ 
     }
     break;
 
     case 12:
     {
         
-        camera_->setPixelFormat(12);
 
-        
+        setParamConfidence(system_config_settings_machine_.Instance().firwmare_param_.confidence*16);
+
+        camera_->setPixelFormat(12); 
  
 /**************************************************************/
         camera_->switchToInternalTriggerMode();
