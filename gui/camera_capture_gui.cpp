@@ -71,35 +71,38 @@ CameraCaptureGui::CameraCaptureGui(QWidget* parent)
 	{
 		bool res = dir.mkpath(path);
 
-		if (!res)
-		{ 
-			#ifdef _WIN32 
-			res = dir.mkpath("../TestData");
-			dir.setPath("../TestData");
-			if (res)
-			{
-				addLogMessage(tr("创建TestData文件夹") + dir.absolutePath());
-			}
-			else
-			{
-				addLogMessage(tr("创建TestData文件夹失败") + dir.absolutePath());
-			}
+		//if (!res)
+		//{ 
+		//	#ifdef _WIN32 
+		//	res = dir.mkpath("../TestData");
+		//	dir.setPath("../TestData");
+		//	if (res)
+		//	{
+		//		addLogMessage(tr("创建TestData文件夹: ") + dir.absolutePath());
+		//	}
+		//	else
+		//	{
+		//		addLogMessage(tr("创建TestData文件夹失败: ") + dir.absolutePath());
+		//	}
 
-			#elif __linux
-			res = dir.mkpath("~/TestData");
-			dir.setPath("~/TestData");
+		//	#elif __linux
+		//	last_path_ = "/usr/share/TestData";
+		//	res = dir.mkpath(last_path_);
+		//	dir.setPath(last_path_);
+		//	 
+		//	if (res)
+		//	{
+		//		addLogMessage(tr("创建TestData文件夹: ") + dir.absolutePath());
+		//	}
+		//	else
+		//	{
+		//		addLogMessage(tr("创建TestData文件夹失败: ") + dir.absolutePath());
+		//	}
 
-			if (res)
-			{
-				addLogMessage(tr("创建TestData文件夹") + dir.absolutePath());
-			}
-			else
-			{
-				addLogMessage(tr("创建TestData文件夹失败") + dir.absolutePath());
-			}
+		//	#endif  
+		//}
 
-			#endif  
-		}
+
 	}
 
   
