@@ -1,0 +1,3 @@
+[submodule "3rdparty/ConfiguringIP"]
+	path = 3rdparty/ConfiguringIP
+	url = git@github.com:rawnam/ConfiguringIP.git
