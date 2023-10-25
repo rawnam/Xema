@@ -1105,7 +1105,7 @@ void CameraCaptureGui::do_spin_camera_exposure_changed(int val)
 			if (0 == ret_code)
 			{
 				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
-				QString str = tr("设置相机曝光时间: ") + QString::number(system_config_param_.camera_exposure_time);
+				QString str = tr("Set camera exposure time: ") + QString::number(system_config_param_.camera_exposure_time);
 				addLogMessage(str);
 			}
 
@@ -1119,7 +1119,7 @@ void CameraCaptureGui::do_spin_camera_exposure_changed(int val)
 			if (0 == ret_code)
 			{
 				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
-				QString str = tr("设置相机曝光时间: ") + QString::number(system_config_param_.camera_exposure_time);
+				QString str = tr("Set camera exposure time: ") + QString::number(system_config_param_.camera_exposure_time);
 				addLogMessage(str);
 			}
 
@@ -1157,7 +1157,7 @@ void CameraCaptureGui::do_spin_led_current_changed(int val)
 			if (0 == ret_code)
 			{
 				ui.spinBox_led->setValue(system_config_param_.led_current);
-				QString str = tr("设置投影亮度: ") + QString::number(system_config_param_.led_current);
+				QString str = tr("Set projection brightness: ") + QString::number(system_config_param_.led_current);
 				addLogMessage(str);
 			}
 
@@ -1171,7 +1171,7 @@ void CameraCaptureGui::do_spin_led_current_changed(int val)
 			if (0 == ret_code)
 			{
 				ui.spinBox_led->setValue(system_config_param_.led_current);
-				QString str = tr("设置投影亮度: ") + QString::number(system_config_param_.led_current);
+				QString str = tr("Set projection brightness: ") + QString::number(system_config_param_.led_current);
 				addLogMessage(str);
 			}
 
@@ -1228,7 +1228,7 @@ void CameraCaptureGui::do_spin_smoothing_changed(int val)
 
 			if (0 == ret_code)
 			{
-				QString str = tr("设置平滑参数: ") + QString::number(val);
+				QString str = tr("Set smoothing parameters: ") + QString::number(val);
 				addLogMessage(str);
 			}
 
@@ -1241,7 +1241,7 @@ void CameraCaptureGui::do_spin_smoothing_changed(int val)
 
 			if (0 == ret_code)
 			{
-				QString str = tr("设置平滑参数: ") + QString::number(val);
+				QString str = tr("Set smoothing parameters: ") + QString::number(val);
 				addLogMessage(str);
 			}
 
@@ -1279,7 +1279,7 @@ void CameraCaptureGui::do_doubleSpin_gain(double val)
 			if (0 == ret_code)
 			{
 				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
-				QString str = tr("设置相机增益: ") + QString::number(system_config_param_.camera_gain);
+				QString str = tr("Set camera gain: ") + QString::number(system_config_param_.camera_gain);
 				addLogMessage(str);
 			}
 
@@ -1293,7 +1293,7 @@ void CameraCaptureGui::do_doubleSpin_gain(double val)
 			if (0 == ret_code)
 			{
 				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
-				QString str = tr("设置相机增益: ") + QString::number(system_config_param_.camera_gain);
+				QString str = tr("Set camera gain: ") + QString::number(system_config_param_.camera_gain);
 				addLogMessage(str);
 			}
 
@@ -1336,22 +1336,22 @@ void CameraCaptureGui::updateRectifyGray(int use, int r, float s)
 				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
 				if (1 == use)
 				{
-					addLogMessage(tr("打开相位校正！"));
+					addLogMessage(tr("Turn on phase correction!"));
 					//QString str = tr("半径: ") + QString::number(r);
 					//addLogMessage(str); 
-					QString str = tr("强度: ") + QString::number(s);
+					QString str = tr("power level: ") + QString::number(s);
 					addLogMessage(str);
 				}
 				else
 				{
-					addLogMessage(tr("关闭相位校正！"));
+					addLogMessage(tr("Turn off phase correction!"));
 				}
 
 
 			}
 			else
 			{
-				addLogMessage(tr("出错！"));
+				addLogMessage(tr("Something went wrong!"));
 			}
 
 
@@ -1366,22 +1366,22 @@ void CameraCaptureGui::updateRectifyGray(int use, int r, float s)
 				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
 				if (1 == use)
 				{
-					addLogMessage(tr("打开相位校正！"));
-					QString str = tr("半径: ") + QString::number(r);
+					addLogMessage(tr("Turn on phase correction!"));
+					QString str = tr("radius: ") + QString::number(r);
 					addLogMessage(str);
-					str = tr("标准差: ") + QString::number(s);
+					str = tr("standard deviation: ") + QString::number(s);
 					addLogMessage(str);
 				}
 				else
 				{
-					addLogMessage(tr("关闭相位校正！"));
+					addLogMessage(tr("Turn off phase correction!"));
 				}
 
 
 			}
 			else
 			{
-				addLogMessage(tr("出错！"));
+				addLogMessage(tr("Something went wrong!"));
 			}
 
 		}
@@ -1420,14 +1420,14 @@ void CameraCaptureGui::updateRadiusFilter()
 				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
 				if (1 == firmware_config_param_.use_radius_filter)
 				{
-					addLogMessage(tr("打开半径滤波！"));
-					QString str = tr("半径: ") + QString::number(firmware_config_param_.radius_filter_r)+
-						tr("点数: ") + QString::number(firmware_config_param_.radius_filter_threshold_num);
+					addLogMessage(tr("Turn on radius filtering!"));
+					QString str = tr("radius: ") + QString::number(firmware_config_param_.radius_filter_r)+
+						tr("Points: ") + QString::number(firmware_config_param_.radius_filter_threshold_num);
 					addLogMessage(str);
 				}
 				else
 				{
-					addLogMessage(tr("关闭半径滤波！"));
+					addLogMessage(tr("Turn off radius filtering!"));
 				}
 
 
@@ -1446,20 +1446,20 @@ void CameraCaptureGui::updateRadiusFilter()
 			{
 				if (1 == firmware_config_param_.use_radius_filter)
 				{
-					addLogMessage(tr("打开半径滤波！"));
-					QString str = tr("半径: ") + QString::number(firmware_config_param_.radius_filter_r) +
-						tr("点数: ") + QString::number(firmware_config_param_.radius_filter_threshold_num);
+					addLogMessage(tr("Turn on radius filtering!"));
+					QString str = tr("radius: ") + QString::number(firmware_config_param_.radius_filter_r) +
+						tr("Points: ") + QString::number(firmware_config_param_.radius_filter_threshold_num);
 					addLogMessage(str);
 				}
 				else
 				{
-					addLogMessage(tr("关闭半径滤波！"));
+					addLogMessage(tr("Turn off radius filtering!"));
 				}
 
 			}
 			else
 			{
-				addLogMessage(tr("设置半径滤波失败！"));
+				addLogMessage(tr("Failed to set radius filter!"));
 			}
 
 		}
@@ -1496,13 +1496,13 @@ void CameraCaptureGui::updateDepthFilter(int use, float threshold)
 				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
 				if (1 == use)
 				{
-					addLogMessage(tr("打开深度图滤波！"));
-					QString str = tr("阈值: ") + QString::number(threshold);
+					addLogMessage(tr("Turn on depth map filtering!"));
+					QString str = tr("threshold: ") + QString::number(threshold);
 					addLogMessage(str);
 				}
 				else
 				{
-					addLogMessage(tr("关闭深度图滤波！"));
+					addLogMessage(tr("Turn off depth map filtering!"));
 				}
 
 
@@ -1520,20 +1520,20 @@ void CameraCaptureGui::updateDepthFilter(int use, float threshold)
 			{
 				if (1 == use)
 				{
-					addLogMessage(tr("打开深度图滤波！"));
+					addLogMessage(tr("Turn on depth map filtering!"));
 					//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
-					QString str = tr("设置噪点过滤: ") + QString::number(threshold);
+					QString str = tr("Set up noise filtering: ") + QString::number(threshold);
 					addLogMessage(str);
 				}
 				else
 				{
-					addLogMessage(tr("关闭深度图滤波！"));
+					addLogMessage(tr("Turn off depth map filtering!"));
 				}
 
 			}
 			else
 			{
-				addLogMessage(tr("设置深度图滤波失败！"));
+				addLogMessage(tr("Failed to set depth map filtering!"));
 			}
 
 		}
@@ -1602,7 +1602,7 @@ void CameraCaptureGui::do_doubleSpin_fisher(double val)
 			if (0 == ret_code)
 			{
 				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
-				QString str = tr("设置噪点过滤: ") + QString::number(val);
+				QString str = tr("Set up noise filtering: ") + QString::number(val);
 				addLogMessage(str);
 			}
 
@@ -1616,7 +1616,7 @@ void CameraCaptureGui::do_doubleSpin_fisher(double val)
 			if (0 == ret_code)
 			{
 				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
-				QString str = tr("设置噪点过滤: ") + QString::number(val);
+				QString str = tr("Set up noise filtering: ") + QString::number(val);
 				addLogMessage(str);
 			}
 
@@ -1655,7 +1655,7 @@ void CameraCaptureGui::do_doubleSpin_confidence(double val)
 			if (0 == ret_code)
 			{
 				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
-				QString str = tr("设置相机置信度: ") + QString::number(firmware_config_param_.confidence);
+				QString str = tr("Set camera confidence: ") + QString::number(firmware_config_param_.confidence);
 				addLogMessage(str);
 			}
 
@@ -1669,7 +1669,7 @@ void CameraCaptureGui::do_doubleSpin_confidence(double val)
 			if (0 == ret_code)
 			{
 				//ui.spinBox_camera_exposure->setValue(system_config_param_.camera_exposure_time);
-				QString str = tr("设置相机置信度: ") + QString::number(firmware_config_param_.confidence);
+				QString str = tr("Set camera confidence: ") + QString::number(firmware_config_param_.confidence);
 				addLogMessage(str);
 			}
 
@@ -1723,8 +1723,8 @@ bool CameraCaptureGui::setCameraConfigParam()
 	int ret_code = DfSetParamLedCurrent(system_config_param_.led_current);
 	if (0 != ret_code)
 	{
-		qDebug() << "Set Led Curretn Error;";
-		addLogMessage(tr("设置亮度失败！"));
+		qDebug() << "Set Led Current Error;";
+		addLogMessage(tr("Failed to set brightness!"));
 		return false;
 	}
 
@@ -1734,7 +1734,7 @@ bool CameraCaptureGui::setCameraConfigParam()
 	if (0 != ret_code)
 	{
 		qDebug() << "Set HDR Param Error;";
-		addLogMessage(tr("设置高动态参数失败！"));
+		addLogMessage(tr("Failed to set high dynamic parameters!"));
 		return false;
 	}
 
@@ -1744,59 +1744,59 @@ bool CameraCaptureGui::setCameraConfigParam()
 
 	if (0 != ret_code)
 	{
-		addLogMessage(tr("设置基准平面参数失败！"));
+		addLogMessage(tr("Failed to set datum plane parameters!"));
 		return false;
 	}
 
 	ret_code = DfSetParamCameraExposure(system_config_param_.camera_exposure_time);
 	if (0 != ret_code)
 	{
-		addLogMessage(tr("设置曝光参数失败！"));
+		addLogMessage(tr("Failed to set exposure parameters!"));
 		return false;
 	}
 
 	ret_code = DfSetParamGenerateBrightness(firmware_config_param_.generate_brightness_model, firmware_config_param_.generate_brightness_exposure);
 	if (0 != ret_code)
 	{
-		addLogMessage(tr("设置生成亮度图参数失败！"));
+		addLogMessage(tr("Failed to set parameters for generating brightness map!"));
 	}
 
 	ret_code = DfSetParamBilateralFilter(firmware_config_param_.use_bilateral_filter, firmware_config_param_.bilateral_filter_param_d);
 	if (0 != ret_code)
 	{
-		addLogMessage(tr("设置平滑参数失败！"));
+		addLogMessage(tr("Failed to set smoothing parameters!"));
 	}
 
 	ret_code = DfSetParamCameraConfidence(firmware_config_param_.confidence);
 	if (0 != ret_code)
 	{
-		addLogMessage(tr("设置置信度失败！"));
+		addLogMessage(tr("Failed to set confidence level!"));
 	}
 
 	ret_code = DfSetParamCameraGain(system_config_param_.camera_gain);
 	if (0 != ret_code)
 	{
-		addLogMessage(tr("设置相机增益失败！"));
+		addLogMessage(tr("Failed to set camera gain!"));
 	}
 
 	float fisher_val = (50 + firmware_config_param_.fisher_confidence) / 2;
 	ret_code = DfSetParamOutlierFilter(fisher_val);
 	if (0 != ret_code)
 	{
-		addLogMessage(tr("设置过滤噪点参数失败！"));
+		addLogMessage(tr("Failed to set noise filtering parameters!"));
 	}
 
 	ret_code = DfSetParamDepthFilter(firmware_config_param_.use_depth_filter, firmware_config_param_.depth_filter_threshold);
 	if (0 != ret_code)
 	{
-		addLogMessage(tr("设置深度去噪参数失败！"));
+		addLogMessage(tr("Failed to set depth denoising parameters!"));
 	}
 
 	int projector_version = 3010;
 	ret_code = DfGetProjectorVersion(projector_version);
 	if (0 != ret_code)
 	{
-		addLogMessage(tr("获取光机型号失败！"));
+		addLogMessage(tr("Failed to obtain the optical machine model!"));
 	}
 	else
 	{
@@ -1836,7 +1836,7 @@ bool CameraCaptureGui::setCameraConfigParam()
 
 	if (DF_UNKNOWN == ret_code)
 	{
-		addLogMessage(tr("请检查相机版本！"));
+		addLogMessage(tr("Please check camera version!"));
 	}
 
 	return true;
@@ -1848,7 +1848,7 @@ bool CameraCaptureGui::getCameraConfigParam()
 	int ret_code = DfGetParamLedCurrent(system_config_param_.led_current);
 	if (0 != ret_code)
 	{
-		qDebug() << "Get Led Curretn Error;";
+		qDebug() << "Get Led Current Error;";
 		return false;
 	}
 
@@ -1910,14 +1910,14 @@ void CameraCaptureGui::updateOutlierRemovalConfigParam(struct FirmwareConfigPara
 			firmware_config_param_.radius_filter_r = param.radius_filter_r;
 			firmware_config_param_.radius_filter_threshold_num = param.radius_filter_threshold_num;
 
-			QString cmd = (param.use_radius_filter ? tr("打开") : tr("关闭"));
-			QString str = cmd + tr("半径滤波");
+			QString cmd = (param.use_radius_filter ? tr("Open") : tr("Close"));
+			QString str = cmd + tr("radius filter");
 			if (param.use_radius_filter)
 			{
 				str += u8",";
-				str += tr("半径： ") + QString::number(param.radius_filter_r, 'f', 1) + "mm";
+				str += tr("radius： ") + QString::number(param.radius_filter_r, 'f', 1) + "mm";
 				str += u8",";
-				str += tr("点数： ") + QString::number(param.radius_filter_threshold_num);
+				str += tr("Points: ") + QString::number(param.radius_filter_threshold_num);
 			}
 			else
 			{
@@ -1978,7 +1978,7 @@ void CameraCaptureGui::updateGenerateBrightnessParam()
 			
 			if (0 == ret_code)
 			{
-				QString str = tr("设置生成亮度图参数 ");
+				QString str = tr("Set parameters for generating brightness map ");
 				addLogMessage(str);
 			}
 			 
@@ -1999,7 +1999,7 @@ void CameraCaptureGui::updateGenerateBrightnessParam()
 
 			if (0 == ret_code)
 			{
-				QString str = tr("设置生成亮度图参数 ");
+				QString str = tr("Set parameters for generating brightness map ");
 				addLogMessage(str);
 			}
 
@@ -2041,7 +2041,7 @@ void CameraCaptureGui::updateBrightnessHdrParam()
 		return;
 	}
 	 
-	QString str = tr("亮度图HDR参数 ");
+	QString str = tr("Luminance map HDR parameters ");
 	addLogMessage(str);
 }
 
@@ -2072,7 +2072,7 @@ void CameraCaptureGui::updateManyExposureParam()
 	//	return;
 	//}
 
-	QString str = tr("同步多曝光参数 ");
+	QString str = tr("Synchronize multiple exposure parameters ");
 	addLogMessage(str);
 
 }
@@ -2438,16 +2438,16 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 	{
 		if (DF_UNKNOWN == ret_code)
 		{
-			addLogMessage(tr("相机固件低！"));
+			addLogMessage(tr("The camera firmware is low!"));
 		}
 		else if (DF_ERROR_LOST_PATTERN_SETS == ret_code)
 		{
-			addLogMessage(tr("条纹版本低，不支持高反模式！"));
+			addLogMessage(tr("The stripe version is low and does not support high anti-mode!"));
 			ret_code = 0; 
 		}
 		else
 		{
-			addLogMessage(tr("采集数据异常： ") + QString::number(ret_code));
+			addLogMessage(tr("Abnormality in collecting data: ") + QString::number(ret_code));
 			ret_code = 0;
 
 		}
@@ -2486,7 +2486,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 			std::cout << "Get Depth Error!" << std::endl;
 		}
 
-		addLogMessage(tr("采集完成！"));
+		addLogMessage(tr("Collection completed!"));
 
 		/*****************************************************************************/
 		//获取去畸变图像
@@ -2542,7 +2542,7 @@ void CameraCaptureGui::captureOneFrameBaseThread(bool hdr)
 	else
 	{
 		start_timer_flag_ = false;
-		addLogMessage(tr("采集失败！"));
+		addLogMessage(tr("Collection failed!"));
 	}
 
 	capturing_flag_ = false;
@@ -2560,7 +2560,7 @@ bool CameraCaptureGui::captureOneFrameData()
 	int height = camera_height_;
 
 
-	addLogMessage(tr("采集数据："));
+	addLogMessage(tr("Data collection:"));
 	/*****************************************************************************/
 	int image_size = width * height;
 
@@ -2654,11 +2654,11 @@ bool CameraCaptureGui::captureOneFrameData()
 	{ 
 		if (DF_UNKNOWN == ret_code)
 		{
-			addLogMessage(tr("相机固件低！"));
+			addLogMessage(tr("The camera firmware is low!"));
 		}
 		else
 		{
-			addLogMessage(tr("采集数据异常： ") + QString::number(ret_code));
+			addLogMessage(tr("Abnormality in collecting data: ") + QString::number(ret_code));
 			ret_code = 0;
 
 		}
@@ -2712,7 +2712,7 @@ bool CameraCaptureGui::captureOneFrameData()
 		 
 		depthTransformPointcloud((float*)depth.data, (float*)point_cloud.data);
 		pointcloud_map_ = point_cloud.clone();
-		addLogMessage(tr("采集完成！"));
+		addLogMessage(tr("Collection completed!"));
 
 		transformPointcloud((float*)point_cloud.data, (float*)point_cloud.data, system_config_param_.standard_plane_external_param, &system_config_param_.standard_plane_external_param[9]);
 
@@ -2732,7 +2732,7 @@ bool CameraCaptureGui::captureOneFrameData()
 		return true;
 	}
 
-	addLogMessage(tr("采集失败！"));
+	addLogMessage(tr("Collection failed!"));
 	return false;
 
 }
@@ -2803,7 +2803,7 @@ void  CameraCaptureGui::do_pushButton_connect()
 			camera_ip_ = ui.lineEdit_ip->text();
 			if (camera_ip_.isEmpty())
 			{
-				addLogMessage(tr("请设置IP！"));
+				addLogMessage(tr("Please set the IP!"));
 				break;
 			}
 
@@ -2811,13 +2811,13 @@ void  CameraCaptureGui::do_pushButton_connect()
 			if (!rx2.exactMatch(camera_ip_))
 			{
 
-				addLogMessage(tr("IP无效，请确认相机IP！"));
+				addLogMessage(tr("The IP is invalid, please confirm the camera IP!"));
 				break;
 			}
  
 
 
-			addLogMessage(tr("连接相机："));
+			addLogMessage(tr("Connect camera:"));
 			int ret_code = DfConnect(camera_ip_.toStdString().c_str());
  
   
@@ -2893,7 +2893,7 @@ void  CameraCaptureGui::do_pushButton_connect()
 				//}
 
 
-				addLogMessage(tr("连接相机成功！"));
+				addLogMessage(tr("Connected to camera successfully!"));
 				//保存ip配置
 				processing_gui_settings_data_.Instance().ip = camera_ip_;
 
@@ -2924,7 +2924,7 @@ void  CameraCaptureGui::do_pushButton_connect()
 				{
 					if (1000 != network_speed)
 					{
-						addLogMessage(tr("请注意网络带宽:") + QString::number(network_speed) + "M");
+						addLogMessage(tr("Please be aware of network bandwidth:") + QString::number(network_speed) + "M");
 
 					}
 				}
@@ -2932,20 +2932,20 @@ void  CameraCaptureGui::do_pushButton_connect()
 			}
 			else if (DF_BUSY == ret_code)
 			{
-				addLogMessage(tr("相机忙！"));
+				addLogMessage(tr("Camera busy!"));
 				 
 				break;
 			}
 			else if (DF_ERROR_2D_CAMERA == ret_code)
 			{
-				addLogMessage(tr("2D相机故障！"));
+				addLogMessage(tr("2D camera malfunction!"));
 				 
 				break;
 			}
 			else
 			{
 				std::cout << "Connect Camera Error!";
-				addLogMessage(tr("连接相机失败，请确认相机IP！"));
+				addLogMessage(tr("Failed to connect to the camera, please confirm the camera IP!"));
 				 
 				break;
 			}
@@ -3027,7 +3027,7 @@ void  CameraCaptureGui::do_pushButton_disconnect()
 		//	return;
 		//}
 
-		addLogMessage(tr("断开相机！"));
+		addLogMessage(tr("Disconnect the camera!"));
 		connected_flag_ = false; 
 		ui.lineEdit_ip->setDisabled(false);
 
@@ -3091,7 +3091,7 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 
 		if (!found)
 		{ 
-			addLogMessage(tr("无法识别标定板！"));
+			addLogMessage(tr("Calibration board cannot be recognized!"));
 			return;
 		}
 
@@ -3136,10 +3136,10 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 		precision_machine.transformPoints(point_3d, transform_points, r, t);
 
 		double diff = precision_machine.computeTwoPointSetDistance(world_points, transform_points);
-		addLogMessage(tr("映射精度: ")+QString::number(diff,'f',3));
+		addLogMessage(tr("Mapping accuracy: ")+QString::number(diff,'f',3));
 		if (diff > 10)
 		{
-			addLogMessage(tr("映射基准平面失败，请检查标定板型号！"));
+			addLogMessage(tr("Failed to map the reference plane, please check the calibration plate model!"));
 			return;
 		}
 		/******************************************************************************************/
@@ -3180,13 +3180,13 @@ void CameraCaptureGui::do_pushButton_calibrate_external_param()
 				qDebug() << "Get Param Error;";
 				return;
 			}
-			QString str = tr("保存高度映射基准平面参数");
+			QString str = tr("Save height mapping datum plane parameters");
 			addLogMessage(str);
 
 		}
 		else
 		{
-			QString str = tr("相机已断连！");
+			QString str = tr("The camera has been disconnected!");
 			addLogMessage(str);
 		}
 	}
@@ -3248,7 +3248,7 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 				sumvalue += sqrt(x * x + y * y);
 			}
 			sumvalue /= image_points_pro.size();
-			addLogMessage(tr("偏差: ") + QString::number(sumvalue, 'f', 5) + tr(" 像素"));
+			addLogMessage(tr("deviation: ") + QString::number(sumvalue, 'f', 5) + tr(" Pixel"));
 			/*********************************************************************************/
 
 			cv::Mat color_img;
@@ -3263,7 +3263,7 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 		}
 		else
 		{
-			addLogMessage(tr("无法识别标定板！"));
+			addLogMessage(tr("Calibration board cannot be recognized!"));
 		}
 
 
@@ -3283,7 +3283,7 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 
 		if (!found)
 		{  
-			addLogMessage(tr("无法识别标定板！"));
+			addLogMessage(tr("Calibration board cannot be recognized!"));
 			return;
 		}
 		cv::Mat points_map(brightness_map_.size(), CV_32FC3, cv::Scalar(0., 0., 0.));
@@ -3333,13 +3333,13 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 			//float value = std::floorf(dist);
 
 
-			addLogMessage(tr("平面拟合RMS: ") + QString::number(rms) +
-				tr("距离: ") + QString::number(dist));
+			addLogMessage(tr("Plane fitting RMS: ") + QString::number(rms) +
+				tr("distance: ") + QString::number(dist));
 		}
 		else
 		{
-			addLogMessage(tr("平面拟合RMS: ") + QString::number(rms) +
-				tr("距离: ") + QString::number(0));
+			addLogMessage(tr("Plane fitting RMS: ") + QString::number(rms) +
+				tr("distance: ") + QString::number(0));
 		}
 
 	}
@@ -3361,7 +3361,7 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 
 		if (!found)
 		{ 
-			addLogMessage(tr("无法识别标定板！"));
+			addLogMessage(tr("Calibration board cannot be recognized!"));
 			return;
 		}
 
@@ -3415,11 +3415,11 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 
 		double diff = precision_machine.computeTwoPointSetDistance(world_points, transform_points);
 
-		addLogMessage(tr("标定精度: ") + QString::number(diff, 'f', 3));
+		addLogMessage(tr("Calibration accuracy: ") + QString::number(diff, 'f', 3));
 
 		if (diff > 10)
 		{
-			addLogMessage(tr("请检查标定板型号！"));
+			addLogMessage(tr("Please check the calibration plate model!"));
 		}
 
 		//addLogMessage(u8"平均点偏差: ") + QString::number(diff) +
@@ -3468,7 +3468,7 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 
 		if (!found)
 		{ 
-			addLogMessage(tr("无法识别标定板！"));
+			addLogMessage(tr("Calibration board cannot be recognized!"));
 			return;
 		}
 		cv::Mat points_map(brightness_map_.size(), CV_32FC3, cv::Scalar(0., 0., 0.));
@@ -3521,7 +3521,7 @@ void CameraCaptureGui::do_pushButton_test_accuracy()
 		}
 
 		//addLogMessage(u8"标定板距离：") + dist_str);
-		addLogMessage(tr("偏差：") + QString::number(max_err) + "mm");
+		addLogMessage(tr("deviation:") + QString::number(max_err) + "mm");
 
 	}
 }
@@ -3562,10 +3562,10 @@ void CameraCaptureGui::do_pushButton_save_as()
 			switch (save_data_type_)
 			{
 			case SaveDataType::Origin:
-				addLogMessage(tr("保存原图"));
+				addLogMessage(tr("Save original image"));
 				break;
 			case SaveDataType::Undistort:
-				addLogMessage(tr("保存去畸变图"));
+				addLogMessage(tr("Save the undistorted image"));
 				break;
 			default:
 				break;
@@ -3599,7 +3599,7 @@ void CameraCaptureGui::do_pushButton_save_as()
 
 	std::thread t_s(&CameraCaptureGui::saveOneFrameData, this, path);
 	t_s.detach();
-	addLogMessage(tr("保存路径：") + path);
+	addLogMessage(tr("save route:") + path);
 
 
 }
@@ -3608,7 +3608,7 @@ void CameraCaptureGui::do_pushButton_save_as()
 bool CameraCaptureGui::captureOneFrameAndRender()
 {
 
-	addLogMessage(tr("采集数据："));
+	addLogMessage(tr("Data collection:"));
 	std::thread t_s(&CameraCaptureGui::captureOneFrameBaseThread, this, false);
 	t_s.detach();
 
@@ -3714,7 +3714,7 @@ void CameraCaptureGui::do_undate_show_slot()
 
 		std::thread t_s(&CameraCaptureGui::saveOneFrameData, this, path_name);
 		t_s.detach();
-		addLogMessage(tr("保存路径：") + path_name);
+		addLogMessage(tr("save route:") + path_name);
 	}
 
 
@@ -3743,7 +3743,7 @@ void  CameraCaptureGui::do_timeout_capture_slot()
 
 		if (!capturing_flag_)
 		{
-			addLogMessage(tr("采集数据："));
+			addLogMessage(tr("Data collection:"));
 		}
 
 		std::thread t_s(&CameraCaptureGui::captureOneFrameBaseThread, this, false);
@@ -3789,7 +3789,7 @@ void  CameraCaptureGui::do_pushButton_capture_continuous()
 		}
 		else
 		{ 
-			addLogMessage(tr("请先连接相机"));
+			addLogMessage(tr("Please connect the camera first"));
 		}
 
 	}

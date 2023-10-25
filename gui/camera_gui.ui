@@ -12,7 +12,7 @@
   </property>
   <property name="font">
    <font>
-    <family>微软雅黑</family>
+    <family>Microsoft Yahei</family>
     <pointsize>12</pointsize>
    </font>
   </property>
@@ -58,7 +58,7 @@
       </property>
       <widget class="CameraCaptureGui" name="tab_capture">
        <attribute name="title">
-        <string>采集</string>
+        <string>collection</string>
        </attribute>
       </widget>
      </widget>
@@ -77,12 +77,12 @@
    <widget class="QMenu" name="menu_help">
     <property name="font">
      <font>
-      <family>微软雅黑</family>
+      <family>Microsoft Yahei</family>
       <pointsize>12</pointsize>
      </font>
     </property>
     <property name="title">
-     <string>帮助</string>
+     <string>help</string>
     </property>
     <addaction name="actionAbout"/>
     <addaction name="action_get_calibration_param"/>
@@ -91,12 +91,12 @@
    <widget class="QMenu" name="menu_file">
     <property name="font">
      <font>
-      <family>微软雅黑</family>
+      <family>Microsoft Yahei</family>
       <pointsize>12</pointsize>
      </font>
     </property>
     <property name="title">
-     <string>文件</string>
+     <string>document</string>
     </property>
     <addaction name="action_load_camera_config"/>
     <addaction name="action_save_camera_config"/>
@@ -105,12 +105,12 @@
    <widget class="QMenu" name="menu_setting">
     <property name="font">
      <font>
-      <family>微软雅黑</family>
+      <family>Microsoft Yahei</family>
       <pointsize>12</pointsize>
      </font>
     </property>
     <property name="title">
-     <string>设置</string>
+     <string>set up</string>
     </property>
     <widget class="QMenu" name="menu">
      <property name="font">
@@ -120,7 +120,7 @@
       </font>
      </property>
      <property name="title">
-      <string>语言</string>
+      <string>language</string>
      </property>
      <addaction name="action_language_chinese"/>
      <addaction name="action_language_english"/>
@@ -150,62 +150,62 @@
   </widget>
   <action name="actionAbout">
    <property name="text">
-    <string>关于</string>
+    <string>about</string>
    </property>
    <property name="font">
     <font>
-     <family>微软雅黑</family>
+     <family>Microsoft Yahei</family>
      <pointsize>12</pointsize>
     </font>
    </property>
   </action>
   <action name="action_load_camera_config">
    <property name="text">
-    <string>加载相机配置</string>
+    <string>Load camera configuration</string>
    </property>
    <property name="font">
     <font>
-     <family>微软雅黑</family>
+     <family>Microsoft Yahei</family>
      <pointsize>12</pointsize>
     </font>
    </property>
   </action>
   <action name="action_save_camera_config">
    <property name="text">
-    <string>保存相机配置</string>
+    <string>Save camera configuration</string>
    </property>
    <property name="font">
     <font>
-     <family>微软雅黑</family>
+     <family>Microsoft Yahei</family>
      <pointsize>12</pointsize>
     </font>
    </property>
   </action>
   <action name="action_exit">
    <property name="text">
-    <string>退出</string>
+    <string>quit</string>
    </property>
    <property name="font">
     <font>
-     <family>微软雅黑</family>
+     <family>Microsoft Yahei</family>
      <pointsize>12</pointsize>
     </font>
    </property>
   </action>
   <action name="action_get_calibration_param">
    <property name="text">
-    <string>标定参数</string>
+    <string>Calibration parameters</string>
    </property>
    <property name="font">
     <font>
-     <family>微软雅黑</family>
+     <family>Microsoft Yahei</family>
      <pointsize>12</pointsize>
     </font>
    </property>
   </action>
   <action name="action_select_calibration_board">
    <property name="text">
-    <string>选择标定板</string>
+    <string>Select calibration plate</string>
    </property>
    <property name="font">
     <font>
@@ -215,17 +215,17 @@
   </action>
   <action name="action_outlier_removal">
    <property name="text">
-    <string>滤除外点</string>
+    <string>filter outliers</string>
    </property>
   </action>
   <action name="action_update_firmware">
    <property name="text">
-    <string>固件升级</string>
+    <string>Firmware upgrade</string>
    </property>
   </action>
   <action name="action_language_chinese">
    <property name="text">
-    <string>简体中文</string>
+    <string>Simplified Chinese</string>
    </property>
    <property name="font">
     <font>

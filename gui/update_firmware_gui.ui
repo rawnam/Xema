@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>固件升级</string>
+   <string>Firmware Update</string>
   </property>
   <widget class="QLineEdit" name="lineEdit_path">
    <property name="enabled">
@@ -67,14 +67,14 @@
     <item>
      <widget class="QPushButton" name="pushButton_select">
       <property name="text">
-       <string>选择文件</string>
+       <string>Select File</string>
       </property>
      </widget>
     </item>
     <item>
      <widget class="QPushButton" name="pushButton_update">
       <property name="text">
-       <string>升  级</string>
+       <string>Update</string>
       </property>
       <property name="checkable">
        <bool>true</bool>
@@ -100,7 +100,7 @@
     <item>
      <widget class="QPushButton" name="pushButton_close">
       <property name="text">
-       <string>关闭</string>
+       <string>Close</string>
       </property>
      </widget>
     </item>

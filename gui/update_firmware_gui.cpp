@@ -44,14 +44,14 @@ void UpdateFirmwareGui::setCameraIp(QString ip)
 
 void UpdateFirmwareGui::do_pushButton_select()
 {
-	fileName = QFileDialog::getOpenFileName(this, tr("固件升级"), u8".", u8"camera_server");
+	fileName = QFileDialog::getOpenFileName(this, tr("Firmware upgrade"), u8".", u8"camera_server");
 
 	if (fileName.isEmpty()) {
-		print_log(tr("未选择文件"));
+		print_log(tr("No file selected"));
 	}
 	else {
 		ui.lineEdit_path->setText(fileName);
-		print_log(tr("已选择文件"));
+		print_log(tr("File selected"));
 	}
 }
 
@@ -60,14 +60,14 @@ void UpdateFirmwareGui::do_pushButton_update()
 	QFileInfo fileInfo(fileName);
 	if (!fileInfo.isFile())
 	{
-		QMessageBox::critical(this, tr("注意"), tr("升级失败,请选择正确的固件！"));
+		QMessageBox::critical(this, tr("Notice"), tr("Upgrade failed, please select the correct firmware!"));
 		return;
 	}
 	else
 	{
 		if (fileInfo.fileName() != "camera_server")
 		{
-			QMessageBox::critical(this, tr("注意"), tr("升级失败,请选择正确的固件！"));
+			QMessageBox::critical(this, tr("Notice"), tr("Upgrade failed, please select the correct firmware!"));
 			return;
 		}
 	}
@@ -97,7 +97,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 	KillCameraServer(feedback);
 	if (feedback != 1010) {
 		print_log(tr("Kill camera_server failed"));
-		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
+		QMessageBox::critical(this, tr("Notice"), tr("Upgrade failed!"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
 		ui.pushButton_close->setEnabled(true);
@@ -122,7 +122,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 	if (fopen_s(&fw, file_name, "rb") != 0)
 	{
 		print_log(tr("Load file: fail..."));
-		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
+		QMessageBox::critical(this, tr("Notice"), tr("Upgrade failed!"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
 		ui.pushButton_close->setEnabled(true);
@@ -153,7 +153,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 
 	if (ret != DF_SUCCESS) {
 		print_log(tr("Update camera_server: fail..."));
-		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
+		QMessageBox::critical(this, tr("Notice"), tr("Upgrade failed!"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
 		ui.pushButton_close->setEnabled(true);
@@ -169,7 +169,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 	ChmodCameraServer(feedback);
 	if (feedback != 2020) {
 		print_log(tr("Chmod camera_server failed"));
-		QMessageBox::critical(this, tr("注意"), tr("升级失败！"));
+		QMessageBox::critical(this, tr("Notice"), tr("Upgrade failed!"));
 		ui.pushButton_update->setEnabled(true);
 		ui.pushButton_select->setEnabled(true);
 		ui.pushButton_close->setEnabled(true);
@@ -199,7 +199,7 @@ void UpdateFirmwareGui::do_pushButton_update()
 	RebootDevice(feedback);
 
 
-	QMessageBox::warning(this, tr("注意"), tr("升级完成，请断电重启相机！"));
+	QMessageBox::warning(this, tr("Notice"), tr("The upgrade is complete, please power off and restart the camera!"));
 
 	UpdateDisconnect();
 	ui.pushButton_update->setEnabled(true);

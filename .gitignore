@@ -9,6 +9,7 @@ tools/patterns_4710
 tools/patterns_gray
 example/*.dll
 example/*.lib
+example/*.so
 build
 firmware/version.h
 TestData
@@ -19,3 +20,4 @@ mcu/Project/LST
 mcu/Project/Output
 version
 cpp_example/xemacpp.dll
+cpp_example/*.so

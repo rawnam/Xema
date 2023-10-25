@@ -17,7 +17,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>查询标定参数</string>
+   <string>Query Calibration Parameters</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
@@ -31,28 +31,28 @@
         <item row="0" column="0">
          <widget class="QLabel" name="label_intrinsic">
           <property name="text">
-           <string>内参：</string>
+           <string>Intrinsic:</string>
           </property>
          </widget>
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_distortion">
           <property name="text">
-           <string>畸变：</string>
+           <string>Distortion:</string>
           </property>
          </widget>
         </item>
         <item row="2" column="0">
          <widget class="QLabel" name="label_extrinsic">
           <property name="text">
-           <string>外参：</string>
+           <string>Extrinsic:</string>
           </property>
          </widget>
         </item>
         <item row="3" column="0">
          <widget class="QLabel" name="label_standard_plane">
           <property name="text">
-           <string>基准平面：</string>
+           <string>Standard Plane:</string>
           </property>
          </widget>
         </item>

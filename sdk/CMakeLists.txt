@@ -7,7 +7,12 @@ set(CONFIGURING_IP_DIR ../3rdparty/ConfiguringIP/)
 set(CMAKE_CXX_FLAGS "-Wl,-rpath=./")
 
 
-include_directories(../3rdparty/ConfiguringIP/)
+# include_directories(../3rdparty/ConfiguringIP/)
+
+include_directories(
+    ${CONFIGURING_IP_DIR}/sdk
+)
+
  
 
 project(open_cam3d_sdk CXX)
@@ -17,4 +22,4 @@ find_package(Threads)
 add_library(open_cam3d_sdk SHARED open_cam3d.cpp ../test/triangulation.cpp socket_tcp.cpp utils.cpp ../firmware/easylogging++.cc) 
 target_link_libraries(open_cam3d_sdk PRIVATE
  Threads::Threads
- ${PROJECT_SOURCE_DIR}/../3rdparty/ConfiguringIP/libconfiguring_network_static.a)
+ ${PROJECT_SOURCE_DIR}/../3rdparty/ConfiguringIP/sdk/build/libconfiguring_network_static.a)

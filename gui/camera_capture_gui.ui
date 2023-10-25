@@ -18,7 +18,7 @@
   </property>
   <property name="font">
    <font>
-    <family>微软雅黑</family>
+    <family>Microsoft Yahei</family>
     <pointsize>20</pointsize>
    </font>
   </property>
@@ -135,7 +135,7 @@
            </font>
           </property>
           <property name="text">
-           <string>自动保存</string>
+           <string>Auto save</string>
           </property>
          </widget>
         </item>
@@ -147,7 +147,7 @@
            </font>
           </property>
           <property name="text">
-           <string>过曝显示</string>
+           <string>Overexposed display</string>
           </property>
          </widget>
         </item>
@@ -161,7 +161,7 @@
              </font>
             </property>
             <property name="text">
-             <string>单曝光</string>
+             <string>single exposure</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -179,7 +179,7 @@
              </font>
             </property>
             <property name="text">
-             <string>高动态</string>
+             <string>HDR</string>
             </property>
             <attribute name="buttonGroup">
              <string notr="true">buttonGroup_exposure</string>
@@ -194,7 +194,7 @@
              </font>
             </property>
             <property name="text">
-             <string>重复曝光</string>
+             <string>Repeated exposure</string>
             </property>
             <attribute name="buttonGroup">
              <string notr="true">buttonGroup_exposure</string>
@@ -267,7 +267,7 @@
           <item>
            <widget class="QRadioButton" name="radioButton_brightness">
             <property name="text">
-             <string>亮度图</string>
+             <string>Luminance map</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -280,7 +280,7 @@
           <item>
            <widget class="QRadioButton" name="radioButton_depth_color">
             <property name="text">
-             <string>深度图</string>
+             <string>Depth map</string>
             </property>
             <attribute name="buttonGroup">
              <string notr="true">buttonGroup_image</string>
@@ -290,7 +290,7 @@
           <item>
            <widget class="QRadioButton" name="radioButton_height_color">
             <property name="text">
-             <string>高度图</string>
+             <string>height map</string>
             </property>
             <attribute name="buttonGroup">
              <string notr="true">buttonGroup_image</string>
@@ -441,7 +441,7 @@
                   <item row="0" column="0">
                    <widget class="QLabel" name="label_genine">
                     <property name="text">
-                     <string>引擎：</string>
+                     <string>engine:</string>
                     </property>
                    </widget>
                   </item>
@@ -454,17 +454,17 @@
                     </property>
                     <item>
                      <property name="text">
-                      <string>常规模式</string>
+                      <string>Normal mode</string>
                      </property>
                     </item>
                     <item>
                      <property name="text">
-                      <string>高反模式</string>
+                      <string>High anti-pattern</string>
                      </property>
                     </item>
                     <item>
                      <property name="text">
-                      <string>黑色模式</string>
+                      <string>black mode</string>
                      </property>
                     </item>
                    </widget>
@@ -527,7 +527,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>置信度</string>
+                    <string>Confidence</string>
                    </property>
                   </widget>
                  </item>
@@ -539,7 +539,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>噪点过滤</string>
+                    <string>Noise filtering</string>
                    </property>
                   </widget>
                  </item>
@@ -572,7 +572,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>平滑</string>
+                    <string>smooth</string>
                    </property>
                   </widget>
                  </item>
@@ -584,7 +584,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>增益</string>
+                    <string>Gain</string>
                    </property>
                   </widget>
                  </item>
@@ -596,7 +596,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>重复曝光数</string>
+                    <string>Number of repeat exposures</string>
                    </property>
                   </widget>
                  </item>
@@ -608,7 +608,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>最小高度</string>
+                    <string>minimum height</string>
                    </property>
                   </widget>
                  </item>
@@ -659,7 +659,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>高动态曝光数</string>
+                    <string>High dynamic exposure number</string>
                    </property>
                   </widget>
                  </item>
@@ -692,7 +692,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>最大高度</string>
+                    <string>maximum height</string>
                    </property>
                   </widget>
                  </item>
@@ -722,7 +722,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>投影亮度</string>
+                    <string>Projection brightness</string>
                    </property>
                   </widget>
                  </item>
@@ -797,7 +797,7 @@
                     </font>
                    </property>
                    <property name="text">
-                    <string>曝光时间</string>
+                    <string>Exposure time</string>
                    </property>
                   </widget>
                  </item>
@@ -825,7 +825,7 @@
                  </property>
                  <property name="font">
                   <font>
-                   <family>微软雅黑</family>
+                   <family>Microsoft Yahei</family>
                    <pointsize>12</pointsize>
                   </font>
                  </property>
@@ -864,7 +864,7 @@
                  </attribute>
                  <column>
                   <property name="text">
-                   <string>组号</string>
+                   <string>Group No</string>
                   </property>
                   <property name="textAlignment">
                    <set>AlignCenter</set>
@@ -872,7 +872,7 @@
                  </column>
                  <column>
                   <property name="text">
-                   <string>曝光时间</string>
+                   <string>Exposure time</string>
                   </property>
                   <property name="textAlignment">
                    <set>AlignCenter</set>
@@ -880,7 +880,7 @@
                  </column>
                  <column>
                   <property name="text">
-                   <string>投影亮度</string>
+                   <string>Projection brightness</string>
                   </property>
                   <property name="textAlignment">
                    <set>AlignCenter</set>
@@ -896,7 +896,7 @@
                   </font>
                  </property>
                  <property name="title">
-                  <string>半径滤波</string>
+                  <string>radius filter</string>
                  </property>
                  <property name="checkable">
                   <bool>true</bool>
@@ -910,7 +910,7 @@
                      </font>
                     </property>
                     <property name="text">
-                     <string>半径（mm）:</string>
+                     <string>Radius (mm):</string>
                     </property>
                    </widget>
                   </item>
@@ -934,7 +934,7 @@
                      </font>
                     </property>
                     <property name="text">
-                     <string> 阈值点数：</string>
+                     <string> Threshold points:</string>
                     </property>
                    </widget>
                   </item>
@@ -961,7 +961,7 @@
                   </font>
                  </property>
                  <property name="title">
-                  <string>深度滤波</string>
+                  <string>Depth filtering</string>
                  </property>
                  <property name="checkable">
                   <bool>true</bool>
@@ -996,7 +996,7 @@
                      </font>
                     </property>
                     <property name="text">
-                     <string>阈值：   </string>
+                     <string>Threshold:   </string>
                     </property>
                    </widget>
                   </item>
@@ -1037,7 +1037,7 @@
                   </font>
                  </property>
                  <property name="title">
-                  <string>相位校正</string>
+                  <string>Phase correction</string>
                  </property>
                  <property name="checkable">
                   <bool>true</bool>
@@ -1054,7 +1054,7 @@
                      </font>
                     </property>
                     <property name="text">
-                     <string>标准差：</string>
+                     <string>Standard deviation:</string>
                     </property>
                    </widget>
                   </item>
@@ -1093,7 +1093,7 @@
                      </font>
                     </property>
                     <property name="text">
-                     <string>半径：</string>
+                     <string>radius:</string>
                     </property>
                    </widget>
                   </item>
@@ -1152,7 +1152,7 @@
                   </font>
                  </property>
                  <property name="title">
-                  <string>生成亮度图</string>
+                  <string>Generate brightness map</string>
                  </property>
                  <property name="checkable">
                   <bool>true</bool>
@@ -1180,7 +1180,7 @@
                              </font>
                             </property>
                             <property name="text">
-                             <string>单曝光</string>
+                             <string>single exposure</string>
                             </property>
                             <property name="checked">
                              <bool>true</bool>
@@ -1195,7 +1195,7 @@
                              </font>
                             </property>
                             <property name="text">
-                             <string>高动态</string>
+                             <string>HDR</string>
                             </property>
                            </widget>
                           </item>
@@ -1216,7 +1216,7 @@
                              </font>
                             </property>
                             <property name="text">
-                             <string>默认</string>
+                             <string>default</string>
                             </property>
                             <property name="checked">
                              <bool>true</bool>
@@ -1231,7 +1231,7 @@
                              </font>
                             </property>
                             <property name="text">
-                             <string>发光</string>
+                             <string>glow</string>
                             </property>
                            </widget>
                           </item>
@@ -1243,7 +1243,7 @@
                              </font>
                             </property>
                             <property name="text">
-                             <string>不发光</string>
+                             <string>Not glowing</string>
                             </property>
                            </widget>
                           </item>
@@ -1301,7 +1301,7 @@
                          </font>
                         </property>
                         <property name="text">
-                         <string>曝光时间（us）：</string>
+                         <string>Exposure time (us):</string>
                         </property>
                        </widget>
                       </item>
@@ -1313,7 +1313,7 @@
                          </font>
                         </property>
                         <property name="text">
-                         <string>HDR数：</string>
+                         <string>HDR number:</string>
                         </property>
                        </widget>
                       </item>
@@ -1355,7 +1355,7 @@
                          </font>
                         </property>
                         <property name="text">
-                         <string>增益(db)：</string>
+                         <string>Gain(db)：</string>
                         </property>
                        </widget>
                       </item>
@@ -1395,7 +1395,7 @@
                       </property>
                       <property name="font">
                        <font>
-                        <family>微软雅黑</family>
+                        <family>Microsoft Yahei</family>
                         <pointsize>12</pointsize>
                        </font>
                       </property>
@@ -1434,7 +1434,7 @@
                       </attribute>
                       <column>
                        <property name="text">
-                        <string>组号</string>
+                        <string>Group No</string>
                        </property>
                        <property name="textAlignment">
                         <set>AlignCenter</set>
@@ -1442,7 +1442,7 @@
                       </column>
                       <column>
                        <property name="text">
-                        <string>曝光时间</string>
+                        <string>Exposure time</string>
                        </property>
                        <property name="textAlignment">
                         <set>AlignCenter</set>
@@ -1490,7 +1490,7 @@
            </property>
            <property name="font">
             <font>
-             <family>微软雅黑</family>
+             <family>Microsoft Yahei</family>
              <pointsize>10</pointsize>
             </font>
            </property>

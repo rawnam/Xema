@@ -85,13 +85,13 @@ void SelectCalibrationBoardGui::do_QRadioButton_toggled_board_4(bool state)
 	board_type_ = 4;
 
 	QString str = "";
-	str += tr("  非对称圆标定板");
+	str += tr("  Asymmetric Circle Calibration Board");
 	str += "\r\n";
 	str += "\r\n";
-	str += tr("  圆点数: 7*11");
+	str += tr("  Number of Circles: 7*11");
 	str += "\r\n";
 	str += "\r\n";
-	str += tr("  圆心距: 4 mm");
+	str += tr("  Circle Spacing: 4 mm");
 
 	ui.label_board_message->setText(str);
 }
@@ -101,13 +101,13 @@ void SelectCalibrationBoardGui::do_QRadioButton_toggled_board_12(bool state)
 	board_type_ = 12;
 
 	QString str = "";
-	str += tr("  非对称圆标定板");
+	str += tr("  Asymmetric Circle Calibration Board");
 	str += "\r\n";
 	str += "\r\n";
-	str += tr("  圆点数: 7*11");
+	str += tr("  Number of Circles: 7*11");
 	str += "\r\n";
 	str += "\r\n";
-	str += tr("  圆心距: 12 mm");
+	str += tr("  Circle Spacing: 12 mm");
 
 	ui.label_board_message->setText(str);
 }
@@ -117,13 +117,13 @@ void SelectCalibrationBoardGui::do_QRadioButton_toggled_board_20(bool state)
 	board_type_ = 20;
 
 	QString str = "";
-	str += tr("  非对称圆标定板");
+	str += tr("  Asymmetric Circle Calibration Board");
 	str += "\r\n";
 	str += "\r\n";
-	str += tr("  圆点数: 7*11");
+	str += tr("  Number of Circles: 7*11");
 	str += "\r\n";
 	str += "\r\n";
-	str += tr("  圆心距: 20 mm");
+	str += tr("  Circle Spacing: 20 mm");
 
 	ui.label_board_message->setText(str);
 }
@@ -135,13 +135,13 @@ void SelectCalibrationBoardGui::do_QRadioButton_toggled_board_40(bool state)
 	board_type_ = 40;
 
 	QString str = "";
-	str += tr("  非对称圆标定板");
+	str += tr("  Asymmetric Circle Calibration Board");
 	str += "\r\n";
 	str += "\r\n";
-	str += tr("  圆点数: 7*11");
+	str += tr("  Number of Circles: 7*11");
 	str += "\r\n";
 	str += "\r\n";
-	str += tr("  圆心距: 40 mm");
+	str += tr("  Circle Spacing: 40 mm");
 
 	ui.label_board_message->setText(str);
 }
@@ -151,13 +151,13 @@ void SelectCalibrationBoardGui::do_QRadioButton_toggled_board_80(bool state)
 	board_type_ = 80;
 
 	QString str = "";
-	str += tr("  非对称圆标定板");
+	str += tr("  Asymmetric Circle Calibration Board");
 	str += "\r\n";
 	str += "\r\n";
-	str += tr("  圆点数: 9*13");
+	str += tr("  Number of Circles: 9*13");
 	str += "\r\n";
 	str += "\r\n";
-	str += tr("  圆心距: 80 mm");
+	str += tr("  Circle Spacing: 80 mm");
 
 	ui.label_board_message->setText(str);
 }

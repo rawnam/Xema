@@ -69,13 +69,14 @@ public:
 
     void retranslateUi(QDialog *AboutGui)
     {
-        AboutGui->setWindowTitle(QApplication::translate("AboutGui", "\345\205\263\344\272\216", Q_NULLPTR));
-        label->setText(QApplication::translate("AboutGui", "\345\256\242\346\210\267\347\253\257\347\211\210\346\234\254\357\274\232", Q_NULLPTR));
-        label_2->setText(QApplication::translate("AboutGui", "\345\233\272\344\273\266\347\211\210\346\234\254\357\274\232", Q_NULLPTR));
+        AboutGui->setWindowTitle(QApplication::translate("AboutGui", "About", Q_NULLPTR));
+        label->setText(QApplication::translate("AboutGui", "Client Version:", Q_NULLPTR));
+        label_2->setText(QApplication::translate("AboutGui", "Firmware Version:", Q_NULLPTR));
         label_client_verson->setText(QString());
         label_firmware_version->setText(QString());
-        groupBox->setTitle(QApplication::translate("AboutGui", "\344\272\247\345\223\201\350\257\246\346\203\205\357\274\232", Q_NULLPTR));
+        groupBox->setTitle(QApplication::translate("AboutGui", "Description:", Q_NULLPTR));
     } // retranslateUi
+
 
 };
 

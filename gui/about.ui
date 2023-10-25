@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>关于</string>
+   <string>About</string>
   </property>
   <widget class="QTextBrowser" name="textBrowser">
    <property name="geometry">
@@ -38,7 +38,7 @@
     </font>
    </property>
    <property name="text">
-    <string>客户端版本：</string>
+    <string>Client Version:</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_2">
@@ -56,7 +56,7 @@
     </font>
    </property>
    <property name="text">
-    <string>固件版本：</string>
+    <string>Firmware Version:</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_client_verson">
@@ -110,7 +110,7 @@
     </font>
    </property>
    <property name="title">
-    <string>产品详情：</string>
+    <string>Product Details:</string>
    </property>
   </widget>
  </widget>
