@@ -12,10 +12,11 @@ int main()
 	//更新相机设备列表
 	int camera_num = 0;
 	ret_code = DfUpdateDeviceList(camera_num);
-	if (0 != ret_code || 0 == camera_num)
-	{
-		return -1;
-	}
+	// if (0 != ret_code || 0 == camera_num)
+	// {
+	// 	std::cout << "Update Device List Error!" << std::endl;
+	// 	return -1;
+	// }
 	 
 	DeviceBaseInfo* pBaseinfo = (DeviceBaseInfo*)malloc(sizeof(DeviceBaseInfo) * camera_num);
 	int n_size = camera_num * sizeof(DeviceBaseInfo);
@@ -32,8 +33,8 @@ int main()
 	 
 	 
 	//连接相机 
-	ret_code = DfConnect(pBaseinfo[0].ip);
-	//ret_code = DfConnect("192.168.100.36");
+	// ret_code = DfConnect(pBaseinfo[0].ip);
+	ret_code = DfConnect("172.20.33.3");
 
 	int width = 0, height = 0,channels = 1; 
 	if (0 == ret_code)
@@ -161,7 +162,7 @@ int main()
 			//多曝光模式
 			// 
 			
-			if (false)
+			if (true)
 			{ 
 				//采集HDR模式数据 
 				int num = 2;
@@ -258,6 +259,17 @@ int main()
 				std::cout << "Get Depth!" << std::endl;
 			}
 
+			// save depth data as bmp
+			unsigned char* depth_data_bmp = (unsigned char*)malloc(sizeof(unsigned char) * width * height * 3);
+			memset(depth_data_bmp, 0, sizeof(unsigned char) * width * height * 3);
+			for (int i = 0; i < width * height; i++)
+			{
+				depth_data_bmp[3 * i] = depth_data[i];
+				depth_data_bmp[3 * i + 1] = depth_data[i];
+				depth_data_bmp[3 * i + 2] = depth_data[i];
+			}
+			
+
 			//获取高度映射图数据
 			ret_code = DfGetHeightMapData(height_map_data);
 
@@ -271,6 +283,24 @@ int main()
 			if (0 == ret_code)
 			{
 				std::cout << "Get Pointcloud!" << std::endl;
+			}
+
+			// Save point cloud data as ply
+			if (true)
+			{
+				FILE* fp = fopen("pointcloud.ply", "w");
+				fprintf(fp, "ply\n");
+				fprintf(fp, "format ascii 1.0\n");
+				fprintf(fp, "element vertex %d\n", width * height);
+				fprintf(fp, "property float x\n");
+				fprintf(fp, "property float y\n");
+				fprintf(fp, "property float z\n");
+				fprintf(fp, "end_header\n");
+				for (int i = 0; i < width * height; i++)
+				{
+					fprintf(fp, "%f %f %f\n", point_cloud_data[3 * i], point_cloud_data[3 * i + 1], point_cloud_data[3 * i + 2]);
+				}
+				fclose(fp);
 			}
 
 			//动态获取基准平面高度映射图
@@ -305,7 +335,7 @@ int main()
 	free(timestamp_data); 
 	free(pBaseinfo);
 
-	DfDisconnect("192.168.88.106");
+	DfDisconnect("172.20.33.3");
 }
 
 

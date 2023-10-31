@@ -15,5 +15,5 @@ message(${PROJECT_SOURCE_DIR})
 
 
 link_libraries(${PROJECT_SOURCE_DIR}/libxema_sdk.so)  
-link_libraries(${PROJECT_SOURCE_DIR}/libenumerate.so)  
+# link_libraries(${PROJECT_SOURCE_DIR}/libenumerate.so)  
 add_executable(${PROJECT_NAME} ${APP_SRC}) 

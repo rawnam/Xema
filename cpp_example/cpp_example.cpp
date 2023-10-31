@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string.h>
 #include "xcamera.h"
-#include "enumerate.h"
+// #include "enumerate.h"
 
 using namespace XEMA;
 
@@ -15,20 +15,20 @@ int main()
 
 	//更新相机设备列表
 	int camera_num = 0;
-	ret_code = DfUpdateDeviceList(camera_num);
-	if (0 != ret_code || 0 == camera_num)
-	{
-		return -1;
-	}
+	// ret_code = DfUpdateDeviceList(camera_num);
+	// if (0 != ret_code || 0 == camera_num)
+	// {
+	// 	return -1;
+	// }
 
-	DeviceBaseInfo* pBaseinfo = (DeviceBaseInfo*)malloc(sizeof(DeviceBaseInfo) * camera_num);
-	int n_size = camera_num * sizeof(DeviceBaseInfo);
+	// DeviceBaseInfo* pBaseinfo = (DeviceBaseInfo*)malloc(sizeof(DeviceBaseInfo) * camera_num);
+	// int n_size = camera_num * sizeof(DeviceBaseInfo);
 	//获取设备信息
-	ret_code = DfGetAllDeviceBaseInfo(pBaseinfo, &n_size);
-	for (int i = 0; i < camera_num; i++)
-	{
-		std::cout << "mac: " << pBaseinfo[i].mac << "  ip: " << pBaseinfo[i].ip << std::endl;
-	}
+	// ret_code = DfGetAllDeviceBaseInfo(pBaseinfo, &n_size);
+	// for (int i = 0; i < camera_num; i++)
+	// {
+	// 	std::cout << "mac: " << pBaseinfo[i].mac << "  ip: " << pBaseinfo[i].ip << std::endl;
+	// }
 	 
  
 	//创建相机
@@ -41,8 +41,8 @@ int main()
 
 
 	//连接相机 
-	ret_code = p_camera->connect(pBaseinfo[0].ip);
-	//ret_code = p_camera->connect("192.168.100.25");
+	// ret_code = p_camera->connect(pBaseinfo[0].ip);
+	ret_code = p_camera->connect("172.20.33.3");
 
 	int width = 0, height = 0;
 	int channels = 1;
@@ -354,7 +354,7 @@ int main()
 	free(height_map_data);
 	free(timestamp_data); 
 
-	p_camera->disconnect("192.168.100.132");
+	p_camera->disconnect("172.20.33.3");
 	 
 	destroyXCamera(p_camera);
 	  
